@@ -1,10 +1,10 @@
 package pl_bitset
 
-type bitset interface {
-	uint8 | uint16 | uint32 | uint64 | uint
-}
+import (
+	"golang.org/x/exp/constraints"
+)
 
-type BitSet[B bitset] struct {
+type BitSet[B constraints.Unsigned] struct {
 	set B
 }
 
