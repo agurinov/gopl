@@ -1,6 +1,8 @@
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
+# github.com/kr/text v0.2.0
+## explicit
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
@@ -8,6 +10,10 @@ github.com/pmezard/go-difflib/difflib
 ## explicit; go 1.13
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
+# go.uber.org/goleak v1.2.0
+## explicit; go 1.18
+go.uber.org/goleak
+go.uber.org/goleak/internal/stack
 # golang.org/x/exp v0.0.0-20221002003631-540bb7301a08
 ## explicit; go 1.18
 golang.org/x/exp/constraints

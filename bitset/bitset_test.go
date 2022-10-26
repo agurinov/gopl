@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	pl_bitset "github.com/agurinov/gopl.git/bitset"
+	pl_testing "github.com/agurinov/gopl.git/testing"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 )
 
 func TestBitSet_Set(t *testing.T) {
-	t.Parallel()
+	pl_testing.Init(t)
 
 	bitset := pl_bitset.BitSet[uint8]{}
 
@@ -30,7 +31,7 @@ func TestBitSet_Set(t *testing.T) {
 }
 
 func TestBitSet_Clear(t *testing.T) {
-	t.Parallel()
+	pl_testing.Init(t)
 
 	bitset := pl_bitset.BitSet[uint32]{}
 
@@ -46,7 +47,7 @@ func TestBitSet_Clear(t *testing.T) {
 }
 
 func TestBitSet_Toggle(t *testing.T) {
-	t.Parallel()
+	pl_testing.Init(t)
 
 	bitset := pl_bitset.BitSet[uint]{}
 

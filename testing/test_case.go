@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	_ "go.uber.org/goleak"
 
 	pl_bitset "github.com/agurinov/gopl.git/bitset"
 )
@@ -18,6 +19,13 @@ type TestCase struct {
 
 func (tc TestCase) Init(t *testing.T) {
 	t.Helper()
+
+	cleanup := func() {
+		// TODO(a.gurinov): deal with TestMain func
+		// it doesn't work with parallel tests
+		// goleak.VerifyNone(t)
+	}
+	t.Cleanup(cleanup)
 
 	var (
 		needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
@@ -49,4 +57,9 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 	if asErr := tc.MustFailAsErr; asErr != nil {
 		require.ErrorAs(t, err, asErr, ErrViolationAs)
 	}
+}
+
+func Init(t *testing.T) {
+	tc := TestCase{}
+	tc.Init(t)
 }
