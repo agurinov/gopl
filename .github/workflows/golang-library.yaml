@@ -1,0 +1,33 @@
+---
+run-name: 'Golang library jobs'
+
+on:
+  push:
+  workflow_call:
+
+jobs:
+  code-quality:
+    name: 'go${{ matrix.go-version }} | gomake ${{ matrix.gomake-target }}'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        go-version: ['1.18.7', '1.19.2']
+        gomake-target: ['lint', 'go_test']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: agurinov/pipelines/github/actions/setup-dotfiles@main
+        with:
+          clone-path: .dotfiles
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      - run: make --include-dir=~/.make --no-print-directory toolset-ci
+        env:
+          GO: /opt/hostedtoolcache/go/${{ matrix.go-version }}/x64/bin/go
+          BINDIR: ${HOME}/go/bin
+        working-directory: .dotfiles/golang
+      - run: make --include-dir=~/.make --no-print-directory -f ~/.make/golang.mk ${{ matrix.gomake-target }}
+...
