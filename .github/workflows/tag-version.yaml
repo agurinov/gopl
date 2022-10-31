@@ -1,11 +1,16 @@
 ---
+name: 'Bump tag version'
 run-name: 'Bump tag version'
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - 'Golang library jobs'
     branches:
       - master
       - main
+    types:
+      - completed
 
 jobs:
   tag-version:
