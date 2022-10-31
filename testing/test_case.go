@@ -27,14 +27,15 @@ func (tc TestCase) Init(t *testing.T) {
 	}
 	t.Cleanup(cleanup)
 
+	//nolint:gofumpt
 	var (
-		needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
+		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
 		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL)
 	)
 
-	if needDotEnv {
-		// require.NoError(t, dotenv.LoadOnce())
-	}
+	// if needDotEnv {
+	// 	require.NoError(t, dotenv.LoadOnce())
+	// }
 
 	if needParallel {
 		t.Parallel()
@@ -60,6 +61,8 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 }
 
 func Init(t *testing.T) {
+	t.Helper()
+
 	tc := TestCase{}
 	tc.Init(t)
 }

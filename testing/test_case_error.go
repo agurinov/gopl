@@ -1,14 +1,14 @@
 package pl_testing
 
-type TestCaseErrorViolation struct {
+type TestCaseViolationError struct {
 	Condition string
 }
 
 var (
-	ErrViolationIs = TestCaseErrorViolation{Condition: "Is"}
-	ErrViolationAs = TestCaseErrorViolation{Condition: "As"}
+	ErrViolationIs = TestCaseViolationError{Condition: "Is"}
+	ErrViolationAs = TestCaseViolationError{Condition: "As"}
 )
 
-func (e TestCaseErrorViolation) Error() string {
+func (e TestCaseViolationError) Error() string {
 	return "test case error violates " + e.Condition + " condition"
 }

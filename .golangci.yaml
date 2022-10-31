@@ -341,7 +341,6 @@ linters-settings:
       - NOTE
       - OPTIMIZE  # marks code that should be optimized before merging
       - HACK      # marks hack-arounds that should be removed before merging
-      - TODO      # explains shortcomings that would be nice to address
       - FIXME
       - BUG
       - XXX       # suggests a danger or hazard that maintenance programmers must be aware of
@@ -851,10 +850,6 @@ issues:
         - gosec
         - govet
         - revive
-
-    # False positive: https://github.com/kunwardeep/paralleltest/issues/8
-    - text: 'does not use range value in test Run'
-      linters:
         - paralleltest
 
     # Exclude known linters from partially hard-vendored code,
