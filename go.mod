@@ -3,6 +3,7 @@ module github.com/agurinov/gopl.git
 go 1.19
 
 require (
+	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/goleak v1.2.0
 	golang.org/x/exp v0.0.0-20221002003631-540bb7301a08
