@@ -4,12 +4,15 @@ package pl_envvars
 
 import (
 	"io"
+	"net"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type variable interface {
-	string | bool | int | time.Duration
+	string | bool | int | time.Duration | uuid.UUID | net.IP
 }
 
 type Variable[V variable] struct {
@@ -72,5 +75,19 @@ func Duration(key string) Variable[time.Duration] {
 	return Variable[time.Duration]{
 		key:    key,
 		mapper: toDurationMapper,
+	}
+}
+
+func UUID(key string) Variable[uuid.UUID] {
+	return Variable[uuid.UUID]{
+		key:    key,
+		mapper: toUUIDMapper,
+	}
+}
+
+func IP(key string) Variable[net.IP] {
+	return Variable[net.IP]{
+		key:    key,
+		mapper: toIPMapper,
 	}
 }
