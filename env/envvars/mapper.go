@@ -3,6 +3,7 @@ package pl_envvars
 import (
 	"io"
 	"net"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -23,5 +24,13 @@ var (
 		}
 
 		return ip, nil
+	}
+	toURLMapper = func(s string) (url.URL, error) {
+		urlPtr, err := url.Parse(s)
+		if err != nil {
+			return url.URL{}, err
+		}
+
+		return *urlPtr, nil
 	}
 )
