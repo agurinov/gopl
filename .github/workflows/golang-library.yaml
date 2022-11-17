@@ -26,6 +26,7 @@ jobs:
       - run: make --include-dir=~/.make --no-print-directory toolset-ci
         env:
           GO: /opt/hostedtoolcache/go/${{ matrix.go-version }}/x64/bin/go
+          GO_VERSION: ${{ matrix.go-version }}
           BINDIR: ${HOME}/go/bin
         working-directory: .dotfiles/golang
       - run: make --include-dir=~/.make --no-print-directory -f ~/.make/golang.mk ${{ matrix.gomake-target }}

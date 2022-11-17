@@ -51,6 +51,8 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 		return
 	}
 
+	require.Error(t, err)
+
 	if isErr := tc.MustFailIsErr; isErr != nil {
 		require.ErrorIs(t, err, isErr, ErrViolationIs)
 	}

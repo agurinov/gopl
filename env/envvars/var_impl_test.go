@@ -6,6 +6,7 @@ package pl_envvars_test
 
 import (
 	"net"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -17,7 +18,7 @@ import (
 	pl_testing "github.com/agurinov/gopl.git/testing"
 )
 
-func TestVariableString_Store(t *testing.T) {
+func TestVariableStore_String(t *testing.T) {
 	pl_testing.Init(t)
 
 	require.NoError(t, os.Setenv("STRING_VALID", "foobar"))
@@ -57,7 +58,7 @@ func TestVariableString_Store(t *testing.T) {
 	}
 }
 
-func TestVariableBool_Store(t *testing.T) {
+func TestVariableStore_Bool(t *testing.T) {
 	pl_testing.Init(t)
 
 	require.NoError(t, os.Setenv("BOOL_VALID", "true"))
@@ -104,7 +105,7 @@ func TestVariableBool_Store(t *testing.T) {
 	}
 }
 
-func TestVariableInt_Store(t *testing.T) {
+func TestVariableStore_Int(t *testing.T) {
 	pl_testing.Init(t)
 
 	require.NoError(t, os.Setenv("INT_VALID", "-100500"))
@@ -151,7 +152,7 @@ func TestVariableInt_Store(t *testing.T) {
 	}
 }
 
-func TestVariableDuration_Store(t *testing.T) {
+func TestVariableStore_Duration(t *testing.T) {
 	pl_testing.Init(t)
 
 	require.NoError(t, os.Setenv("DURATION_VALID", "1h2m30s"))
@@ -198,7 +199,7 @@ func TestVariableDuration_Store(t *testing.T) {
 	}
 }
 
-func TestVariableUUID_Store(t *testing.T) {
+func TestVariableStore_UUID(t *testing.T) {
 	pl_testing.Init(t)
 
 	require.NoError(t, os.Setenv("UUID_VALID", "711835ae-613e-4cb9-9215-f3c6a8688676"))
@@ -245,7 +246,7 @@ func TestVariableUUID_Store(t *testing.T) {
 	}
 }
 
-func TestVariableIP_Store(t *testing.T) {
+func TestVariableStore_IP(t *testing.T) {
 	pl_testing.Init(t)
 
 	require.NoError(t, os.Setenv("IP_V4_VALID", "192.168.0.1"))
@@ -286,6 +287,57 @@ func TestVariableIP_Store(t *testing.T) {
 			tc.Init(t)
 
 			var stored net.IP
+
+			err := tc.inputVar.Store(&stored)
+			tc.CheckError(t, err)
+
+			if !tc.MustFail {
+				require.Equal(t, tc.expectedStored, stored)
+			}
+		})
+	}
+}
+
+func TestVariableStore_URL(t *testing.T) {
+	pl_testing.Init(t)
+
+	require.NoError(t, os.Setenv("URL_VALID", "http://domain.com/foo/bar"))
+	require.NoError(t, os.Setenv("URL_INVALID", "://$? this is not an URL ://"))
+
+	cases := map[string]struct {
+		inputVar       pl_envvars.Variable[url.URL]
+		expectedStored url.URL
+		pl_testing.TestCase
+	}{
+		"nonexistence env var key": {
+			inputVar: pl_envvars.URL("URL_NON_EXIST"),
+			TestCase: pl_testing.TestCase{
+				MustFail: true,
+			},
+		},
+		"invalid value": {
+			inputVar: pl_envvars.URL("URL_INVALID"),
+			TestCase: pl_testing.TestCase{
+				MustFail: true,
+			},
+		},
+		"success": {
+			inputVar: pl_envvars.URL("URL_VALID"),
+			expectedStored: url.URL{
+				Scheme: "http",
+				Host:   "domain.com",
+				Path:   "/foo/bar",
+			},
+		},
+	}
+
+	for name, tc := range cases {
+		name, tc := name, tc
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			var stored url.URL
 
 			err := tc.inputVar.Store(&stored)
 			tc.CheckError(t, err)
