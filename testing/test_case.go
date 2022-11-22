@@ -7,6 +7,7 @@ import (
 	_ "go.uber.org/goleak"
 
 	pl_bitset "github.com/agurinov/gopl.git/bitset"
+	pl_envvars "github.com/agurinov/gopl.git/env/envvars"
 )
 
 type TestCase struct {
@@ -14,11 +15,27 @@ type TestCase struct {
 	MustFailAsErr error
 	MustFail      bool
 
+	Skip       bool
+	Debuggable bool
+
 	flags pl_bitset.BitSet[TestCaseOption]
 }
 
 func (tc TestCase) Init(t *testing.T) {
 	t.Helper()
+
+	var (
+		needDebug    = pl_envvars.GDebug.Present()
+		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL)
+		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
+	)
+
+	switch {
+	case tc.Skip:
+		t.Skip()
+	case needDebug && !tc.Debuggable:
+		t.Skip()
+	}
 
 	cleanup := func() {
 		// TODO(a.gurinov): deal with TestMain func
@@ -26,12 +43,6 @@ func (tc TestCase) Init(t *testing.T) {
 		// goleak.VerifyNone(t)
 	}
 	t.Cleanup(cleanup)
-
-	//nolint:gofumpt
-	var (
-		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
-		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL)
-	)
 
 	// if needDotEnv {
 	// 	require.NoError(t, dotenv.LoadOnce())

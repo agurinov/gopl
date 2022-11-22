@@ -10,27 +10,33 @@ type impl[V variable] struct {
 	key    string
 }
 
-func (v impl[V]) String() string {
-	return v.key
+func (i impl[V]) String() string {
+	return i.key
 }
 
-func (v impl[V]) Value() (V, error) {
+func (i impl[V]) Present() bool {
+	_, present := os.LookupEnv(i.String())
+
+	return present
+}
+
+func (i impl[V]) Value() (V, error) {
 	var typed V
 
-	value, exists := os.LookupEnv(v.String())
-	if !exists {
+	value, present := os.LookupEnv(i.String())
+	if !present {
 		return typed, io.EOF
 	}
 
-	if v.mapper == nil {
+	if i.mapper == nil {
 		return typed, io.EOF
 	}
 
-	return v.mapper(value)
+	return i.mapper(value)
 }
 
-func (v impl[V]) Store(dst *V) error {
-	typed, err := v.Value()
+func (i impl[V]) Store(dst *V) error {
+	typed, err := i.Value()
 	if err != nil {
 		return err
 	}

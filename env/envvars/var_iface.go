@@ -16,6 +16,7 @@ type variable interface {
 }
 
 type Variable[V variable] interface {
+	Present() bool
 	Value() (V, error)
 	Store(*V) error
 	fmt.Stringer

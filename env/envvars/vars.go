@@ -20,3 +20,5 @@ var (
 	KafkaOffset        = Int("KFK_OFFSET")
 	KafkaReadTimeout   = Duration("KFK_READ_TIMEOUT")
 )
+
+var GDebug = Bool("G_DEBUG")
