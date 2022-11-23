@@ -32,9 +32,9 @@ func (tc TestCase) Init(t *testing.T) {
 
 	switch {
 	case tc.Skip:
-		t.Skip()
+		t.Skip("tc skipped: skipped flag")
 	case needDebug && !tc.Debuggable:
-		t.Skip()
+		t.Skip("tc skipped: not debuggable during G_DEBUG")
 	}
 
 	cleanup := func() {
