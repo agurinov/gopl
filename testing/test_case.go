@@ -11,6 +11,8 @@ import (
 )
 
 type TestCase struct {
+	Description string
+
 	MustFailIsErr error
 	MustFailAsErr error
 	MustFail      bool
