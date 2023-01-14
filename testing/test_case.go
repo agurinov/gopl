@@ -71,6 +71,8 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 	if asErr := tc.MustFailAsErr; asErr != nil {
 		require.ErrorAs(t, err, asErr, ErrViolationAs)
 	}
+
+	t.Skip("tc skipped: checks after CheckError() with MustFail=true are not relevant")
 }
 
 func Init(t *testing.T) {
