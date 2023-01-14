@@ -49,11 +49,10 @@ func TestVariableStore_String(t *testing.T) {
 			var stored string
 
 			err := tc.inputVar.Store(&stored)
+
 			tc.CheckError(t, err)
 
-			if !tc.MustFail {
-				require.Equal(t, tc.expectedStored, stored)
-			}
+			require.Equal(t, tc.expectedStored, stored)
 		})
 	}
 }
@@ -96,11 +95,10 @@ func TestVariableStore_Bool(t *testing.T) {
 			var stored bool
 
 			err := tc.inputVar.Store(&stored)
+
 			tc.CheckError(t, err)
 
-			if !tc.MustFail {
-				require.Equal(t, tc.expectedStored, stored)
-			}
+			require.Equal(t, tc.expectedStored, stored)
 		})
 	}
 }
@@ -143,11 +141,10 @@ func TestVariableStore_Int(t *testing.T) {
 			var stored int
 
 			err := tc.inputVar.Store(&stored)
+
 			tc.CheckError(t, err)
 
-			if !tc.MustFail {
-				require.Equal(t, tc.expectedStored, stored)
-			}
+			require.Equal(t, tc.expectedStored, stored)
 		})
 	}
 }
@@ -190,11 +187,10 @@ func TestVariableStore_Duration(t *testing.T) {
 			var stored time.Duration
 
 			err := tc.inputVar.Store(&stored)
+
 			tc.CheckError(t, err)
 
-			if !tc.MustFail {
-				require.Equal(t, tc.expectedStored, stored)
-			}
+			require.Equal(t, tc.expectedStored, stored)
 		})
 	}
 }
@@ -237,11 +233,10 @@ func TestVariableStore_UUID(t *testing.T) {
 			var stored uuid.UUID
 
 			err := tc.inputVar.Store(&stored)
+
 			tc.CheckError(t, err)
 
-			if !tc.MustFail {
-				require.Equal(t, tc.expectedStored, stored)
-			}
+			require.Equal(t, tc.expectedStored, stored)
 		})
 	}
 }
@@ -289,11 +284,10 @@ func TestVariableStore_IP(t *testing.T) {
 			var stored net.IP
 
 			err := tc.inputVar.Store(&stored)
+
 			tc.CheckError(t, err)
 
-			if !tc.MustFail {
-				require.Equal(t, tc.expectedStored, stored)
-			}
+			require.Equal(t, tc.expectedStored, stored)
 		})
 	}
 }
@@ -340,11 +334,10 @@ func TestVariableStore_URL(t *testing.T) {
 			var stored url.URL
 
 			err := tc.inputVar.Store(&stored)
+
 			tc.CheckError(t, err)
 
-			if !tc.MustFail {
-				require.Equal(t, tc.expectedStored, stored)
-			}
+			require.Equal(t, tc.expectedStored, stored)
 		})
 	}
 }
