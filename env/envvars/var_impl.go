@@ -23,6 +23,7 @@ func (i impl[V]) Present() bool {
 func (i impl[V]) Value() (V, error) {
 	var typed V
 
+	// TODO(a.gurinov): Fix errors
 	value, present := os.LookupEnv(i.String())
 	if !present {
 		return typed, io.EOF
