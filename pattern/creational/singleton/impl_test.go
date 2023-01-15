@@ -1,6 +1,6 @@
-//go:build test_unit
+//go:build ignore
 
-package pl_factory_test
+package creational_test
 
 import (
 	"io"
@@ -8,20 +8,16 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pl_factory "github.com/agurinov/gopl.git/factory"
+	"github.com/agurinov/gopl.git/pattern/creational"
 	pl_testing "github.com/agurinov/gopl.git/testing"
 )
 
-type (
-	MyStructFactory = pl_factory.Factory[MyStruct]
-)
-
 var (
-	successFactory MyStructFactory = pl_factory.New[MyStruct](successOptions...)
-	failFactory    MyStructFactory = pl_factory.New[MyStruct](failOptions...)
+	successSingleton MyStructFactory = creational.NewSingleton[MyStruct](successOptions...)
+	failSingleton    MyStructFactory = creational.NewSingleton[MyStruct](failOptions...)
 )
 
-func TestFactory_Base_NewObject(t *testing.T) {
+func TestFactory_Singleton_NewObject(t *testing.T) {
 	pl_testing.Init(t)
 
 	cases := map[string]struct {
@@ -30,15 +26,15 @@ func TestFactory_Base_NewObject(t *testing.T) {
 		pl_testing.TestCase
 	}{
 		"fail": {
-			inputFactory: failFactory,
+			inputFactory: failSingleton,
 			TestCase: pl_testing.TestCase{
 				MustFail:      true,
 				MustFailIsErr: io.EOF,
 			},
 		},
 		"success": {
-			inputFactory:   successFactory,
-			expectedStruct: MyStruct{i: 100500, s: "foobar"},
+			inputFactory:   successSingleton,
+			expectedStruct: MyStruct{i: 100500, s: "foobar", w: usefulWriter},
 		},
 	}
 
@@ -56,7 +52,8 @@ func TestFactory_Base_NewObject(t *testing.T) {
 
 			require.Equal(t, tc.expectedStruct, Struct1)
 			require.Equal(t, tc.expectedStruct, Struct2)
-			require.NotSame(t, Struct1, Struct2)
+			// TODO(a.gurinov): fix this behaviour
+			require.Same(t, Struct1, Struct2)
 		})
 	}
 }

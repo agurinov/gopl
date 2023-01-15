@@ -1,4 +1,6 @@
-package pl_factory
+//go:build ignore
+
+package creational
 
 import (
 	"sync"
