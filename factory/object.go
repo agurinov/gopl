@@ -4,11 +4,6 @@ type object interface {
 	any
 }
 
-type (
-	ObjectConstructor[O object]     func(...Option[O]) (O, error)
-	ObjectConstructorMust[O object] func(...Option[O]) O
-)
-
 func NewObject[O object](opts ...Option[O]) (O, error) {
 	var obj O
 
