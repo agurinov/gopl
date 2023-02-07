@@ -13,10 +13,6 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type (
-	yamlDocument yaml.Node
-)
-
 // TODO(a.gurinov): Deal with messages below instead of msgAndArgs...
 // "actual content of YAML document doesn't match expected one; i: %d; %s", i, userMsg,
 // "unexpected error while decoding YAML document; file: %s; i: %d; %s",
@@ -63,12 +59,12 @@ func YAMLFilesEq(t *testing.T, expectedFilepath string, actualFilepath string, m
 	)
 }
 
-func decodeYAMLDocuments(t *testing.T, content string, msgAndArgs ...any) []yamlDocument {
+func decodeYAMLDocuments(t *testing.T, content string, msgAndArgs ...any) []yaml.Node {
 	t.Helper()
 
 	var (
-		doc     yamlDocument
-		docs    []yamlDocument
+		doc     yaml.Node
+		docs    []yaml.Node
 		decoder = yaml.NewDecoder(strings.NewReader(content))
 	)
 
