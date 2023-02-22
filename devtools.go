@@ -1,3 +1,3 @@
-//go:build devtools
+//go:build ignore
 
-package devtools
+package main
