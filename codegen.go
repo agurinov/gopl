@@ -1,8 +1,6 @@
-//go:build ignore
+//go:build neverbuild
 
-//go:generate echo Look at codegen.go
 package main
 
-//go:generate echo foo
-//go:generate echo bar
-//go:generate echo baz
+// Define generate aliases (long shared commands)
+//go:generate -command stringer go run vendor/golang.org/x/tools/cmd/stringer/stringer.go
