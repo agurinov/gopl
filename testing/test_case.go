@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	_ "go.uber.org/goleak"
 
 	pl_bitset "github.com/agurinov/gopl.git/bitset"
 	pl_envvars "github.com/agurinov/gopl.git/env/envvars"
