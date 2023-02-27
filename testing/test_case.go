@@ -25,7 +25,7 @@ func (tc TestCase) Init(t *testing.T) {
 
 	var (
 		needDebug    = pl_envvars.GDebug.Present()
-		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL)
+		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL) && !needDebug
 		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
 	)
 
@@ -40,6 +40,7 @@ func (tc TestCase) Init(t *testing.T) {
 		// TODO(a.gurinov): deal with TestMain func
 		// it doesn't work with parallel tests
 		// goleak.VerifyNone(t)
+		// Maybe bind it to needDebug var?
 	}
 	t.Cleanup(cleanup)
 
@@ -77,6 +78,8 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 func Init(t *testing.T) {
 	t.Helper()
 
-	tc := TestCase{}
+	tc := TestCase{
+		Debuggable: true,
+	}
 	tc.Init(t)
 }

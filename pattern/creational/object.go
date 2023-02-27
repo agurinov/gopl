@@ -27,6 +27,9 @@ func ConstructObject[O Object](obj O, opts ...Option[O]) (O, error) {
 		}
 	}
 
+	// TODO(a.gurinov): object must be with .Validate() method
+	// Validate final object here
+
 	return obj, nil
 }
 
