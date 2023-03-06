@@ -14,7 +14,7 @@ import (
 	pl_testing "github.com/agurinov/gopl.git/testing"
 )
 
-func TestBackoff_Concurrent(t *testing.T) {
+func TestBackoff_Concurrency(t *testing.T) {
 	pl_testing.Init(t)
 
 	var (
@@ -25,8 +25,10 @@ func TestBackoff_Concurrent(t *testing.T) {
 	s, err := backoff.NewExponentialStrategy(
 		backoff.WithMinDelay(1*time.Millisecond),
 		backoff.WithMaxDelay(10*time.Millisecond),
+		backoff.WithJitter(0.0),
 	)
 	require.NoError(t, err)
+	require.NotNil(t, s)
 
 	b, err := backoff.New(
 		backoff.WithName("foobar"),
@@ -34,6 +36,7 @@ func TestBackoff_Concurrent(t *testing.T) {
 		backoff.WithStrategy(s),
 	)
 	require.NoError(t, err)
+	require.NotNil(t, b)
 
 	doValidRetries := func(ctx context.Context, b *backoff.Backoff) {
 		var wg sync.WaitGroup
@@ -44,9 +47,8 @@ func TestBackoff_Concurrent(t *testing.T) {
 			go func() {
 				defer wg.Done()
 
-				require.NoError(t,
-					b.Wait(ctx),
-				)
+				_, err := b.Wait(ctx)
+				require.NoError(t, err)
 			}()
 		}
 
@@ -57,13 +59,15 @@ func TestBackoff_Concurrent(t *testing.T) {
 	doValidRetries(ctx, b)
 
 	// Next retry in out of range
+	stat, err := b.Wait(ctx)
 	require.ErrorIs(t,
-		b.Wait(ctx),
+		err,
 		backoff.RetryLimitError{
 			BackoffName: "foobar",
 			MaxRetries:  uint32(maxRetries),
 		},
 	)
+	require.Equal(t, backoff.EmptyStat, stat)
 
 	// Reset and repeat
 	b.Reset()
@@ -78,6 +82,7 @@ func TestBackoff_Context(t *testing.T) {
 		backoff.WithMaxDelay(10*time.Hour),
 	)
 	require.NoError(t, err)
+	require.NotNil(t, s)
 
 	b, err := backoff.New(
 		backoff.WithName("lolkek"),
@@ -85,6 +90,7 @@ func TestBackoff_Context(t *testing.T) {
 		backoff.WithStrategy(s),
 	)
 	require.NoError(t, err)
+	require.NotNil(t, b)
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
@@ -92,8 +98,10 @@ func TestBackoff_Context(t *testing.T) {
 	)
 	t.Cleanup(cancel)
 
+	stat, err := b.Wait(ctx)
 	require.ErrorIs(t,
-		b.Wait(ctx),
+		err,
 		context.DeadlineExceeded,
 	)
+	require.Equal(t, backoff.EmptyStat, stat)
 }

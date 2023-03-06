@@ -10,7 +10,6 @@ import (
 	pl_strings "github.com/agurinov/gopl.git/strings"
 )
 
-// TODO(a.gurinov): tests
 type Backoff struct {
 	strategy   Strategy
 	name       string
@@ -18,13 +17,13 @@ type Backoff struct {
 	maxRetries uint32 `validate:"min=1"`
 }
 
-func (b *Backoff) Wait(ctx context.Context) error {
+func (b *Backoff) Wait(ctx context.Context) (Stat, error) {
 	// Register new retry
 	retries := atomic.AddUint32(&b.retries, 1)
 
 	// Check limit of allowed retries
 	if retries > b.maxRetries {
-		return RetryLimitError{
+		return EmptyStat, RetryLimitError{
 			BackoffName: b.name,
 			MaxRetries:  b.maxRetries,
 		}
@@ -34,9 +33,13 @@ func (b *Backoff) Wait(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		return ctx.Err()
+		return EmptyStat, ctx.Err()
 	case <-time.After(delay):
-		return nil
+		return Stat{
+			Duration:   delay,
+			RetryIndex: retries,
+			MaxRetries: b.maxRetries,
+		}, nil
 	}
 }
 
