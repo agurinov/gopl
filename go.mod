@@ -1,4 +1,4 @@
-module github.com/agurinov/gopl.git
+module github.com/agurinov/gopl
 
 go 1.18
 

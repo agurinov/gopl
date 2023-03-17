@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	c "github.com/agurinov/gopl.git/pattern/creational"
-	pl_testing "github.com/agurinov/gopl.git/testing"
+	c "github.com/agurinov/gopl/pattern/creational"
+	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 var (

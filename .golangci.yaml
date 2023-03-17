@@ -201,7 +201,7 @@ linters-settings:
     sections:
       - standard # Captures all standard packages if they do not match another section.
       - default # Contains all imports that could not be matched to another section type.
-      - prefix(github.com/agurinov/gopl.git) # Custom section: groups all imports with the specified Prefix.
+      - prefix(github.com/agurinov/gopl) # Custom section: groups all imports with the specified Prefix.
       # - comment(your text here) # Prints the specified indented comment.
     # Separators that should be present between sections.
     # Default: ["newLine"]

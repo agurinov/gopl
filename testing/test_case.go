@@ -5,8 +5,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pl_bitset "github.com/agurinov/gopl.git/bitset"
-	pl_envvars "github.com/agurinov/gopl.git/env/envvars"
+	pl_bitset "github.com/agurinov/gopl/bitset"
+	pl_envvars "github.com/agurinov/gopl/env/envvars"
 )
 
 type TestCase struct {

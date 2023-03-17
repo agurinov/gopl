@@ -1,7 +1,7 @@
 package factory
 
 import (
-	c "github.com/agurinov/gopl.git/pattern/creational"
+	c "github.com/agurinov/gopl/pattern/creational"
 )
 
 func WithInitialObject[O c.Object](initial O) c.Option[impl[O]] {

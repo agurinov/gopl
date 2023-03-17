@@ -14,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	pl_envvars "github.com/agurinov/gopl.git/env/envvars"
-	pl_testing "github.com/agurinov/gopl.git/testing"
+	pl_envvars "github.com/agurinov/gopl/env/envvars"
+	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 func TestVariableStore_String(t *testing.T) {

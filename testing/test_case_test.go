@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pl_testing "github.com/agurinov/gopl.git/testing"
+	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 func TestCase_Init_CheckError(t *testing.T) {
