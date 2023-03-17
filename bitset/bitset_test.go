@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pl_bitset "github.com/agurinov/gopl.git/bitset"
-	pl_testing "github.com/agurinov/gopl.git/testing"
+	pl_bitset "github.com/agurinov/gopl/bitset"
+	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 const (

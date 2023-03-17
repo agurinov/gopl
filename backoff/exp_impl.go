@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	c "github.com/agurinov/gopl.git/pattern/creational"
+	c "github.com/agurinov/gopl/pattern/creational"
 )
 
 // https://en.wikipedia.org/wiki/Exponential_backoff

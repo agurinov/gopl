@@ -8,9 +8,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	c "github.com/agurinov/gopl.git/pattern/creational"
-	"github.com/agurinov/gopl.git/pattern/creational/factory"
-	pl_testing "github.com/agurinov/gopl.git/testing"
+	c "github.com/agurinov/gopl/pattern/creational"
+	"github.com/agurinov/gopl/pattern/creational/factory"
+	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 type (

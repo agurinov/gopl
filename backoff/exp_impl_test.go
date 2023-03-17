@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/agurinov/gopl.git/backoff"
-	pl_testing "github.com/agurinov/gopl.git/testing"
+	"github.com/agurinov/gopl/backoff"
+	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 func TestStrategy_Exponential_WithoutJitter(t *testing.T) {

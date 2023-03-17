@@ -1,7 +1,7 @@
 package factory
 
 import (
-	c "github.com/agurinov/gopl.git/pattern/creational"
+	c "github.com/agurinov/gopl/pattern/creational"
 )
 
 type impl[O c.Object] struct {

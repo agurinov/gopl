@@ -6,8 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	c "github.com/agurinov/gopl.git/pattern/creational"
-	pl_strings "github.com/agurinov/gopl.git/strings"
+	c "github.com/agurinov/gopl/pattern/creational"
+	pl_strings "github.com/agurinov/gopl/strings"
 )
 
 type Backoff struct {
