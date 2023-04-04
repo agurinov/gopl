@@ -121,11 +121,11 @@ linters-settings:
   errcheck:
     # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
     # default is false: such cases aren't reported by default.
-    check-type-assertions: false
+    check-type-assertions: true
 
     # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
     # default is false: such cases aren't reported by default.
-    check-blank: false
+    check-blank: true
 
     # [deprecated] comma-separated list of pairs of the form pkg:regex
     # the regex is used to ignore names within pkg. (default "fmt:.*").
@@ -237,15 +237,12 @@ linters-settings:
     # By default list of stable checks is used.
     enabled-checks:
       - nestingReduce
-      - unnamedResult
       - truncateCmp
 
     # Which checks should be disabled; can't be combined with 'enabled-checks'; default is empty
     disabled-checks:
       - regexpMust
       - ifElseChain
-      # TODO(a.gurinov): Keep in touch issue below
-      # https://github.com/golangci/golangci-lint/issues/2649#issue-1170906525
       - hugeParam
 
     # Enable multiple checks by tags, run `GL_DEBUG=gocritic golangci-lint run` to see all tags and checks.
@@ -379,8 +376,7 @@ linters-settings:
     # Allow local `replace` directives. Default is false.
     replace-local: false
     # List of allowed `replace` directives. Default is empty.
-    replace-allow-list:
-      - github.com/utrack/clay/v3
+    replace-allow-list: []
     # Allow to not explain why the version has been retracted in the `retract` directives. Default is false.
     retract-allow-no-explanation: false
     # Forbid the use of the `exclude` directives. Default is false.
@@ -545,7 +541,7 @@ linters-settings:
   lll:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
-    line-length: 320
+    line-length: 100
     # tab width in spaces. Default to 1.
     tab-width: 1
 
@@ -733,7 +729,6 @@ linters-settings:
     # Select the Go version to target.
     # Default: "1.13"
     # Deprecated: use the global `run.go` instead.
-    #
 
   varnamelen:
     # The longest distance, in source lines, that is being considered a "small scope." (defaults to 5)
@@ -844,13 +839,14 @@ issues:
     # Exclude some linters from running on tests files.
     - path: _test\.go
       linters:
+        - lll
         - funlen
         - gocyclo
-        - errcheck
         - dupl
         - gosec
         - govet
         - revive
+        - maintidx
         - paralleltest
 
     # Exclude known linters from partially hard-vendored code,
@@ -865,8 +861,11 @@ issues:
     #   linters:
     #     - staticcheck
 
-    # Exclude lll issues for long lines with go:generate
     - source: '^//go:generate '
+      linters:
+        - lll
+
+    - source: '// '
       linters:
         - lll
 
