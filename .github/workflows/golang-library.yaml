@@ -15,14 +15,14 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        go-version: ['1.18.10', '1.19.7', '1.20.2']
+        go-version: ['1.18.10', '1.19.8', '1.20.3']
         gomake-target: ['lint', 'go_test']
     steps:
       - uses: actions/checkout@v3
       - uses: agurinov/pipelines/github-actions/actions/setup-dotfiles@main
         with:
           token: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
       - run: make --include-dir=~/.make --no-print-directory toolset-ci
