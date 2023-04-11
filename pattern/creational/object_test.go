@@ -27,7 +27,11 @@ var (
 	recoveredMustNew = func(opts ...c.MyStructOption) (object c.MyStruct, err error) {
 		defer func() {
 			if r := recover(); r != nil {
-				err, _ = r.(error)
+				if recoveredErr, ok := r.(error); ok {
+					err = recoveredErr
+				} else {
+					panic(r)
+				}
 			}
 		}()
 
@@ -38,7 +42,11 @@ var (
 	recoveredMustNewAs = func(opts ...c.MyStructOption) (object c.MyInterface, err error) {
 		defer func() {
 			if r := recover(); r != nil {
-				err, _ = r.(error)
+				if recoveredErr, ok := r.(error); ok {
+					err = recoveredErr
+				} else {
+					panic(r)
+				}
 			}
 		}()
 
