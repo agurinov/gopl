@@ -11,11 +11,12 @@ import (
 
 type TestCase struct {
 	MustFailIsErr error
-	MustFailAsErr error
+	MustFailAsErr any
 	MustFail      bool
 
-	Skip       bool
-	Debuggable bool
+	Skip  bool
+	Debug bool
+	Fail  bool
 
 	flags pl_bitset.BitSet[TestCaseOption]
 }
@@ -32,8 +33,10 @@ func (tc TestCase) Init(t *testing.T) {
 	switch {
 	case tc.Skip:
 		t.Skip("tc skipped: explicit skip flag")
-	case needDebug && !tc.Debuggable:
+	case needDebug && !tc.Debug:
 		t.Skip("tc skipped: not debuggable during " + pl_envvars.GDebug.String())
+	case tc.Fail:
+		t.Fail()
 	}
 
 	cleanup := func() {
@@ -79,7 +82,7 @@ func Init(t *testing.T) {
 	t.Helper()
 
 	tc := TestCase{
-		Debuggable: true,
+		Debug: true,
 	}
 	tc.Init(t)
 }

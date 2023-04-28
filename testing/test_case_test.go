@@ -17,7 +17,9 @@ import (
 func TestCase_Init_CheckError(t *testing.T) {
 	pl_testing.Init(t)
 
-	require.NoError(t, os.Setenv("G_DEBUG", "true"))
+	require.NoError(t,
+		os.Setenv("G_DEBUG", "true"),
+	)
 
 	cases := map[string]struct {
 		err error
@@ -26,22 +28,22 @@ func TestCase_Init_CheckError(t *testing.T) {
 		"failed and skipped": {
 			err: io.EOF,
 			TestCase: pl_testing.TestCase{
-				Skip:       true,
-				Debuggable: true,
-				MustFail:   false,
+				Skip:     true,
+				Debug:    true,
+				MustFail: false,
 			},
 		},
 		"failed and skipped due to not debuggable": {
 			err: io.EOF,
 			TestCase: pl_testing.TestCase{
-				Debuggable: false,
-				MustFail:   false,
+				Debug:    false,
+				MustFail: false,
 			},
 		},
 		"failed and checked IS": {
 			err: io.EOF,
 			TestCase: pl_testing.TestCase{
-				Debuggable:    true,
+				Debug:         true,
 				MustFail:      true,
 				MustFailIsErr: io.EOF,
 			},
@@ -49,15 +51,15 @@ func TestCase_Init_CheckError(t *testing.T) {
 		"failed and checked AS": {
 			err: pl_testing.ErrViolationAs,
 			TestCase: pl_testing.TestCase{
-				Debuggable:    true,
+				Debug:         true,
 				MustFail:      true,
 				MustFailAsErr: &pl_testing.TestCaseViolationError{},
 			},
 		},
 		"success": {
 			TestCase: pl_testing.TestCase{
-				Debuggable: true,
-				MustFail:   false,
+				Debug:    true,
+				MustFail: false,
 			},
 		},
 	}
