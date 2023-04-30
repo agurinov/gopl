@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	pl_bitset "github.com/agurinov/gopl/bitset"
-	pl_envvars "github.com/agurinov/gopl/env/envvars"
+	"github.com/agurinov/gopl/env/envvars"
 )
 
 type TestCase struct {
@@ -25,7 +25,7 @@ func (tc TestCase) Init(t *testing.T) {
 	t.Helper()
 
 	var (
-		needDebug    = pl_envvars.GDebug.Present()
+		needDebug    = envvars.GDebug.Present()
 		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL) && !needDebug
 		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
 	)
@@ -34,7 +34,7 @@ func (tc TestCase) Init(t *testing.T) {
 	case tc.Skip:
 		t.Skip("tc skipped: explicit skip flag")
 	case needDebug && !tc.Debug:
-		t.Skip("tc skipped: not debuggable during " + pl_envvars.GDebug.String())
+		t.Skip("tc skipped: not debuggable during " + envvars.GDebug.String())
 	case tc.Fail:
 		t.Fail()
 	}

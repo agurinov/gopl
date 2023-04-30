@@ -1,4 +1,4 @@
-package pl_envvars
+package envvars
 
 var (
 	LogEnabled = Bool("LOG_ENABLED")
