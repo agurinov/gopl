@@ -78,11 +78,13 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 	t.Skip("tc skipped: checks after CheckError() with MustFail=true are not relevant")
 }
 
-func Init(t *testing.T) {
+func Init(t *testing.T) TestCase {
 	t.Helper()
 
 	tc := TestCase{
 		Debug: true,
 	}
 	tc.Init(t)
+
+	return tc
 }

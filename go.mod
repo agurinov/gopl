@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
+	github.com/ory/dockertest/v3 v3.10.0
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/exp v0.0.0-20221002003631-540bb7301a08
 	golang.org/x/tools v0.8.0
