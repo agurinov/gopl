@@ -1,4 +1,4 @@
-package pl_envvars
+package envvars
 
 import (
 	"io"

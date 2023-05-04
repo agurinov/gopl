@@ -6,16 +6,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	pl_bitset "github.com/agurinov/gopl/bitset"
-	pl_envvars "github.com/agurinov/gopl/env/envvars"
+	"github.com/agurinov/gopl/env/envvars"
 )
 
 type TestCase struct {
 	MustFailIsErr error
-	MustFailAsErr error
+	MustFailAsErr any
 	MustFail      bool
 
-	Skip       bool
-	Debuggable bool
+	Skip  bool
+	Debug bool
+	Fail  bool
 
 	flags pl_bitset.BitSet[TestCaseOption]
 }
@@ -24,7 +25,7 @@ func (tc TestCase) Init(t *testing.T) {
 	t.Helper()
 
 	var (
-		needDebug    = pl_envvars.GDebug.Present()
+		needDebug    = envvars.GDebug.Present()
 		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL) && !needDebug
 		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
 	)
@@ -32,8 +33,10 @@ func (tc TestCase) Init(t *testing.T) {
 	switch {
 	case tc.Skip:
 		t.Skip("tc skipped: explicit skip flag")
-	case needDebug && !tc.Debuggable:
-		t.Skip("tc skipped: not debuggable during " + pl_envvars.GDebug.String())
+	case needDebug && !tc.Debug:
+		t.Skip("tc skipped: not debuggable during " + envvars.GDebug.String())
+	case tc.Fail:
+		t.Fail()
 	}
 
 	cleanup := func() {
@@ -75,11 +78,13 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 	t.Skip("tc skipped: checks after CheckError() with MustFail=true are not relevant")
 }
 
-func Init(t *testing.T) {
+func Init(t *testing.T) TestCase {
 	t.Helper()
 
 	tc := TestCase{
-		Debuggable: true,
+		Debug: true,
 	}
 	tc.Init(t)
+
+	return tc
 }
