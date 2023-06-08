@@ -1,5 +1,3 @@
-//go:build test_unit
-
 // TODO(a.gurinov): Set vars via env file for test.
 
 package envvars_test

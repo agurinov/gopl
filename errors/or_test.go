@@ -1,5 +1,3 @@
-//go:build test_unit
-
 package errors_test
 
 import (
