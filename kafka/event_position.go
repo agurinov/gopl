@@ -2,6 +2,7 @@ package kafka
 
 import "fmt"
 
+// TODO(a.gurinov): offset constants (unknow earliest etc)
 const (
 	UknownPartition int32 = -1
 )
