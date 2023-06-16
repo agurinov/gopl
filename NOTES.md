@@ -11,12 +11,10 @@
 - https://www.ardanlabs.com/blog/2020/09/using-python-memory.html
 - https://github.com/ardanlabs/python-go/blob/master/py-in-mem/Makefile
 - https://www.netlify.com/blog/2021/03/18/tracking-down-a-cgo-crash-in-production/
-- cstr := (*C.char)(unsafe.Pointer(&var[0]))
 - https://docs.python.org/3.8/c-api/init.html?highlight=py_finalize#c.Py_FinalizeEx
 - https://python-list.python.narkive.com/rJT7Xh3Q/when-embedding-python-how-do-you-redirect-stdout-stderr
 - https://www.datadoghq.com/blog/engineering/cgo-and-python/#the-dreadful-global-interpreter-lock
 - https://dev.pippi.im/writing/cgo-and-python/
-
 - https://github.com/go-python/cpy3
 - https://github.com/TykTechnologies/tyk/blob/master/dlpython/binding.go
 - https://github.com/kluctl/go-embed-python
@@ -33,9 +31,11 @@
 *DIP:*
 - https://go.dev/blog/wire
 - https://github.com/google/wire/blob/main/_tutorial/README.md
+- https://nohowtech.com/posts/dependency-injection-2023-04-18/
 
 *Migrations and SQL:*
 - https://github.com/pressly/goose
+- https://github.com/amacneil/dbmate
 
 *JSON/Protobuf:*
 - https://www.cockroachlabs.com/blog/high-performance-json-parsing/
@@ -48,3 +48,19 @@
 
 *ldflags/compile:*
 - https://levelup.gitconnected.com/a-better-way-than-ldflags-to-add-a-build-version-to-your-go-binaries-2258ce419d2d
+
+*finite state machine:*
+- https://kyleshevlin.com/guidelines-for-state-machines-and-xstate
+- https://github.com/looplab/fsm
+- https://tproger.ru/translations/finite-state-machines-theory-and-implementation/
+- [] Think about proper StateMap data structure
+
+*ratelimiter:*
+- https://blog.bytebytego.com/p/rate-limiting-fundamentals?utm_source=substack&utm_medium=email
+
+*Patterns / SAGA:*
+- https://dormoshe.io/trending-news/saga-pattern-made-easy-4j42-62197?utm_source=twitter&utm_campaign=twitter
+
+*testing tools:*
+- https://evilmartians.com/chronicles/go-integration-testing-with-courage-and-coverage
+- https://github.com/jinzhu/now
