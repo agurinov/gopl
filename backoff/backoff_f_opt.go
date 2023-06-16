@@ -1,6 +1,6 @@
 package backoff
 
-import c "github.com/agurinov/gopl/pattern/creational"
+import c "github.com/agurinov/gopl/patterns/creational"
 
 type BackoffOption = c.Option[Backoff]
 

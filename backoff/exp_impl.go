@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	c "github.com/agurinov/gopl/pattern/creational"
+	c "github.com/agurinov/gopl/patterns/creational"
 )
 
 // https://en.wikipedia.org/wiki/Exponential_backoff
@@ -69,5 +69,5 @@ func NewExponentialStrategy(opts ...ExponentialOption) (Strategy, error) {
 		jitter:     0.2,
 	}
 
-	return c.ConstructObject(obj, opts...)
+	return c.Construct(obj, opts...)
 }
