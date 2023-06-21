@@ -235,9 +235,7 @@ linters-settings:
     # See https://go-critic.github.io/overview#checks-overview
     # To check which checks are enabled run `GL_DEBUG=gocritic golangci-lint run`
     # By default list of stable checks is used.
-    enabled-checks:
-      - nestingReduce
-      - truncateCmp
+    enabled-checks: []
 
     # Which checks should be disabled; can't be combined with 'enabled-checks'; default is empty
     disabled-checks:
@@ -483,13 +481,20 @@ linters-settings:
     disable-all: false
 
   depguard:
-    list-type: blacklist
+    list-type: denylist
     include-go-root: false
     packages:
       - github.com/sirupsen/logrus
     packages-with-error-message:
       # specify an error message to output when a blacklisted package is used
-      - github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
+      - github.com/sirupsen/logrus: 'logging is allowed only by logutils.Log'
+    rules:
+      logger:
+        deny:
+          - pkg: 'github.com/sirupsen/logrus'
+            desc: 'not allowed'
+          - pkg: 'github.com/pkg/errors'
+            desc: 'Should be replaced by standard lib errors package'
 
   ifshort:
     # Maximum length of variable declaration measured in number of lines, after which linter won't suggest using short syntax.
@@ -826,6 +831,7 @@ linters:
     - nosnakecase
     - godot
     - gochecknoglobals
+    - structcheck
 
 issues:
   # List of regexps of issue texts to exclude, empty list by default.

@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	c "github.com/agurinov/gopl/pattern/creational"
+	c "github.com/agurinov/gopl/patterns/creational"
 	pl_strings "github.com/agurinov/gopl/strings"
 )
 
@@ -59,7 +59,7 @@ func New(opts ...BackoffOption) (*Backoff, error) {
 		strategy:   exponentialStrategy,
 	}
 
-	obj, err = c.ConstructObject(obj, opts...)
+	obj, err = c.Construct(obj, opts...)
 	if err != nil {
 		return nil, err
 	}

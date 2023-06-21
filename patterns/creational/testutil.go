@@ -28,7 +28,7 @@ type (
 		S string
 		I int
 	}
-	MyStructOption = Option[MyStruct]
+	MyStructOption Option[MyStruct]
 )
 
 var (

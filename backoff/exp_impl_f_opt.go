@@ -3,7 +3,7 @@ package backoff
 import (
 	"time"
 
-	c "github.com/agurinov/gopl/pattern/creational"
+	c "github.com/agurinov/gopl/patterns/creational"
 )
 
 type ExponentialOption = c.Option[exponential]

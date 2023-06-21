@@ -8,14 +8,14 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	c "github.com/agurinov/gopl/pattern/creational"
+	c "github.com/agurinov/gopl/patterns/creational"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 var (
 	// Struct constructors
-	New     = c.NewObject[c.MyStruct]
-	MustNew = c.MustNewObject[c.MyStruct]
+	New     = c.New[c.MyStruct, c.MyStructOption]
+	MustNew = c.MustNew[c.MyStruct, c.MyStructOption]
 
 	// Polymorphic constructors
 	NewAs     = func(opts ...c.MyStructOption) (c.MyInterface, error) { return New(opts...) }
@@ -56,7 +56,7 @@ var (
 	}
 )
 
-func TestObject_New_MustNew(t *testing.T) {
+func TestObject_MustNew(t *testing.T) {
 	pl_testing.Init(t)
 
 	cases := map[string]struct {
@@ -145,7 +145,7 @@ func TestObject_Construct(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
 
-			Struct, err := c.ConstructObject(
+			Struct, err := c.Construct(
 				tc.inputObject,
 				tc.inputOptions...,
 			)
