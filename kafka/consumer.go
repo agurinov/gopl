@@ -265,7 +265,7 @@ func (c Consumer[E]) Validate() error {
 	return nil
 }
 
-func NewConsumer[E Event](opts ...c.Option[Consumer[E]]) (Consumer[E], error) {
+func NewConsumer[E Event](opts ...ConsumerOption[E]) (Consumer[E], error) {
 	obj, err := c.New(opts...)
 	if err != nil {
 		return obj, err

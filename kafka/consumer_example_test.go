@@ -7,7 +7,6 @@ import (
 
 	"github.com/agurinov/gopl/backoff"
 	"github.com/agurinov/gopl/kafka"
-	c "github.com/agurinov/gopl/patterns/creational"
 )
 
 type (
@@ -18,7 +17,7 @@ type (
 		B bool
 	}
 	Consumer       = kafka.Consumer[Contract]
-	ConsumerOption = c.Option[Consumer]
+	ConsumerOption = kafka.ConsumerOption[Contract]
 )
 
 var (

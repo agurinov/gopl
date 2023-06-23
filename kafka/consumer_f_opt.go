@@ -5,7 +5,9 @@ import (
 	c "github.com/agurinov/gopl/patterns/creational"
 )
 
-func WithLibrary[E Event](library ConsumerLibrary) c.Option[Consumer[E]] {
+type ConsumerOption[E Event] c.Option[Consumer[E]]
+
+func WithLibrary[E Event](library ConsumerLibrary) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.library = library
 
@@ -13,7 +15,7 @@ func WithLibrary[E Event](library ConsumerLibrary) c.Option[Consumer[E]] {
 	}
 }
 
-func WithDLQ[E Event](dlq ProducerLibrary) c.Option[Consumer[E]] {
+func WithDLQ[E Event](dlq ProducerLibrary) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.dlq = dlq
 
@@ -21,7 +23,7 @@ func WithDLQ[E Event](dlq ProducerLibrary) c.Option[Consumer[E]] {
 	}
 }
 
-func WithConfigMap[E Event](configmap ConfigMap) c.Option[Consumer[E]] {
+func WithConfigMap[E Event](configmap ConfigMap) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.configmap = configmap
 
@@ -29,7 +31,7 @@ func WithConfigMap[E Event](configmap ConfigMap) c.Option[Consumer[E]] {
 	}
 }
 
-func WithConsumerConfig[E Event](cfg Config) c.Option[Consumer[E]] {
+func WithConsumerConfig[E Event](cfg Config) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.cfg = cfg
 
@@ -37,7 +39,7 @@ func WithConsumerConfig[E Event](cfg Config) c.Option[Consumer[E]] {
 	}
 }
 
-func WithEventSerializer[E Event](s EventSerializer[E]) c.Option[Consumer[E]] {
+func WithEventSerializer[E Event](s EventSerializer[E]) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.eventSerializer = s
 
@@ -45,7 +47,7 @@ func WithEventSerializer[E Event](s EventSerializer[E]) c.Option[Consumer[E]] {
 	}
 }
 
-func WithEventHandleStrategy[E Event](s EventHandleStrategy) c.Option[Consumer[E]] {
+func WithEventHandleStrategy[E Event](s EventHandleStrategy) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.eventHandleStrategy = s
 
@@ -53,7 +55,7 @@ func WithEventHandleStrategy[E Event](s EventHandleStrategy) c.Option[Consumer[E
 	}
 }
 
-func WithEventHandler[E Event](h EventHandler[E]) c.Option[Consumer[E]] {
+func WithEventHandler[E Event](h EventHandler[E]) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.eventHandleStrategy = EventHandleOneByOne
 		consumer.eventHandler = h
@@ -62,7 +64,7 @@ func WithEventHandler[E Event](h EventHandler[E]) c.Option[Consumer[E]] {
 	}
 }
 
-func WithEventBatchHandler[E Event](h EventBatchHandler[E]) c.Option[Consumer[E]] {
+func WithEventBatchHandler[E Event](h EventBatchHandler[E]) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.eventHandleStrategy = EventHandleBatch
 		consumer.eventBatchHandler = h
@@ -71,7 +73,7 @@ func WithEventBatchHandler[E Event](h EventBatchHandler[E]) c.Option[Consumer[E]
 	}
 }
 
-func WithMaxIterations[E Event](i uint64) c.Option[Consumer[E]] {
+func WithMaxIterations[E Event](i uint64) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		consumer.maxIterations = i
 
@@ -79,7 +81,7 @@ func WithMaxIterations[E Event](i uint64) c.Option[Consumer[E]] {
 	}
 }
 
-func WithBackoffOptions[E Event](opts ...backoff.BackoffOption) c.Option[Consumer[E]] {
+func WithBackoffOptions[E Event](opts ...backoff.BackoffOption) ConsumerOption[E] {
 	return func(consumer *Consumer[E]) error {
 		opts = append(opts,
 			backoff.WithName("kafka-consumer"),

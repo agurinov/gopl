@@ -13,7 +13,6 @@ import (
 	"github.com/agurinov/gopl/backoff"
 	"github.com/agurinov/gopl/kafka"
 	"github.com/agurinov/gopl/kafka/mock"
-	c "github.com/agurinov/gopl/patterns/creational"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
@@ -21,11 +20,11 @@ func TestConsumer_Validate(t *testing.T) {
 	pl_testing.Init(t)
 
 	cases := map[string]struct {
-		inputConsumerOptions []c.Option[kafka.Consumer[Contract]]
+		inputConsumerOptions []ConsumerOption
 		pl_testing.TestCase
 	}{
 		"vcase00: nil library": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](nil),
 			},
 			TestCase: pl_testing.TestCase{
@@ -34,7 +33,7 @@ func TestConsumer_Validate(t *testing.T) {
 			},
 		},
 		"vcase01: nil event serializer": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](new(mock.ConsumerLibrary)),
 				kafka.WithEventSerializer[Contract](nil),
 			},
@@ -44,7 +43,7 @@ func TestConsumer_Validate(t *testing.T) {
 			},
 		},
 		"vcase02: invalid cfg": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](new(mock.ConsumerLibrary)),
 				kafka.WithEventSerializer(kafka.JsonEventSerializer[Contract]),
 				kafka.WithConsumerConfig[Contract](kafka.Config{BatchSize: 0}),
@@ -55,7 +54,7 @@ func TestConsumer_Validate(t *testing.T) {
 			},
 		},
 		"vcase03: invalid configmap": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](new(mock.ConsumerLibrary)),
 				kafka.WithEventSerializer(kafka.JsonEventSerializer[Contract]),
 				kafka.WithConsumerConfig[Contract](config),
@@ -67,7 +66,7 @@ func TestConsumer_Validate(t *testing.T) {
 			},
 		},
 		"vcase04: nil onebyone handler": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](new(mock.ConsumerLibrary)),
 				kafka.WithEventSerializer(kafka.JsonEventSerializer[Contract]),
 				kafka.WithConsumerConfig[Contract](config),
@@ -82,7 +81,7 @@ func TestConsumer_Validate(t *testing.T) {
 			},
 		},
 		"vcase05: nil batch handler": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](new(mock.ConsumerLibrary)),
 				kafka.WithEventSerializer(kafka.JsonEventSerializer[Contract]),
 				kafka.WithConsumerConfig[Contract](config),
@@ -97,7 +96,7 @@ func TestConsumer_Validate(t *testing.T) {
 			},
 		},
 		"vcase06: valid consumer": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](new(mock.ConsumerLibrary)),
 				kafka.WithEventSerializer(kafka.JsonEventSerializer[Contract]),
 				kafka.WithConsumerConfig[Contract](config),
@@ -106,7 +105,7 @@ func TestConsumer_Validate(t *testing.T) {
 			},
 		},
 		"vcase07: unsupported handle strategy": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithLibrary[Contract](new(mock.ConsumerLibrary)),
 				kafka.WithEventSerializer(kafka.JsonEventSerializer[Contract]),
 				kafka.WithConsumerConfig[Contract](config),
@@ -138,7 +137,7 @@ func TestConsumer_Consume(t *testing.T) {
 
 	cases := map[string]struct {
 		inputContextTimeout  time.Duration
-		inputConsumerOptions []c.Option[kafka.Consumer[Contract]]
+		inputConsumerOptions []ConsumerOption
 		mocks                func(mocks)
 		pl_testing.TestCase
 	}{
@@ -246,7 +245,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case06: no dlq; onebyone; serialization err; handle ok": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithDLQ[Contract](nil),
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
@@ -272,7 +271,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case07: no dlq; onebyone; serialization err; handle err": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithDLQ[Contract](nil),
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
@@ -294,7 +293,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case08: no dlq; onebyone; serialization err; handle err; nothing to commit": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithDLQ[Contract](nil),
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
@@ -316,7 +315,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case09: no dlq; onebyone; serialization err; handle err; least success committed": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithDLQ[Contract](nil),
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
@@ -343,7 +342,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case10: dlq; batch; serialization err; handle ok": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleBatch),
 			},
 			mocks: func(m mocks) {
@@ -376,7 +375,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case11: dlq; batch; serialization err; handle err": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleBatch),
 			},
 			mocks: func(m mocks) {
@@ -402,7 +401,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case12: dlq; onebyone; serialization err; handle err": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
 			mocks: func(m mocks) {
@@ -433,7 +432,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case13: dlq; onebyone; handle err; produce retryable err; backoff limit": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
 			mocks: func(m mocks) {
@@ -461,7 +460,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case13: dlq; onebyone; handle err; commit retryable err; backoff limit": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
 			mocks: func(m mocks) {
@@ -494,7 +493,7 @@ func TestConsumer_Consume(t *testing.T) {
 		},
 		"case14: no dlq; batch; finished by context": {
 			inputContextTimeout: 20 * time.Millisecond,
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithDLQ[Contract](nil),
 				kafka.WithMaxIterations[Contract](0),
 			},
@@ -521,7 +520,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case15: no dlq; onebyone; finished by max iterations": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithDLQ[Contract](nil),
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 				kafka.WithMaxIterations[Contract](5),
@@ -558,7 +557,7 @@ func TestConsumer_Consume(t *testing.T) {
 		// iteration 6: consumed=3     serialized=3/3 handled=2/3 dlq=1     committed=3
 		// iteration 7: consumed=1     serialized=1/1 handled=1/1 dlq=0     committed=1
 		"case16: dlq; onebyone; complex": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 				kafka.WithMaxIterations[Contract](7),
 			},
@@ -699,7 +698,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case17: dlq; onebyone; serialization err; handle ok; produce err": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleOneByOne),
 			},
 			mocks: func(m mocks) {
@@ -725,7 +724,7 @@ func TestConsumer_Consume(t *testing.T) {
 			},
 		},
 		"case18: dlq; batch; commit err": {
-			inputConsumerOptions: []c.Option[kafka.Consumer[Contract]]{
+			inputConsumerOptions: []ConsumerOption{
 				kafka.WithEventHandleStrategy[Contract](kafka.EventHandleBatch),
 			},
 			mocks: func(m mocks) {
@@ -771,7 +770,7 @@ func TestConsumer_Consume(t *testing.T) {
 				tc.mocks(m)
 			}
 
-			defaultConsumerOptions := []c.Option[kafka.Consumer[Contract]]{
+			opts := []ConsumerOption{
 				kafka.WithLibrary[Contract](m.library),
 				kafka.WithDLQ[Contract](m.dlq),
 				kafka.WithEventSerializer(kafka.JsonEventSerializer[Contract]),
@@ -787,8 +786,6 @@ func TestConsumer_Consume(t *testing.T) {
 					),
 				),
 			}
-
-			opts := defaultConsumerOptions
 			opts = append(opts, tc.inputConsumerOptions...)
 
 			consumer, err := kafka.NewConsumer[Contract](opts...)
