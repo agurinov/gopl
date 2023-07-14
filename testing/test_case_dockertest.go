@@ -38,7 +38,10 @@ func (tc TestCase) Pool(t *testing.T) *dockertest.Pool {
 	return pool
 }
 
-func (tc TestCase) network(t *testing.T, networkName string) *docker.Network {
+func (tc TestCase) network(
+	t *testing.T,
+	networkName string,
+) *docker.Network {
 	t.Helper()
 
 	var (
@@ -49,7 +52,7 @@ func (tc TestCase) network(t *testing.T, networkName string) *docker.Network {
 	networks, err := pool.NetworksByName(networkName)
 	require.NoError(t, err)
 
-	if len(networks) != 0 {
+	if len(networks) > 0 {
 		network = networks[0].Network
 	} else {
 		network, err = pool.Client.CreateNetwork(docker.CreateNetworkOptions{
@@ -57,38 +60,56 @@ func (tc TestCase) network(t *testing.T, networkName string) *docker.Network {
 		})
 	}
 
-	switch tc.Debug {
-	case true:
-		if errors.Is(err, docker.ErrNetworkAlreadyExists) {
-			break
-		}
-	case false:
-		require.NoError(t, err)
-		require.NotNil(t, network)
-		t.Cleanup(func() { pool.Client.RemoveNetwork(network.ID) }) //nolint:errcheck
+	require.NoError(t, err)
+	require.NotNil(t, network)
+
+	if !tc.Debug {
+		t.Cleanup(func() {
+			if err := pool.Client.RemoveNetwork(network.ID); err != nil {
+				panic(err)
+			}
+		})
 	}
 
 	return network
 }
 
-func (tc TestCase) container(t *testing.T, opts *dockertest.RunOptions) *dockertest.Resource {
+func (tc TestCase) container(
+	t *testing.T,
+	opts *dockertest.RunOptions,
+) (
+	*dockertest.Resource,
+	bool,
+) {
 	t.Helper()
 
 	var (
 		pool           = tc.Pool(t)
 		container, err = pool.RunWithOptions(opts)
+		created        = true
 	)
 
-	switch tc.Debug {
-	case true:
-		if errors.Is(err, docker.ErrContainerAlreadyExists) {
-			break
-		}
-	case false:
-		require.NoError(t, err)
-		require.NotNil(t, container)
-		t.Cleanup(func() { pool.Purge(container) }) //nolint:errcheck
+	if errors.Is(err, docker.ErrContainerAlreadyExists) {
+		c, ok := pool.ContainerByName(opts.Name)
+		require.True(t, ok)
+
+		container = c
+		err = nil
+		created = false
 	}
 
-	return container
+	require.NoError(t, err)
+	require.NotNil(t, container)
+	require.NotNil(t, container.Container)
+	require.True(t, container.Container.State.Running)
+
+	if !tc.Debug {
+		t.Cleanup(func() {
+			if err := pool.Purge(container); err != nil {
+				panic(err)
+			}
+		})
+	}
+
+	return container, created
 }

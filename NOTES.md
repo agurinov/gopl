@@ -64,3 +64,9 @@
 *testing tools:*
 - https://evilmartians.com/chronicles/go-integration-testing-with-courage-and-coverage
 - https://github.com/jinzhu/now
+
+*kafka:*
+- https://github.com/segmentio/kafka-go
+- https://github.com/twmb/franz-go
+- https://github.com/Shopify/sarama
+- github.com/confluentinc/confluent-kafka-go/kafka

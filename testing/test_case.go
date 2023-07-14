@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	pl_bitset "github.com/agurinov/gopl/bitset"
 	"github.com/agurinov/gopl/env/envvars"
 )
 
@@ -17,17 +16,18 @@ type TestCase struct {
 	Skip  bool
 	Debug bool
 	Fail  bool
-
-	flags pl_bitset.BitSet[TestCaseOption]
 }
 
-func (tc TestCase) Init(t *testing.T) {
+func (tc TestCase) Init(
+	t *testing.T,
+	stands ...Stand,
+) StandState {
 	t.Helper()
 
 	var (
-		needDebug    = envvars.GDebug.Present()
-		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL) && !needDebug
-		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
+		isIntegration = len(stands) > 0
+		needDebug     = envvars.GDebug.Present()
+		needParallel  = !needDebug
 	)
 
 	switch {
@@ -35,8 +35,14 @@ func (tc TestCase) Init(t *testing.T) {
 		t.Skip("tc skipped: explicit skip flag")
 	case needDebug && !tc.Debug:
 		t.Skip("tc skipped: not debuggable during " + envvars.GDebug.String())
+	case testing.Short() && isIntegration:
+		t.Skip("tc skipped: integration test during -testing.short mode")
 	case tc.Fail:
 		t.Fail()
+	}
+
+	if needParallel {
+		t.Parallel()
 	}
 
 	cleanup := func() {
@@ -47,13 +53,17 @@ func (tc TestCase) Init(t *testing.T) {
 	}
 	t.Cleanup(cleanup)
 
-	// if needDotEnv {
-	// 	require.NoError(t, dotenv.LoadOnce())
-	// }
+	creation := make(StandState, len(stands))
 
-	if needParallel {
-		t.Parallel()
+	for _, stand := range stands {
+		created := stand.Up(t)
+
+		if created {
+			creation[stand.Name()] = struct{}{}
+		}
 	}
+
+	return creation
 }
 
 func (tc TestCase) CheckError(t *testing.T, err error) {
@@ -78,13 +88,15 @@ func (tc TestCase) CheckError(t *testing.T, err error) {
 	t.Skip("tc skipped: checks after CheckError() with MustFail=true are not relevant")
 }
 
-func Init(t *testing.T) TestCase {
+func Init(
+	t *testing.T,
+	stands ...Stand,
+) StandState {
 	t.Helper()
 
 	tc := TestCase{
 		Debug: true,
 	}
-	tc.Init(t)
 
-	return tc
+	return tc.Init(t, stands...)
 }
