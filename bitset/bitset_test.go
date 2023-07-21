@@ -1,5 +1,3 @@
-//go:build test_unit
-
 package pl_bitset_test
 
 import (

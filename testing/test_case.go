@@ -1,12 +1,10 @@
-package pl_testing
+package testing
 
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
-	pl_bitset "github.com/agurinov/gopl/bitset"
 	"github.com/agurinov/gopl/env/envvars"
+	"github.com/agurinov/gopl/testing/stands"
 )
 
 type TestCase struct {
@@ -14,77 +12,59 @@ type TestCase struct {
 	MustFailAsErr any
 	MustFail      bool
 
+	root  bool
 	Skip  bool
 	Debug bool
 	Fail  bool
-
-	flags pl_bitset.BitSet[TestCaseOption]
 }
 
-func (tc TestCase) Init(t *testing.T) {
+func Init(t *testing.T, si ...stands.Interface) map[string]stands.State {
+	t.Helper()
+
+	tc := TestCase{
+		root: true,
+	}
+
+	return tc.Init(t, si...)
+}
+
+func (tc TestCase) Init(t *testing.T, si ...stands.Interface) map[string]stands.State {
 	t.Helper()
 
 	var (
-		needDebug    = envvars.GDebug.Present()
-		needParallel = !tc.flags.Has(TESTING_NO_PARALLEL) && !needDebug
-		// needDotEnv   = !tc.flags.Has(TESTING_NO_DOTENV_FILE)
+		isIntegration = len(si) > 0
+		isDebug       = tc.Debug || tc.root
+		needDebug     = envvars.GDebug.Present()
+		needParallel  = !needDebug
 	)
 
 	switch {
 	case tc.Skip:
 		t.Skip("tc skipped: explicit skip flag")
-	case needDebug && !tc.Debug:
+	case needDebug && !isDebug:
 		t.Skip("tc skipped: not debuggable during " + envvars.GDebug.String())
+	case testing.Short() && isIntegration:
+		t.Skip("tc skipped: integration test during -testing.short mode")
 	case tc.Fail:
 		t.Fail()
 	}
 
-	cleanup := func() {
-		// TODO(a.gurinov): deal with TestMain func
-		// it doesn't work with parallel tests
-		// goleak.VerifyNone(t)
-		// Maybe bind it to needDebug var?
-	}
-	t.Cleanup(cleanup)
-
-	// if needDotEnv {
-	// 	require.NoError(t, dotenv.LoadOnce())
-	// }
-
 	if needParallel {
 		t.Parallel()
 	}
-}
 
-func (tc TestCase) CheckError(t *testing.T, err error) {
-	t.Helper()
+	states := make(map[string]stands.State, len(si))
 
-	if !tc.MustFail {
-		require.NoError(t, err)
+	for _, stand := range si {
+		var (
+			standName    = stand.Name()
+			standCreated = stand.Up(t)
+		)
 
-		return
+		states[standName] = stands.State{
+			Created: standCreated,
+		}
 	}
 
-	require.Error(t, err)
-
-	if isErr := tc.MustFailIsErr; isErr != nil {
-		require.ErrorIs(t, err, isErr, ErrViolationIs)
-	}
-
-	if asErr := tc.MustFailAsErr; asErr != nil {
-		require.ErrorAs(t, err, asErr, ErrViolationAs)
-	}
-
-	t.Skip("tc skipped: checks after CheckError() with MustFail=true are not relevant")
-}
-
-func Init(t *testing.T) TestCase {
-	t.Helper()
-
-	tc := TestCase{
-		Debug: true,
-	}
-	tc.Init(t)
-
-	return tc
+	return states
 }

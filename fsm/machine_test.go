@@ -1,5 +1,3 @@
-//go:build test_unit
-
 package fsm_test
 
 import (

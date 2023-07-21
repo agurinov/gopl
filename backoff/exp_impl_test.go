@@ -1,5 +1,3 @@
-//go:build test_unit
-
 package backoff_test
 
 import (
