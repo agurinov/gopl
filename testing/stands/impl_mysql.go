@@ -9,6 +9,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type (
+	Mysql struct {
+		DB       string
+		Replicas int
+	}
+)
+
 const (
 	MysqlStandName = "mysql"
 )
@@ -25,50 +32,43 @@ var (
 	}
 )
 
-type (
-	Mysql struct {
-		DB       string
-		Replicas int
-	}
-)
-
-func (s Mysql) Name() string { return MysqlStandName }
+func (Mysql) Name() string { return MysqlStandName }
 func (s Mysql) Up(t *testing.T) bool {
 	t.Helper()
 
 	t.Helper()
 
-	require.Greater(t, s.Replicas, 0)
+	require.NotZero(t, s.Replicas)
 
 	var (
-		network = network(t)
-		cluster = newCluster(MysqlStandName, s.Replicas, mysqlPorts)
+		network      = network(t)
+		mysqlCluster = newCluster(MysqlStandName, s.Replicas, mysqlPorts)
 
 		mysql   *dockertest.Resource
 		created bool
 	)
 
-	for i := range cluster {
+	for i := range mysqlCluster {
 		if i > 0 {
 			// TODO(a.gurinov): cluster not implemented yet
 			break
 		}
 
-		node := cluster[i]
+		mysqlNode := mysqlCluster[i]
 
 		mysql, created = container(t, &dockertest.RunOptions{
 			Repository: mysqlImage.Repository,
 			Tag:        mysqlImage.Tag,
-			Name:       node.Hostname(t),
-			Hostname:   node.Hostname(t),
+			Name:       mysqlNode.Hostname(t),
+			Hostname:   mysqlNode.Hostname(t),
 			NetworkID:  network.ID,
 			ExposedPorts: []string{
-				node.ExternalPort(),
+				mysqlNode.ExternalPort(),
 			},
 			PortBindings: map[docker.Port][]docker.PortBinding{
-				docker.Port(node.ExternalPort()): {{
+				docker.Port(mysqlNode.ExternalPort()): {{
 					HostIP:   "localhost",
-					HostPort: node.ExternalPort(),
+					HostPort: mysqlNode.ExternalPort(),
 				}},
 			},
 			Env: []string{

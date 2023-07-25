@@ -1,11 +1,11 @@
-package pl_bitset_test
+package bitset_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	pl_bitset "github.com/agurinov/gopl/bitset"
+	"github.com/agurinov/gopl/bitset"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
@@ -17,7 +17,7 @@ const (
 func TestBitSet_Set(t *testing.T) {
 	pl_testing.Init(t)
 
-	bitset := pl_bitset.BitSet[uint8]{}
+	bitset := bitset.BitSet[uint8]{}
 
 	require.False(t, bitset.Has(bit1))
 	require.False(t, bitset.Has(bit2))
@@ -31,7 +31,7 @@ func TestBitSet_Set(t *testing.T) {
 func TestBitSet_Clear(t *testing.T) {
 	pl_testing.Init(t)
 
-	bitset := pl_bitset.BitSet[uint32]{}
+	bitset := bitset.BitSet[uint32]{}
 
 	require.False(t, bitset.Has(bit1))
 	require.False(t, bitset.Has(bit2))
@@ -47,7 +47,7 @@ func TestBitSet_Clear(t *testing.T) {
 func TestBitSet_Toggle(t *testing.T) {
 	pl_testing.Init(t)
 
-	bitset := pl_bitset.BitSet[uint]{}
+	bitset := bitset.BitSet[uint]{}
 
 	require.False(t, bitset.Has(bit1))
 	require.False(t, bitset.Has(bit2))

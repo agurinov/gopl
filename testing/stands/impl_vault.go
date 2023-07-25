@@ -13,6 +13,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type (
+	Vault struct {
+		Roles    []VaultRole
+		Replicas int
+	}
+	VaultRole struct {
+		ID       uuid.UUID
+		SecretID uuid.UUID
+	}
+)
+
 const (
 	VaultStandName = "vault"
 )
@@ -33,17 +44,6 @@ var (
 //go:embed etc/vault/dev-admin-policy.hcl
 var vaultDevAdminPolicy string
 
-type (
-	Vault struct {
-		Roles    []VaultRole
-		Replicas int
-	}
-	VaultRole struct {
-		ID       uuid.UUID
-		SecretID uuid.UUID
-	}
-)
-
 func (s Vault) Name() string { return VaultStandName }
 func (s Vault) Up(t *testing.T) bool {
 	t.Helper()
@@ -51,34 +51,34 @@ func (s Vault) Up(t *testing.T) bool {
 	require.Greater(t, s.Replicas, 0)
 
 	var (
-		network = network(t)
-		cluster = newCluster(VaultStandName, s.Replicas, vaultPorts)
+		network      = network(t)
+		vaultCluster = newCluster(VaultStandName, s.Replicas, vaultPorts)
 
 		vault   *dockertest.Resource
 		created bool
 	)
 
-	for i := range cluster {
+	for i := range vaultCluster {
 		if i > 0 {
 			// TODO(a.gurinov): cluster not implemented yet
 			break
 		}
 
-		node := cluster[i]
+		vaultNode := vaultCluster[i]
 
 		vault, created = container(t, &dockertest.RunOptions{
 			Repository: vaultImage.Repository,
 			Tag:        vaultImage.Tag,
-			Name:       node.Hostname(t),
-			Hostname:   node.Hostname(t),
+			Name:       vaultNode.Hostname(t),
+			Hostname:   vaultNode.Hostname(t),
 			NetworkID:  network.ID,
 			ExposedPorts: []string{
-				node.ExternalPort(),
+				vaultNode.ExternalPort(),
 			},
 			PortBindings: map[docker.Port][]docker.PortBinding{
-				docker.Port(node.ExternalPort()): {{
+				docker.Port(vaultNode.ExternalPort()): {{
 					HostIP:   "localhost",
-					HostPort: node.ExternalPort(),
+					HostPort: vaultNode.ExternalPort(),
 				}},
 			},
 			CapAdd: []string{"IPC_LOCK"},
@@ -115,6 +115,9 @@ func (s Vault) Up(t *testing.T) bool {
 		)
 
 		for i := range s.Roles {
+			require.False(t, s.Roles[i].ID == uuid.Nil)
+			require.False(t, s.Roles[i].SecretID == uuid.Nil)
+
 			containerExec(t, vault, nil,
 				"vault", "write",
 				fmt.Sprintf("auth/approle/role/role%d", i),

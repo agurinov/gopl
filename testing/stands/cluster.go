@@ -52,7 +52,7 @@ func (c cluster) KafkaQuorumVoters(t *testing.T) string {
 	return strings.Join(s, ",")
 }
 
-func (c cluster) KafkaClusterID() string {
+func (cluster) KafkaClusterID() string {
 	clusterID := uuid.Nil
 
 	if b, err := clusterID.MarshalBinary(); err == nil {

@@ -2,9 +2,9 @@ package backoff
 
 import c "github.com/agurinov/gopl/patterns/creational"
 
-type BackoffOption = c.Option[Backoff]
+type Option = c.Option[Backoff]
 
-func WithStrategy(s Strategy) BackoffOption {
+func WithStrategy(s Strategy) Option {
 	return func(b *Backoff) error {
 		b.strategy = s
 
@@ -12,7 +12,7 @@ func WithStrategy(s Strategy) BackoffOption {
 	}
 }
 
-func WithMaxRetries(mr uint32) BackoffOption {
+func WithMaxRetries(mr uint32) Option {
 	return func(b *Backoff) error {
 		b.maxRetries = mr
 
@@ -20,7 +20,7 @@ func WithMaxRetries(mr uint32) BackoffOption {
 	}
 }
 
-func WithName(name string) BackoffOption {
+func WithName(name string) Option {
 	return func(b *Backoff) error {
 		b.name = name
 

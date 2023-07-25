@@ -11,6 +11,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type (
+	Kafka struct {
+		Topics   []KafkaTopic
+		Replicas int
+		SASL     bool
+		SSL      bool
+	}
+	KafkaTopic struct {
+		Name       string
+		Partitions int
+	}
+)
+
 const (
 	KafkaStandName = "kafka"
 )
@@ -29,19 +42,6 @@ var (
 	}
 )
 
-type (
-	Kafka struct {
-		Topics   []KafkaTopic
-		Replicas int
-		SASL     bool
-		SSL      bool
-	}
-	KafkaTopic struct {
-		Name       string
-		Partitions int
-	}
-)
-
 func (s Kafka) SecurityProtocol() string {
 	securityProtocol := "PLAINTEXT"
 
@@ -56,36 +56,36 @@ func (s Kafka) SecurityProtocol() string {
 	return securityProtocol
 }
 
-func (s Kafka) Name() string { return KafkaStandName }
+func (Kafka) Name() string { return KafkaStandName }
 func (s Kafka) Up(t *testing.T) bool {
 	t.Helper()
 
-	require.Greater(t, s.Replicas, 0)
+	require.NotZero(t, s.Replicas)
 
 	var (
-		network = network(t)
-		cluster = newCluster(KafkaStandName, s.Replicas, kafkaPorts)
+		network      = network(t)
+		kafkaCluster = newCluster(KafkaStandName, s.Replicas, kafkaPorts)
 
 		kafka   *dockertest.Resource
 		created bool
 	)
 
-	for i := range cluster {
-		node := cluster[i]
+	for i := range kafkaCluster {
+		kafkaNode := kafkaCluster[i]
 
 		kafka, created = container(t, &dockertest.RunOptions{
 			Repository: kafkaImage.Repository,
 			Tag:        kafkaImage.Tag,
-			Name:       node.Hostname(t),
-			Hostname:   node.Hostname(t),
+			Name:       kafkaNode.Hostname(t),
+			Hostname:   kafkaNode.Hostname(t),
 			NetworkID:  network.ID,
 			ExposedPorts: []string{
-				node.ExternalPort(),
+				kafkaNode.ExternalPort(),
 			},
 			PortBindings: map[docker.Port][]docker.PortBinding{
-				docker.Port(node.ExternalPort()): {{
+				docker.Port(kafkaNode.ExternalPort()): {{
 					HostIP:   "localhost",
-					HostPort: node.ExternalPort(),
+					HostPort: kafkaNode.ExternalPort(),
 				}},
 			},
 			Env: []string{
@@ -94,9 +94,9 @@ func (s Kafka) Up(t *testing.T) bool {
 				// https://github.com/bitnami/containers/tree/main/bitnami/kafka#configuration
 				"ALLOW_PLAINTEXT_LISTENER=yes",
 				"KAFKA_ENABLE_KRAFT=yes",
-				fmt.Sprintf("KAFKA_KRAFT_CLUSTER_ID=%s", cluster.KafkaClusterID()),
-				fmt.Sprintf("KAFKA_CFG_NODE_ID=%s", node.KafkaNodeID()),
-				fmt.Sprintf("KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=%s", cluster.KafkaQuorumVoters(t)),
+				fmt.Sprintf("KAFKA_KRAFT_CLUSTER_ID=%s", kafkaCluster.KafkaClusterID()),
+				fmt.Sprintf("KAFKA_CFG_NODE_ID=%s", kafkaNode.KafkaNodeID()),
+				fmt.Sprintf("KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=%s", kafkaCluster.KafkaQuorumVoters(t)),
 				"KAFKA_CFG_PROCESS_ROLES=broker,controller",
 				"KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=false",
 				"KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL",
@@ -105,16 +105,16 @@ func (s Kafka) Up(t *testing.T) bool {
 					strings.Join([]string{
 						fmt.Sprintf("CONTROLLER://:%d", kafkaPorts.cluster),
 						fmt.Sprintf("INTERNAL://:%d", kafkaPorts.internal),
-						fmt.Sprintf("EXTERNAL://:%s", node.ExternalPortRaw()),
+						fmt.Sprintf("EXTERNAL://:%s", kafkaNode.ExternalPortRaw()),
 					}, ","),
 				),
 				fmt.Sprintf("KAFKA_CFG_ADVERTISED_LISTENERS=%s",
 					strings.Join([]string{
 						fmt.Sprintf("INTERNAL://%s", net.JoinHostPort(
-							node.Hostname(t),
+							kafkaNode.Hostname(t),
 							kafkaPorts.InternalRaw(),
 						)),
-						fmt.Sprintf("EXTERNAL://localhost:%s", node.ExternalPortRaw()),
+						fmt.Sprintf("EXTERNAL://localhost:%s", kafkaNode.ExternalPortRaw()),
 					}, ","),
 				),
 				fmt.Sprintf("KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=%s",
@@ -135,7 +135,7 @@ func (s Kafka) Up(t *testing.T) bool {
 
 		for i := range s.Topics {
 			require.NotEmpty(t, s.Topics[i].Name)
-			require.Greater(t, s.Topics[i].Partitions, 0)
+			require.NotZero(t, s.Topics[i].Partitions)
 
 			containerExec(t, kafka, nil,
 				"/opt/bitnami/kafka/bin/kafka-topics.sh",

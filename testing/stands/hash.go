@@ -18,7 +18,7 @@ func hash(t *testing.T) string {
 	hasher := crypto.MD5.New()
 	require.NotNil(t, hasher)
 
-	hasher.Write([]byte(t.Name()))
+	_, _ = hasher.Write([]byte(t.Name()))
 	hashhex := hex.EncodeToString(hasher.Sum(nil))
 
 	return hashhex[:maxHashLen]

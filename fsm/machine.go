@@ -97,14 +97,14 @@ func (m StateMachine[C]) Transition(
 	}
 
 	if newState.OnTransition != nil {
-		if err := newState.OnTransition(ctx); err != nil {
-			return EmptyState, err
+		if transitionErr := newState.OnTransition(ctx); transitionErr != nil {
+			return EmptyState, transitionErr
 		}
 	}
 
 	if m.storage != nil {
-		if err := m.storage.PushState(ctx, event.Context, newState); err != nil {
-			return EmptyState, err
+		if pushErr := m.storage.PushState(ctx, event.Context, newState); pushErr != nil {
+			return EmptyState, pushErr
 		}
 	}
 

@@ -1,4 +1,4 @@
-package pl_bitset
+package bitset
 
 import (
 	"golang.org/x/exp/constraints"

@@ -17,18 +17,18 @@ var EmptyStat = Stat{}
 func (s Stat) String() string {
 	var b strings.Builder
 
-	b.WriteString("retry ")
-	b.WriteString(strconv.FormatUint(
+	_, _ = b.WriteString("retry ")
+	_, _ = b.WriteString(strconv.FormatUint(
 		uint64(s.RetryIndex),
 		base10,
 	))
-	b.WriteString("/")
-	b.WriteString(strconv.FormatUint(
+	_, _ = b.WriteString("/")
+	_, _ = b.WriteString(strconv.FormatUint(
 		uint64(s.MaxRetries),
 		base10,
 	))
-	b.WriteString("; duration=")
-	b.WriteString(s.Duration.String())
+	_, _ = b.WriteString("; duration=")
+	_, _ = b.WriteString(s.Duration.String())
 
 	return b.String()
 }

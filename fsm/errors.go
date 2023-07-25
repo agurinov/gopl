@@ -5,11 +5,21 @@ import (
 	"fmt"
 )
 
-var ErrInvalidEvent = errors.New("event: invalid")
+type (
+	StateAlreadyPresentError struct {
+		StateName string
+	}
+	StateNotPresentError struct {
+		StateName string
+	}
+	UnexpectedPossibleStatesError struct {
+		PossibleStateNames string
+		StateName          string
+		MustBePresent      bool
+	}
+)
 
-type StateAlreadyPresentError struct {
-	StateName string
-}
+var ErrInvalidEvent = errors.New("event: invalid")
 
 func (e StateAlreadyPresentError) Error() string {
 	return fmt.Sprintf(
@@ -18,21 +28,11 @@ func (e StateAlreadyPresentError) Error() string {
 	)
 }
 
-type StateNotPresentError struct {
-	StateName string
-}
-
 func (e StateNotPresentError) Error() string {
 	return fmt.Sprintf(
 		"statemap: state %q must be present",
 		e.StateName,
 	)
-}
-
-type UnexpectedPossibleStatesError struct {
-	PossibleStateNames string
-	StateName          string
-	MustBePresent      bool
 }
 
 func (e UnexpectedPossibleStatesError) Error() string {

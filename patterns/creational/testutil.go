@@ -11,14 +11,6 @@ import (
 // Dummy types, stubs and vars to use in testing within nested packages
 // This file under test_unit go build tag !!!
 
-const (
-	DefaultI = 999999
-	DefaultS = "foo"
-
-	CustomI = 100500
-	CustomS = "foobar"
-)
-
 type (
 	MyInterface interface {
 		Do() string
@@ -29,6 +21,14 @@ type (
 		I int
 	}
 	MyStructOption Option[MyStruct]
+)
+
+const (
+	DefaultI = 999999
+	DefaultS = "foo"
+
+	CustomI = 100500
+	CustomS = "foobar"
 )
 
 var (
