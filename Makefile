@@ -4,13 +4,14 @@ FORCE:
 include gitlabci.mk
 
 GO             := go
+JQ             := jq
 GIT            := git
 DELVE          := dlv
 GOLANGCI_LINT  := golangci-lint
 FIELDALIGNMENT := fieldalignment
 GOVULNCHECK    := govulncheck
 
-IS_CI := $(firstword $(CI) $(GITLAB_CI) $(GITHUB_ACTIONS) $(CIRCLECI) $(DRONE))
+IS_CI := $(firstword $(CI) $(GITLAB_CI) $(GITHUB_ACTIONS) $(CIRCLECI) $(DRONE) $(TEAMCITY_VERSION))
 
 # FHS {{{
 # https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard
@@ -24,20 +25,21 @@ $(FHS_ROOTDIR) $(FHS_BINDIR) $(FHS_ETCDIR) $(FHS_LIBDIR):
 # }}}
 
 # GO private API {{{
-GO_VERSION_RAW          := $(shell $(GO) env GOVERSION;)
-GO_VERSION              := $(subst go,,$(GO_VERSION_RAW))
-GO_VERSION_SEMVER_PARTS := $(subst ., ,$(GO_VERSION))
-GO_VERSION_SEMVER_MAJOR := $(word 1,$(GO_VERSION_SEMVER_PARTS))
-GO_VERSION_SEMVER_MINOR := $(word 2,$(GO_VERSION_SEMVER_PARTS))
-GO_VERSION_SEMVER_PATCH := $(word 3,$(GO_VERSION_SEMVER_PARTS))
-GO_VERSION_MINOR        := $(GO_VERSION_SEMVER_MAJOR).$(GO_VERSION_SEMVER_MINOR)
+_GO_VERSION_RAW          := $(shell $(GO) env GOVERSION;)
+GO_VERSION               := $(subst go,,$(_GO_VERSION_RAW))
+_GO_VERSION_SEMVER_PARTS := $(subst ., ,$(GO_VERSION))
+_GO_VERSION_SEMVER_MAJOR := $(word 1,$(_GO_VERSION_SEMVER_PARTS))
+_GO_VERSION_SEMVER_MINOR := $(word 2,$(_GO_VERSION_SEMVER_PARTS))
+_GO_VERSION_SEMVER_PATCH := $(word 3,$(_GO_VERSION_SEMVER_PARTS))
+GO_VERSION_MINOR         := $(_GO_VERSION_SEMVER_MAJOR).$(_GO_VERSION_SEMVER_MINOR)
 
-GO_CMD_DIR              := $(realpath $(CURDIR)/cmd)
-GO_CMD_FILES            := $(realpath $(CURDIR)/main.go)
-GO_MODULE_FILE          := $(realpath go.mod)
-GO_MODULE_PATH          := $(shell $(GO) mod edit -json | jq -Mr '.Module.Path';)
-GO_MODULE_GO_VERSION    := $(shell $(GO) mod edit -json | jq -Mr '.Go';)
-GO_MODULE_NAME          := $(basename $(notdir $(GO_MODULE_PATH)))
+GO_CMD_DIR                 := $(realpath $(CURDIR)/cmd)
+GO_CMD_FILES               := $(realpath $(CURDIR)/main.go)
+GO_MODULE_FILE             := $(realpath go.mod)
+GO_MODULE_PATH             := $(shell $(GO) mod edit -json | $(JQ) -Mr '.Module.Path';)
+GO_MODULE_GO_VERSION       := $(shell $(GO) mod edit -json | $(JQ) -Mr '.Go';)
+GO_MODULE_NAME             := $(basename $(notdir $(GO_MODULE_PATH)))
+UNSPECIFIED_GO_MODULE_NAME := github.com/acme/goplay
 # }}}
 
 # GO public API {{{
@@ -48,7 +50,7 @@ GO_CMD_ARGS ?=
 
 # deps / mod / vendor {{{
 go.mod:
-	$(GO) mod init '$(URL_SCHEMALESS)'
+	$(GO) mod init '$(firstword $(URL_SCHEMALESS) $(UNSPECIFIED_GO_MODULE_NAME))'
 
 go_vendor: FORCE go.mod go_mod_no_cache
 	$(GO) mod tidy
@@ -57,11 +59,26 @@ go_vendor: FORCE go.mod go_mod_no_cache
 # }}}
 
 # build tags {{{
-GREP_TAGS_CMD                     := grep -I -h -R --exclude-dir=.git --exclude-dir=vendor --include=*.go '//go:build' | awk '{print $$2}'
+GREP_TAGS_CMD                     := grep -I -h -R --exclude-dir=.git --exclude-dir=vendor --include=*.go '//go:build' | awk '{for (i=2; i<=NF; i++) print $$i}'
 
-GO_IGNORED_BUILD_TAGS             := ignore devtools neverbuild
-GO_DISCOVERED_BUILD_TAGS_ALL      := $(sort $(shell $(GREP_TAGS_CMD);))
-GO_DISCOVERED_BUILD_TAGS_FILTERED := $(filter-out $(GO_IGNORED_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
+_GO_IGNORED_BUILD_TAGS            := ignore devtools tools neverbuild
+_GO_OS_ARCH_BUILD_TAGS            := unix linux darwin windows 386 amd64 arm arm64 wasm
+_GO_SYS_BUILD_TAGS                := cgo gc gccgo
+
+SPECIAL_CHARS                     := ! ( ) & |
+PARENTHESES_OPEN                  := (
+PARENTHESES_CLOSE                 := )
+
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(shell $(GREP_TAGS_CMD);)
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst !,,$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst &,,$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst |,,$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESES_OPEN),,$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESES_CLOSE),,$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(filter-out $(_GO_OS_ARCH_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(filter-out $(_GO_SYS_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(sort $(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_FILTERED := $(filter-out $(_GO_IGNORED_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 
 ifndef GO_TAGS
 go_test:                     GO_TAGS := test_unit
@@ -142,7 +159,7 @@ go_shared: FORCE vendor go_build_no_cache $(FHS_LIBDIR) $(GO_CMD_FILE)
 
 go_run: GO_CMD_FILE := $(firstword $(GO_CMD_FILES))
 go_run: FORCE vendor go_build_no_cache
-	test -r $(GO_CMD_FILE)
+	test -r '$(GO_CMD_FILE)'
 	$(GO) run $(BUILD_FLAGS) $(GO_CMD_FILE) $(GO_CMD_ARGS)
 # }}}
 
@@ -190,7 +207,7 @@ GOLANGCI_LINT_CONFS := $(realpath \
 )
 
 define GOLANGCI_LINT_CMD
-$(GOLANGCI_LINT) run --go='$(GO_VERSION_MINOR)' --modules-download-mode=vendor --build-tags='$(GO_TAGS)' --config='$(GOLANGCI_LINT_CONF)'
+$(GOLANGCI_LINT) run --config='$(GOLANGCI_LINT_CONF)' --go='$(GO_VERSION_MINOR)' --modules-download-mode=vendor --build-tags='$(GO_TAGS)'
 
 endef
 

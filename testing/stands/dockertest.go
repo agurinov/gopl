@@ -44,18 +44,18 @@ func network(t *testing.T) *docker.Network {
 	t.Helper()
 
 	var (
-		pool        = Pool(t)
+		p           = Pool(t)
 		networkName = "gopl_" + hash(t)
 		network     *docker.Network
 	)
 
-	networks, err := pool.NetworksByName(networkName)
+	networks, err := p.NetworksByName(networkName)
 	require.NoError(t, err)
 
 	if len(networks) > 0 {
 		network = networks[0].Network
 	} else {
-		network, err = pool.Client.CreateNetwork(docker.CreateNetworkOptions{
+		network, err = p.Client.CreateNetwork(docker.CreateNetworkOptions{
 			Name: networkName,
 		})
 	}
@@ -64,7 +64,7 @@ func network(t *testing.T) *docker.Network {
 	require.NotNil(t, network)
 
 	t.Cleanup(func() {
-		pool.RemoveNetwork(&dockertest.Network{ //nolint:errcheck
+		p.RemoveNetwork(&dockertest.Network{ //nolint:errcheck
 			Network: network,
 		})
 	})
@@ -82,17 +82,17 @@ func container(
 	t.Helper()
 
 	var (
-		pool       = Pool(t)
+		p          = Pool(t)
 		hostConfig = func(config *docker.HostConfig) {
 			config.AutoRemove = true
 			config.RestartPolicy = docker.RestartPolicy{Name: "no"}
 		}
-		container, err = pool.RunWithOptions(opts, hostConfig)
+		container, err = p.RunWithOptions(opts, hostConfig)
 		created        = true
 	)
 
 	if errors.Is(err, docker.ErrContainerAlreadyExists) {
-		c, ok := pool.ContainerByName(opts.Name)
+		c, ok := p.ContainerByName(opts.Name)
 		require.True(t, ok)
 
 		container = c
@@ -106,8 +106,8 @@ func container(
 	require.True(t, container.Container.State.Running)
 
 	t.Cleanup(func() {
-		if err := pool.Purge(container); err != nil {
-			panic(err)
+		if purgeErr := p.Purge(container); purgeErr != nil {
+			panic(purgeErr)
 		}
 	})
 
@@ -126,12 +126,12 @@ func containerExec(
 	require.NotEmpty(t, cmd)
 
 	var (
-		pool        = Pool(t)
+		p           = Pool(t)
 		execOptions = dockertest.ExecOptions{StdIn: stdin}
 	)
 
 	require.NoError(t,
-		pool.Retry(func() error {
+		p.Retry(func() error {
 			exitCode, err := container.Exec(cmd, execOptions)
 			if err != nil {
 				return err

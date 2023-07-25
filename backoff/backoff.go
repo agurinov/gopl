@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/go-playground/validator/v10"
+
 	c "github.com/agurinov/gopl/patterns/creational"
 	pl_strings "github.com/agurinov/gopl/strings"
 )
@@ -14,7 +16,7 @@ type Backoff struct {
 	strategy   Strategy
 	name       string
 	retries    uint32
-	maxRetries uint32 `validate:"min=1"`
+	maxRetries uint32
 }
 
 func (b *Backoff) Wait(ctx context.Context) (Stat, error) {
@@ -47,7 +49,21 @@ func (b *Backoff) Reset() {
 	atomic.StoreUint32(&b.retries, 0)
 }
 
-func New(opts ...BackoffOption) (*Backoff, error) {
+func (b Backoff) Validate() error {
+	s := struct {
+		MaxRetries uint32 `validate:"min=1"`
+	}{
+		MaxRetries: b.maxRetries,
+	}
+
+	if err := validator.New().Struct(s); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func New(opts ...Option) (*Backoff, error) {
 	exponentialStrategy, err := NewExponentialStrategy()
 	if err != nil {
 		return nil, err

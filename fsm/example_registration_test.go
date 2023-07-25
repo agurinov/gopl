@@ -18,61 +18,17 @@ type (
 	RegistrationEvent              = fsm.Event[RegistrationContext]
 )
 
-type ChooseCountryContract struct{ country string }
-
-func (c ChooseCountryContract) transition(ctx context.Context) (fsm.State, error) {
-	// Push contract to db
-	// db.SaveClientCountry(c.country)
-	switch c.country {
-	case "ru":
-		return uploadPassportState, nil
-	default:
-		return brokenState, nil
+type (
+	ChooseCountryContract      struct{ country string }
+	PassportPhotoContract      struct{ blob []byte }
+	SelfiePhotoContract        struct{ blob []byte }
+	DriverLicensePhotoContract struct{ blob []byte }
+	ReviewResponseContract     struct {
+		passportPhotoValid bool
+		selfiePhotoValid   bool
+		driverLicenseValid bool
 	}
-}
-
-type PassportPhotoContract struct{ blob []byte }
-
-func (c PassportPhotoContract) transition(ctx context.Context) (fsm.State, error) {
-	// Push contract to reviewer
-	// reviewer.UploadPassportPhoto(c.blog)
-	return uploadSelfieState, nil
-}
-
-type SelfiePhotoContract struct{ blob []byte }
-
-func (c SelfiePhotoContract) transition(ctx context.Context) (fsm.State, error) {
-	// Push contract to reviewer
-	// reviewer.UploadSelfiePhoto(c.blog)
-	return uploadDriverLicenseState, nil
-}
-
-type DriverLicensePhotoContract struct{ blob []byte }
-
-func (c DriverLicensePhotoContract) transition(ctx context.Context) (fsm.State, error) {
-	// Push contract to reviewer
-	// reviewer.UploadDriverLicensePhoto(c.blog)
-	return reviewState, nil
-}
-
-type ReviewResponseContract struct {
-	passportPhotoValid bool
-	selfiePhotoValid   bool
-	driverLicenseValid bool
-}
-
-func (c ReviewResponseContract) transition(ctx context.Context) (fsm.State, error) {
-	switch {
-	case !c.passportPhotoValid:
-		return uploadPassportState, nil
-	case !c.selfiePhotoValid:
-		return uploadSelfieState, nil
-	case !c.driverLicenseValid:
-		return uploadDriverLicenseState, nil
-	default:
-		return approvedState, nil
-	}
-}
+)
 
 var (
 	brokenState = fsm.State{
@@ -129,6 +85,48 @@ var (
 		},
 	}
 )
+
+func (c ChooseCountryContract) transition(ctx context.Context) (fsm.State, error) {
+	// Push contract to db
+	// db.SaveClientCountry(c.country)
+	switch c.country {
+	case "ru":
+		return uploadPassportState, nil
+	default:
+		return brokenState, nil
+	}
+}
+
+func (c PassportPhotoContract) transition(ctx context.Context) (fsm.State, error) {
+	// Push contract to reviewer
+	// reviewer.UploadPassportPhoto(c.blog)
+	return uploadSelfieState, nil
+}
+
+func (c SelfiePhotoContract) transition(ctx context.Context) (fsm.State, error) {
+	// Push contract to reviewer
+	// reviewer.UploadSelfiePhoto(c.blog)
+	return uploadDriverLicenseState, nil
+}
+
+func (c DriverLicensePhotoContract) transition(ctx context.Context) (fsm.State, error) {
+	// Push contract to reviewer
+	// reviewer.UploadDriverLicensePhoto(c.blog)
+	return reviewState, nil
+}
+
+func (c ReviewResponseContract) transition(ctx context.Context) (fsm.State, error) {
+	switch {
+	case !c.passportPhotoValid:
+		return uploadPassportState, nil
+	case !c.selfiePhotoValid:
+		return uploadSelfieState, nil
+	case !c.driverLicenseValid:
+		return uploadDriverLicenseState, nil
+	default:
+		return approvedState, nil
+	}
+}
 
 func Example() {
 	opts := []RegistrationStateMachineOption{

@@ -8,13 +8,13 @@ import (
 
 type typeofMatcher[T any] struct{}
 
-func (e typeofMatcher[T]) Matches(got any) bool {
+func (typeofMatcher[T]) Matches(got any) bool {
 	_, gotOk := got.(T)
 
 	return gotOk
 }
 
-func (e typeofMatcher[T]) String() string {
+func (typeofMatcher[T]) String() string {
 	var t T
 
 	return fmt.Sprintf("is typeof %T", t)

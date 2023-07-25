@@ -37,8 +37,8 @@ func WithStateMap[C Context](states ...State) StateMachineOption[C] {
 			return err
 		}
 
-		if err := statemap.Validate(); err != nil {
-			return err
+		if validateErr := statemap.Validate(); validateErr != nil {
+			return validateErr
 		}
 
 		sm.states = statemap

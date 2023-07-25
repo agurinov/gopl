@@ -35,8 +35,8 @@ func TestStrategy_Exponential_WithoutJitter(t *testing.T) {
 		"100 - MaxDelay": {inputRetries: 100, expectedDuration: 10 * time.Second},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -88,8 +88,8 @@ func TestStrategy_Exponential_WithJitter(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)

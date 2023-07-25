@@ -63,8 +63,8 @@ func TestCase_Init_CheckError(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)

@@ -5,22 +5,22 @@ import (
 	"strings"
 )
 
-const (
-	base10 = 10
-)
-
 type RetryLimitError struct {
 	BackoffName string
 	MaxRetries  uint32
 }
 
+const (
+	base10 = 10
+)
+
 func (e RetryLimitError) Error() string {
 	var b strings.Builder
 
-	b.WriteString("backoff(")
-	b.WriteString(e.BackoffName)
-	b.WriteString(") retry limit exceeded; max_retries=")
-	b.WriteString(strconv.FormatUint(
+	_, _ = b.WriteString("backoff(")
+	_, _ = b.WriteString(e.BackoffName)
+	_, _ = b.WriteString(") retry limit exceeded; max_retries=")
+	_, _ = b.WriteString(strconv.FormatUint(
 		uint64(e.MaxRetries),
 		base10,
 	))

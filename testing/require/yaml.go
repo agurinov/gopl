@@ -1,4 +1,4 @@
-package pl_require
+package require
 
 // TODO(a.gurinov): Deal with msgAndArgs vs (msg, args...)
 
@@ -69,11 +69,12 @@ func decodeYAMLDocuments(t *testing.T, content string, msgAndArgs ...any) []yaml
 	)
 
 	for i := 0; ; i++ {
-		if err := decoder.Decode(&doc); errors.Is(err, io.EOF) {
+		err := decoder.Decode(&doc)
+		if errors.Is(err, io.EOF) {
 			break
-		} else {
-			require.NoError(t, err, msgAndArgs...)
 		}
+
+		require.NoError(t, err, msgAndArgs...)
 
 		docs = append(docs, doc)
 	}

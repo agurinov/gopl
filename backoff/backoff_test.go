@@ -103,3 +103,33 @@ func TestBackoff_Context(t *testing.T) {
 	)
 	require.Equal(t, backoff.EmptyStat, stat)
 }
+
+func TestBackoff_Validate(t *testing.T) {
+	pl_testing.Init(t)
+
+	cases := map[string]struct {
+		inputOptions []backoff.Option
+		pl_testing.TestCase
+	}{
+		"case00: success": {
+			inputOptions: []backoff.Option{
+				backoff.WithMaxRetries(5),
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			b, err := backoff.New(tc.inputOptions...)
+			require.NoError(t, err)
+
+			tc.CheckError(t,
+				b.Validate(),
+			)
+		})
+	}
+}

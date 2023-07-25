@@ -1,5 +1,7 @@
 package envvars
 
+var GDebug = Bool("G_DEBUG")
+
 var (
 	LogEnabled = Bool("LOG_ENABLED")
 	LogLevel   = String("LOG_LEVEL")
@@ -21,4 +23,10 @@ var (
 	KafkaReadTimeout   = Duration("KFK_READ_TIMEOUT")
 )
 
-var GDebug = Bool("G_DEBUG")
+var (
+	VaultEnabled  = Bool("VAULT_ENABLED")
+	VauldAddress  = String("VAULT_ADDR")
+	VaultToken    = String("VAULT_TOKEN")
+	VaultRoleID   = UUID("VAULT_ROLE_ID")
+	VaultSecretID = UUID("VAULT_SECRET_ID")
+)

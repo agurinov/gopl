@@ -28,8 +28,8 @@ func TestOr(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)

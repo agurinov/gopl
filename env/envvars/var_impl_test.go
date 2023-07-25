@@ -38,8 +38,8 @@ func TestVariableStore_String(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -83,8 +83,8 @@ func TestVariableStore_Bool(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -128,8 +128,8 @@ func TestVariableStore_Int(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -173,8 +173,8 @@ func TestVariableStore_Duration(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -218,8 +218,8 @@ func TestVariableStore_UUID(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -263,13 +263,16 @@ func TestVariableStore_IP(t *testing.T) {
 			expectedStored: net.IPv4(192, 168, 0, 1),
 		},
 		"success ipv6": {
-			inputVar:       envvars.IP("IP_V6_VALID"),
-			expectedStored: net.IP{0x20, 0x1, 0xd, 0xb8, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x68},
+			inputVar: envvars.IP("IP_V6_VALID"),
+			expectedStored: net.IP{
+				0x20, 0x1, 0xd, 0xb8, 0x0, 0x0, 0x0, 0x0,
+				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x68,
+			},
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -317,8 +320,8 @@ func TestVariableStore_URL(t *testing.T) {
 		},
 	}
 
-	for name, tc := range cases {
-		name, tc := name, tc
+	for name := range cases {
+		name, tc := name, cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
