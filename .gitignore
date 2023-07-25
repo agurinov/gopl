@@ -10,6 +10,11 @@ coverage_*.*
 *.trace
 *.pprof
 *.test
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 
 # Python
 __pycache__/
@@ -20,5 +25,5 @@ __pycache__/
 
 # IDE
 .DS_Store
-.idea/
-.vscode/
+.idea
+.vscode
