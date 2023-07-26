@@ -53,7 +53,7 @@ go.mod:
 	$(GO) mod init '$(firstword $(URL_SCHEMALESS) $(UNSPECIFIED_GO_MODULE_NAME))'
 
 go_vendor: FORCE go.mod go_mod_no_cache
-	$(GO) mod tidy
+	$(GO) mod tidy -v
 	$(GO) mod vendor
 	$(GO) mod verify
 # }}}

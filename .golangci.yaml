@@ -26,6 +26,7 @@ linters:
   enable-all: true
   fast: false
   disable:
+    - tenv
     - prealloc
     - dupword
     - importas

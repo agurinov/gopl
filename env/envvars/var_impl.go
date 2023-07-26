@@ -1,7 +1,7 @@
 package envvars
 
 import (
-	"io"
+	"fmt"
 	"os"
 )
 
@@ -23,14 +23,20 @@ func (i impl[V]) Present() bool {
 func (i impl[V]) Value() (V, error) {
 	var typed V
 
-	// TODO(a.gurinov): Fix errors
 	value, present := os.LookupEnv(i.String())
 	if !present {
-		return typed, io.EOF
+		return typed, fmt.Errorf(
+			"envvar %q doesn't present",
+			i,
+		)
 	}
 
 	if i.mapper == nil {
-		return typed, io.EOF
+		return typed, fmt.Errorf(
+			"envvar %q doesn't have mapper for type %T",
+			i,
+			typed,
+		)
 	}
 
 	return i.mapper(value)
