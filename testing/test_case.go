@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/agurinov/gopl/env/envvars"
@@ -32,21 +33,24 @@ func (tc TestCase) Init(t *testing.T, si ...stands.Interface) map[string]stands.
 	t.Helper()
 
 	var (
-		isIntegration = len(si) > 0
-		isDebug       = tc.Debug || tc.root
-		needDebug     = envvars.GDebug.Present()
-		needParallel  = !needDebug
+		isDebug         = tc.Debug || tc.root
+		isIntegration   = len(si) > 0
+		needDebug       = envvars.GDebug.Present()
+		needIntegration = !testing.Short()
+		needParallel    = !needDebug
 	)
 
 	switch {
 	case tc.Skip:
 		t.Skip("tc skipped: explicit skip flag")
-	case needDebug && !isDebug:
-		t.Skip("tc skipped: not debuggable during " + envvars.GDebug.String())
-	case testing.Short() && isIntegration:
-		t.Skip("tc skipped: integration test during -testing.short mode")
 	case tc.Fail:
 		t.Fail()
+	case needDebug && !isDebug:
+		t.Skip("tc skipped: not debuggable during " + envvars.GDebug.String())
+	case needIntegration && !isIntegration:
+		t.Skip("tc skipped: unit test during integration mode")
+	case !needIntegration && isIntegration:
+		t.Skip("tc skipped: integration test during unit mode")
 	}
 
 	if needParallel {
