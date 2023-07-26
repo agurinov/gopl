@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/agurinov/gopl/env/envvars"
