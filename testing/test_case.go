@@ -59,6 +59,10 @@ func (tc TestCase) Init(t *testing.T, si ...stands.Interface) map[string]stands.
 	states := make(map[string]stands.State, len(si))
 
 	for _, stand := range si {
+		if stand == nil {
+			continue
+		}
+
 		var (
 			standName    = stand.Name()
 			standCreated = stand.Up(t)
