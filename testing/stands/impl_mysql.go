@@ -36,8 +36,6 @@ func (Mysql) Name() string { return MysqlStandName }
 func (s Mysql) Up(t *testing.T) bool {
 	t.Helper()
 
-	t.Helper()
-
 	require.NotZero(t, s.Replicas)
 
 	var (
