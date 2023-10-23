@@ -24,6 +24,13 @@ $(FHS_ROOTDIR) $(FHS_BINDIR) $(FHS_ETCDIR) $(FHS_LIBDIR):
 	mkdir -p $@
 # }}}
 
+# GO public API {{{
+GO_TAGS     ?=
+GO_PKG      ?= ./...
+GO_SYMBOL   ?= .
+GO_CMD_ARGS ?=
+# }}}
+
 # GO private API {{{
 _GO_VERSION_RAW          := $(shell $(GO) env GOVERSION;)
 GO_VERSION               := $(subst go,,$(_GO_VERSION_RAW))
@@ -40,12 +47,6 @@ GO_MODULE_PATH             := $(shell $(GO) mod edit -json | $(JQ) -Mr '.Module.
 GO_MODULE_GO_VERSION       := $(shell $(GO) mod edit -json | $(JQ) -Mr '.Go';)
 GO_MODULE_NAME             := $(basename $(notdir $(GO_MODULE_PATH)))
 UNSPECIFIED_GO_MODULE_NAME := github.com/acme/goplay
-# }}}
-
-# GO public API {{{
-GO_TAGS     ?=
-GO_PKG      ?= ./...
-GO_CMD_ARGS ?=
 # }}}
 
 # deps / mod / vendor {{{
@@ -66,23 +67,22 @@ _GO_OS_ARCH_BUILD_TAGS            := unix linux darwin windows 386 amd64 arm arm
 _GO_SYS_BUILD_TAGS                := cgo gc gccgo
 
 SPECIAL_CHARS                     := ! ( ) & |
-PARENTHESES_OPEN                  := (
-PARENTHESES_CLOSE                 := )
+PARENTHESIS_OPEN                  := (
+PARENTHESIS_CLOSE                 := )
 
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(shell $(GREP_TAGS_CMD);)
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst !,,$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst &,,$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst |,,$(GO_DISCOVERED_BUILD_TAGS_ALL))
-GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESES_OPEN),,$(GO_DISCOVERED_BUILD_TAGS_ALL))
-GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESES_CLOSE),,$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESIS_OPEN),,$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESIS_CLOSE),,$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(filter-out $(_GO_OS_ARCH_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(filter-out $(_GO_SYS_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(sort $(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_FILTERED := $(filter-out $(_GO_IGNORED_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 
 ifndef GO_TAGS
-go_test:                     GO_TAGS := test_unit
-dlv_test go_bench:           GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_FILTERED)
+go_test dlv_test go_bench:   GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_FILTERED)
 golangci-lint go_vet go_sec: GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_FILTERED)
 go_generate:                 GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_ALL)
 endif
@@ -207,7 +207,7 @@ GOLANGCI_LINT_CONFS := $(realpath \
 )
 
 define GOLANGCI_LINT_CMD
-$(GOLANGCI_LINT) run --config='$(GOLANGCI_LINT_CONF)' --go='$(GO_VERSION_MINOR)' --modules-download-mode=vendor --build-tags='$(GO_TAGS)'
+$(GOLANGCI_LINT) run --config='$(GOLANGCI_LINT_CONF)' --go='$(GO_VERSION_MINOR)' --out-format=colored-line-number --modules-download-mode=vendor --build-tags='$(GO_TAGS)' --tests
 
 endef
 
