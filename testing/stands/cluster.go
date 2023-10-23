@@ -3,6 +3,7 @@ package stands
 import (
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -25,9 +26,9 @@ type (
 
 func (p ports) Cluster() string               { return fmt.Sprintf("%d/tcp", p.cluster) }
 func (p ports) Internal() string              { return fmt.Sprintf("%d/tcp", p.internal) }
-func (p ports) InternalRaw() string           { return fmt.Sprintf("%d", p.internal) }
+func (p ports) InternalRaw() string           { return strconv.Itoa(p.internal) }
 func (p ports) External(offset int) string    { return fmt.Sprintf("%d/tcp", p.external+offset) }
-func (p ports) ExternalRaw(offset int) string { return fmt.Sprintf("%d", p.external+offset) }
+func (p ports) ExternalRaw(offset int) string { return strconv.Itoa(p.external + offset) }
 
 func (n node) Hostname(t *testing.T) string {
 	t.Helper()
@@ -36,7 +37,7 @@ func (n node) Hostname(t *testing.T) string {
 }
 func (n node) ExternalPort() string    { return n.ports.External(n.index) }
 func (n node) ExternalPortRaw() string { return n.ports.ExternalRaw(n.index) }
-func (n node) KafkaNodeID() string     { return fmt.Sprintf("%d", n.index) }
+func (n node) KafkaNodeID() string     { return strconv.Itoa(n.index) }
 
 func (c cluster) KafkaQuorumVoters(t *testing.T) string {
 	t.Helper()

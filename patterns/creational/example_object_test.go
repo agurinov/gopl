@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -141,7 +142,7 @@ func (o MyStruct) Init(_ context.Context) error {
 		return err
 	}
 
-	if _, err := io.WriteString(o.w, fmt.Sprintf("%d", o.i)); err != nil {
+	if _, err := io.WriteString(o.w, strconv.Itoa(o.i)); err != nil {
 		return err
 	}
 
