@@ -48,6 +48,7 @@ linters:
     - gochecknoinits
     - testableexamples
     - structcheck
+    - inamedparam
 # linters-settings {{{
 # https://golangci-lint.run/usage/configuration/#linters-settings-configuration
 linters-settings:
@@ -379,6 +380,7 @@ linters-settings:
       - {name: 'function-length', disabled: true}
       - {name: 'if-return', disabled: true}
       - {name: 'confusing-naming', disabled: true}
+      - {name: 'import-alias-naming', disabled: true}
       - name: cyclomatic
         arguments: 15
       - name: cognitive-complexity

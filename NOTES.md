@@ -54,6 +54,7 @@
 - https://github.com/looplab/fsm
 - https://tproger.ru/translations/finite-state-machines-theory-and-implementation/
 - [] Think about proper StateMap data structure
+- http://web.mit.edu/6.111/www/f2017/handouts/L06.pdf
 
 *ratelimiter:*
 - https://blog.bytebytego.com/p/rate-limiting-fundamentals?utm_source=substack&utm_medium=email
