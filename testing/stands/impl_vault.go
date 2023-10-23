@@ -115,8 +115,8 @@ func (s Vault) Up(t *testing.T) bool {
 		)
 
 		for i := range s.Roles {
-			require.False(t, s.Roles[i].ID == uuid.Nil)
-			require.False(t, s.Roles[i].SecretID == uuid.Nil)
+			require.NotEqual(t, s.Roles[i].ID, uuid.Nil)
+			require.NotEqual(t, s.Roles[i].SecretID, uuid.Nil)
 
 			containerExec(t, vault, nil,
 				"vault", "write",
