@@ -30,3 +30,9 @@ var (
 	VaultRoleID   = UUID("VAULT_ROLE_ID")
 	VaultSecretID = UUID("VAULT_SECRET_ID")
 )
+
+var (
+	ConsulEnabled = Bool("CONSUL_ENABLED")
+	ConsulAddress = String("CONSUL_HTTP_ADDR")
+	ConsulToken   = String("CONSUL_HTTP_TOKEN")
+)
