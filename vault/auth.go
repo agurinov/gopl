@@ -16,7 +16,7 @@ func Auth(ctx context.Context) (*vault.Client, error) {
 	case err != nil:
 		return nil, err
 	case !enabled:
-		return nil, fmt.Errorf("vault: disabled")
+		return nil, fmt.Errorf("vault: disabled by %s", envvars.VaultEnabled)
 	}
 
 	if _, addrErr := envvars.VauldAddress.Value(); addrErr != nil {
@@ -31,22 +31,34 @@ func Auth(ctx context.Context) (*vault.Client, error) {
 		return nil, fmt.Errorf("vault: can't create client: %w", err)
 	}
 
-	// https://developer.hashicorp.com/vault/docs/auth/approle
 	// https://developer.hashicorp.com/vault/docs/auth/token
-	// https://developer.hashicorp.com/vault/docs/auth/userpass
-
 	if client.Token() != "" {
 		return client, nil
 	}
 
+	// https://developer.hashicorp.com/vault/docs/auth/approle
+	token, err := authAppRole(ctx, client)
+	if err != nil {
+		return nil, err
+	}
+
+	// https://developer.hashicorp.com/vault/docs/auth/userpass
+	// TODO(a.gurinov)
+
+	client.SetToken(token)
+
+	return client, nil
+}
+
+func authAppRole(ctx context.Context, client *vault.Client) (string, error) {
 	roleID, err := envvars.VaultRoleID.Value()
 	if err != nil {
-		return nil, fmt.Errorf("vault: can't auth via approle: %w", err)
+		return "", fmt.Errorf("vault: can't auth via approle: %w", err)
 	}
 
 	secretID, err := envvars.VaultSecretID.Value()
 	if err != nil {
-		return nil, fmt.Errorf("vault: can't auth via approle: %w", err)
+		return "", fmt.Errorf("vault: can't auth via approle: %w", err)
 	}
 
 	auth, err := client.Logical().WriteWithContext(ctx, "auth/approle/login",
@@ -56,10 +68,8 @@ func Auth(ctx context.Context) (*vault.Client, error) {
 		},
 	)
 	if err != nil {
-		return nil, fmt.Errorf("vault: can't auth via approle: %w", err)
+		return "", fmt.Errorf("vault: can't auth via approle: %w", err)
 	}
 
-	client.SetToken(auth.Auth.ClientToken)
-
-	return client, nil
+	return auth.Auth.ClientToken, nil
 }
