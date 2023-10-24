@@ -34,7 +34,11 @@ func TestAuth(t *testing.T) {
 
 	ctx := context.TODO()
 
-	client, err := vault.Auth(ctx)
+	cfg, err := vault.LoadConfig()
+	require.NoError(t, err)
+
+	client, err := vault.Auth(ctx, cfg)
 	require.NoError(t, err)
 	require.NotNil(t, client)
+	require.NotEmpty(t, client.Token())
 }

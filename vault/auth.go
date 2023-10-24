@@ -5,28 +5,17 @@ import (
 	"fmt"
 
 	vault "github.com/hashicorp/vault/api"
-
-	"github.com/agurinov/gopl/env/envvars"
 )
 
-func Auth(ctx context.Context) (*vault.Client, error) {
-	enabled, err := envvars.VaultEnabled.Value()
-
-	switch {
-	case err != nil:
-		return nil, err
-	case !enabled:
-		return nil, fmt.Errorf("vault: disabled by %s", envvars.VaultEnabled)
+func Auth(ctx context.Context, cfg Config) (*vault.Client, error) {
+	if !cfg.Enabled {
+		return nil, fmt.Errorf("vault: feature disabled")
 	}
 
-	if _, addrErr := envvars.VauldAddress.Value(); addrErr != nil {
-		return nil, addrErr
-	}
+	vaultCfg := vault.DefaultConfig()
+	vaultCfg.Address = cfg.Address
 
-	cfg := vault.DefaultConfig()
-	// vaultConfig.Timeout = cfg.Timeout
-
-	client, err := vault.NewClient(cfg)
+	client, err := vault.NewClient(vaultCfg)
 	if err != nil {
 		return nil, fmt.Errorf("vault: can't create client: %w", err)
 	}
@@ -37,7 +26,7 @@ func Auth(ctx context.Context) (*vault.Client, error) {
 	}
 
 	// https://developer.hashicorp.com/vault/docs/auth/approle
-	token, err := authAppRole(ctx, client)
+	token, err := authAppRole(ctx, client, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -50,21 +39,16 @@ func Auth(ctx context.Context) (*vault.Client, error) {
 	return client, nil
 }
 
-func authAppRole(ctx context.Context, client *vault.Client) (string, error) {
-	roleID, err := envvars.VaultRoleID.Value()
-	if err != nil {
-		return "", fmt.Errorf("vault: can't auth via approle: %w", err)
-	}
-
-	secretID, err := envvars.VaultSecretID.Value()
-	if err != nil {
-		return "", fmt.Errorf("vault: can't auth via approle: %w", err)
-	}
-
-	auth, err := client.Logical().WriteWithContext(ctx, "auth/approle/login",
+func authAppRole(
+	ctx context.Context,
+	client *vault.Client,
+	cfg Config,
+) (string, error) {
+	auth, err := client.Logical().WriteWithContext(ctx,
+		"auth/approle/login",
 		map[string]any{
-			"role_id":   roleID,
-			"secret_id": secretID,
+			"role_id":   cfg.RoleUUID,
+			"secret_id": cfg.SecretUUID,
 		},
 	)
 	if err != nil {
