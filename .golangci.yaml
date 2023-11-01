@@ -231,6 +231,7 @@ linters-settings:
     keywords:
       - FIXME
       - BUG
+      - CRITICAL
   # https://golangci-lint.run/usage/linters/#gofmt
   gofmt:
     simplify: true
