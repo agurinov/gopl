@@ -6,7 +6,8 @@ require (
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/uuid v1.3.0
-	github.com/hashicorp/vault/api v1.9.2
+	github.com/hashicorp/vault/api v1.10.0
+	github.com/hashicorp/vault/api/auth/approle v0.5.0
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/exp v0.0.0-20221002003631-540bb7301a08
