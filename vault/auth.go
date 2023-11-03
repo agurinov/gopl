@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	vault "github.com/hashicorp/vault/api"
+	"github.com/hashicorp/vault/api/auth/approle"
 )
 
 func Auth(ctx context.Context, cfg Config) (*vault.Client, error) {
@@ -25,14 +27,32 @@ func Auth(ctx context.Context, cfg Config) (*vault.Client, error) {
 		return client, nil
 	}
 
-	// https://developer.hashicorp.com/vault/docs/auth/approle
-	token, err := authAppRole(ctx, client, cfg)
-	if err != nil {
-		return nil, err
+	var (
+		token          string
+		isAppRoleAuth  = cfg.RoleUUID != uuid.Nil
+		isUserPassAuth = false
+	)
+
+	if isAppRoleAuth && isUserPassAuth {
+		return nil, fmt.Errorf("vault: ambiguous auth method: choose oneof approle or userpass")
 	}
 
-	// https://developer.hashicorp.com/vault/docs/auth/userpass
-	// TODO(a.gurinov)
+	switch {
+	case isAppRoleAuth:
+		// https://developer.hashicorp.com/vault/docs/auth/approle
+		authToken, authErr := authAppRole(ctx, cfg, client)
+		if authErr != nil {
+			return nil, fmt.Errorf("vault: can't auth via approle: %w", authErr)
+		}
+
+		token = authToken
+	case isUserPassAuth:
+		// TODO(a.gurinov)
+		// https://developer.hashicorp.com/vault/docs/auth/userpass
+		return nil, fmt.Errorf("vault: unimplemented userpass auth method")
+	default:
+		return nil, fmt.Errorf("vault: unknown auth method")
+	}
 
 	client.SetToken(token)
 
@@ -41,19 +61,23 @@ func Auth(ctx context.Context, cfg Config) (*vault.Client, error) {
 
 func authAppRole(
 	ctx context.Context,
-	client *vault.Client,
 	cfg Config,
+	client *vault.Client,
 ) (string, error) {
-	auth, err := client.Logical().WriteWithContext(ctx,
-		"auth/approle/login",
-		map[string]any{
-			"role_id":   cfg.RoleUUID,
-			"secret_id": cfg.SecretUUID,
+	auth, err := approle.NewAppRoleAuth(
+		cfg.RoleUUID.String(),
+		&approle.SecretID{
+			FromString: cfg.SecretUUID.String(),
 		},
 	)
 	if err != nil {
-		return "", fmt.Errorf("vault: can't auth via approle: %w", err)
+		return "", err
 	}
 
-	return auth.Auth.ClientToken, nil
+	secret, err := auth.Login(ctx, client)
+	if err != nil {
+		return "", err
+	}
+
+	return secret.Auth.ClientToken, nil
 }

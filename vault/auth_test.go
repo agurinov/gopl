@@ -15,13 +15,18 @@ import (
 )
 
 func TestAuth(t *testing.T) {
+	const (
+		roleID   = "6c578acc-732c-4f66-a485-5d14a03199d3"
+		secretID = "de9b68e9-99aa-4dc4-b912-816e7382698f"
+	)
+
 	pl_testing.Init(t,
 		stands.Vault{
 			Replicas: 1,
 			Roles: []stands.VaultRole{
 				{
-					ID:       uuid.MustParse("6c578acc-732c-4f66-a485-5d14a03199d3"),
-					SecretID: uuid.MustParse("de9b68e9-99aa-4dc4-b912-816e7382698f"),
+					ID:       uuid.MustParse(roleID),
+					SecretID: uuid.MustParse(secretID),
 				},
 			},
 		},
@@ -29,8 +34,8 @@ func TestAuth(t *testing.T) {
 
 	os.Setenv(envvars.VaultEnabled.String(), "true")
 	os.Setenv(envvars.VauldAddress.String(), "http://localhost:8200")
-	os.Setenv(envvars.VaultRoleID.String(), "6c578acc-732c-4f66-a485-5d14a03199d3")
-	os.Setenv(envvars.VaultSecretID.String(), "de9b68e9-99aa-4dc4-b912-816e7382698f")
+	os.Setenv(envvars.VaultRoleID.String(), roleID)
+	os.Setenv(envvars.VaultSecretID.String(), secretID)
 
 	ctx := context.TODO()
 
