@@ -18,10 +18,9 @@ jobs:
         go-version: ['1.18.10', '1.19.13', '1.20.10', '1.21.3']
         gomake-target: ['go_test']
         include:
-          - go-version: '1.20.10'
-            gomake-target: 'lint'
-          - go-version: '1.21.3'
-            gomake-target: 'lint'
+          - {go-version: '1.20.10', gomake-target: 'lint'}
+          - {go-version: '1.21.3', gomake-target: 'lint'}
+          - {go-version: '1.21.3', gomake-target: 'go_sec'}
     steps:
       - uses: actions/checkout@v3
       - uses: agurinov/pipelines/github-actions/actions/setup-dotfiles@main
