@@ -1,13 +1,14 @@
 package vault
 
 import (
+	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 
 	"github.com/agurinov/gopl/env/envvars"
 )
 
 type Config struct {
-	Address    string
+	Address    string `validate:"required"`
 	RoleUUID   uuid.UUID
 	SecretUUID uuid.UUID
 	Enabled    bool
@@ -47,6 +48,10 @@ func LoadConfig() (Config, error) {
 		Address:    address,
 		RoleUUID:   roleUUID,
 		SecretUUID: secretUUID,
+	}
+
+	if validateErr := validator.New().Struct(cfg); validateErr != nil {
+		return Config{}, validateErr
 	}
 
 	return cfg, nil

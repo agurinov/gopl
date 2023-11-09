@@ -5,6 +5,7 @@ var GDebug = Bool("G_DEBUG")
 var (
 	LogEnabled = Bool("LOG_ENABLED")
 	LogLevel   = String("LOG_LEVEL")
+	LogFormat  = String("LOG_FORMAT")
 	LogDriver  = String("LOG_DRIVER")
 )
 
