@@ -1,7 +1,5 @@
 package envvars
 
-// TODO(a.gurinov): Errors for this package
-
 import (
 	"fmt"
 	"net"
@@ -11,11 +9,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type variable interface {
+type T interface {
 	string | bool | int | time.Duration | uuid.UUID | net.IP | url.URL
 }
 
-type Variable[V variable] interface {
+type Variable[V T] interface {
 	Present() bool
 	Value() (V, error)
 	Store(*V) error

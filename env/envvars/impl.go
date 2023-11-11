@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-type impl[V variable] struct {
+type impl[V T] struct {
 	mapper func(string) (V, error)
 	key    string
 }
@@ -25,21 +25,19 @@ func (i impl[V]) Value() (V, error) {
 
 	value, present := os.LookupEnv(i.String())
 	if !present {
-		return typed, fmt.Errorf(
-			"envvar %q doesn't present",
-			i,
-		)
+		return typed, fmt.Errorf("%q: %w", i, ErrNoVar)
 	}
 
 	if i.mapper == nil {
-		return typed, fmt.Errorf(
-			"envvar %q doesn't have mapper for type %T",
-			i,
-			typed,
-		)
+		return typed, fmt.Errorf("%q: %w for type %T", i, ErrNoMapper, typed)
 	}
 
-	return i.mapper(value)
+	typed, err := i.mapper(value)
+	if err != nil {
+		return typed, fmt.Errorf("%q: %w", i, err)
+	}
+
+	return typed, nil
 }
 
 func (i impl[V]) Store(dst *V) error {

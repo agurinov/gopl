@@ -1,7 +1,6 @@
 package envvars
 
 import (
-	"io"
 	"net"
 	"net/url"
 	"strconv"
@@ -19,8 +18,7 @@ var (
 	toIPMapper       = func(s string) (net.IP, error) {
 		ip := net.ParseIP(s)
 		if ip == nil {
-			// TODO(a.gurinov): fix this error
-			return nil, io.EOF
+			return nil, ErrParseIP
 		}
 
 		return ip, nil

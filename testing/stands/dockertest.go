@@ -1,5 +1,7 @@
 package stands
 
+// TODO(a.gurinov): Cleanup based on debug (pass from testcase)
+
 import (
 	"errors"
 	"fmt"
