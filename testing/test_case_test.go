@@ -1,24 +1,19 @@
 package testing_test
 
-// TODO(a.gurinov): Set vars via env file for test.
-
 import (
 	"io"
-	"os"
 	"testing"
 
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 
-	"github.com/agurinov/gopl/env/envvars"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
 func TestCase_Init_CheckError(t *testing.T) {
 	pl_testing.Init(t)
 
-	require.NoError(t,
-		os.Setenv(envvars.GDebug.String(), "true"),
-	)
+	require.NoError(t, godotenv.Load("testdata/.env"))
 
 	cases := map[string]struct {
 		err error
