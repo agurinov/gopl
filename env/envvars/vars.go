@@ -25,11 +25,13 @@ var (
 )
 
 var (
-	VaultEnabled  = Bool("VAULT_ENABLED")
-	VauldAddress  = String("VAULT_ADDR")
-	VaultToken    = String("VAULT_TOKEN")
-	VaultRoleID   = UUID("VAULT_ROLE_ID")
-	VaultSecretID = UUID("VAULT_SECRET_ID")
+	VaultEnabled          = Bool("VAULT_ENABLED")
+	VauldAddress          = String("VAULT_ADDR")
+	VaultToken            = String("VAULT_TOKEN")
+	VaultRoleID           = UUID("VAULT_ROLE_ID")
+	VaultSecretID         = UUID("VAULT_SECRET_ID")
+	VaultUserpassUsername = String("VAULT_USERPASS_USERNAME")
+	VaultUserpassPassword = String("VAULT_USERPASS_PASSWORD")
 )
 
 var (

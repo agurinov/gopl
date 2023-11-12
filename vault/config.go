@@ -9,6 +9,8 @@ import (
 
 type Config struct {
 	Address    string `validate:"required"`
+	Username   string
+	Password   string
 	RoleUUID   uuid.UUID
 	SecretUUID uuid.UUID
 	Enabled    bool
@@ -21,6 +23,8 @@ func LoadConfig() (Config, error) {
 		address    string
 		roleUUID   uuid.UUID
 		secretUUID uuid.UUID
+		username   string
+		password   string
 	)
 
 	enabled, err := envvars.VaultEnabled.Value()
@@ -43,11 +47,23 @@ func LoadConfig() (Config, error) {
 		return Config{}, err
 	}
 
+	username, err = envvars.VaultUserpassUsername.Value()
+	if err != nil {
+		return Config{}, err
+	}
+
+	password, err = envvars.VaultUserpassPassword.Value()
+	if err != nil {
+		return Config{}, err
+	}
+
 	cfg := Config{
 		Enabled:    enabled,
 		Address:    address,
 		RoleUUID:   roleUUID,
 		SecretUUID: secretUUID,
+		Username:   username,
+		Password:   password,
 	}
 
 	if validateErr := validator.New().Struct(cfg); validateErr != nil {

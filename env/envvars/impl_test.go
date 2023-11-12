@@ -19,12 +19,12 @@ type (
 	args[T envvars.T] struct {
 		envvar envvars.Variable[T]
 	}
-	result[T envvars.T] struct {
+	results[T envvars.T] struct {
 		stored T
 	}
 	tc[T envvars.T] struct {
-		args   args[T]
-		result result[T]
+		args    args[T]
+		results results[T]
 		pl_testing.TestCase
 	}
 )
@@ -47,7 +47,7 @@ func RunCases[T envvars.T](
 			)
 
 			tc.CheckError(t, err)
-			require.Equal(t, tc.result.stored, stored)
+			require.Equal(t, tc.results.stored, stored)
 		})
 	}
 }
@@ -72,7 +72,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[string]{
 					envvar: envvars.String("STRING_VALID"),
 				},
-				result: result[string]{
+				results: results[string]{
 					stored: "foobar",
 				},
 			},
@@ -105,7 +105,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[bool]{
 					envvar: envvars.Bool("BOOL_VALID"),
 				},
-				result: result[bool]{
+				results: results[bool]{
 					stored: true,
 				},
 			},
@@ -138,7 +138,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[int]{
 					envvar: envvars.Int("INT_VALID"),
 				},
-				result: result[int]{
+				results: results[int]{
 					stored: 100500,
 				},
 			},
@@ -170,7 +170,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[time.Duration]{
 					envvar: envvars.Duration("DURATION_VALID"),
 				},
-				result: result[time.Duration]{
+				results: results[time.Duration]{
 					stored: time.Hour + 2*time.Minute + 30*time.Second,
 				},
 			},
@@ -202,7 +202,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[uuid.UUID]{
 					envvar: envvars.UUID("UUID_VALID"),
 				},
-				result: result[uuid.UUID]{
+				results: results[uuid.UUID]{
 					stored: uuid.MustParse("711835ae-613e-4cb9-9215-f3c6a8688676"),
 				},
 			},
@@ -235,7 +235,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[net.IP]{
 					envvar: envvars.IP("IP_V4_VALID"),
 				},
-				result: result[net.IP]{
+				results: results[net.IP]{
 					stored: net.IPv4(192, 168, 0, 1),
 				},
 			},
@@ -243,7 +243,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[net.IP]{
 					envvar: envvars.IP("IP_V6_VALID"),
 				},
-				result: result[net.IP]{
+				results: results[net.IP]{
 					stored: net.IP{
 						0x20, 0x1, 0xd, 0xb8, 0x0, 0x0, 0x0, 0x0,
 						0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x68,
@@ -281,7 +281,7 @@ func TestVariableStore(t *testing.T) {
 				args: args[url.URL]{
 					envvar: envvars.URL("URL_VALID"),
 				},
-				result: result[url.URL]{
+				results: results[url.URL]{
 					stored: url.URL{
 						Scheme: "http",
 						Host:   "domain.com",
