@@ -1,7 +1,7 @@
 package fsm_test
 
 import (
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	mock "github.com/agurinov/gopl/fsm/gomock"
 )

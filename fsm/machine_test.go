@@ -5,9 +5,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 
 	"github.com/agurinov/gopl/fsm"
 	pl_testing "github.com/agurinov/gopl/testing"

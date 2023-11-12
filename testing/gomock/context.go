@@ -3,7 +3,7 @@ package gomock
 import (
 	"context"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func IsContext() gomock.Matcher {

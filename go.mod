@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/go-playground/validator/v10 v10.14.1
-	github.com/golang/mock v1.7.0-rc.1
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/vault/api v1.10.0
 	github.com/hashicorp/vault/api/auth/approle v0.5.0
@@ -12,6 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/stretchr/testify v1.8.2
+	go.uber.org/mock v0.3.0
 	golang.org/x/exp v0.0.0-20221002003631-540bb7301a08
 	golang.org/x/tools v0.15.0
 	gopkg.in/yaml.v3 v3.0.1
