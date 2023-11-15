@@ -1,5 +1,3 @@
-//go:build neverbuild
-
 //go:generate -command stringer go run ./vendor/golang.org/x/tools/cmd/stringer
 //go:generate -command mockgen  go run ./vendor/go.uber.org/mock/mockgen
 

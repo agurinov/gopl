@@ -1,5 +1,3 @@
-//go:build neverbuild
-
 //go:generate -command mockgen go run ../vendor/go.uber.org/mock/mockgen
 package fsm
 
