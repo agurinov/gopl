@@ -131,8 +131,6 @@ func (s Kafka) Up(t *testing.T) bool {
 	}
 
 	if created {
-		require.NotNil(t, kafka)
-
 		for i := range s.Topics {
 			require.NotEmpty(t, s.Topics[i].Name)
 			require.NotZero(t, s.Topics[i].Partitions)
