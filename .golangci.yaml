@@ -391,7 +391,7 @@ linters-settings:
       - name: function-result-limit
         arguments: 3
       - name: max-public-structs
-        arguments: 5
+        arguments: 6
       - name: add-constant
         arguments:
           maxLitCount: '5'
@@ -408,7 +408,7 @@ linters-settings:
     http-status-code-whitelist: []
   # https://golangci-lint.run/usage/linters/#tagalign
   tagalign:
-    align: true
+    align: false
     sort: true
     order:
       - json
@@ -420,7 +420,8 @@ linters-settings:
   tagliatelle:
     case:
       use-field-name: false
-      rules: {}
+      rules:
+        json: snake
   # https://golangci-lint.run/usage/linters/#tenv
   tenv:
     all: false
