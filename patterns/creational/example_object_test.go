@@ -20,7 +20,7 @@ type (
 		i int
 	}
 	MyStructOption            c.Option[MyStruct]
-	MyStructOptionWithContext c.OptionWithContext[MyStruct]
+	MyStructOptionWithContext = c.OptionWithContext[MyStruct]
 )
 
 var (

@@ -6,11 +6,18 @@ import (
 	c "github.com/agurinov/gopl/patterns/creational"
 )
 
-type StateMachine[C Context] struct {
-	states  StateMap
-	storage StateStorage[C]
-	name    string
-	version string
+type (
+	StateMachine[C Context] struct {
+		states  StateMap
+		storage StateStorage[C]
+		name    string
+		version string
+	}
+	StateMachineOption[C Context] c.Option[StateMachine[C]]
+)
+
+func New[C Context](opts ...StateMachineOption[C]) (StateMachine[C], error) {
+	return c.New(opts...)
 }
 
 func (m StateMachine[C]) currentState(
@@ -109,8 +116,4 @@ func (m StateMachine[C]) Transition(
 	}
 
 	return newState, nil
-}
-
-func New[C Context](opts ...StateMachineOption[C]) (StateMachine[C], error) {
-	return c.New(opts...)
 }

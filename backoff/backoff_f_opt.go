@@ -1,9 +1,5 @@
 package backoff
 
-import c "github.com/agurinov/gopl/patterns/creational"
-
-type Option = c.Option[Backoff]
-
 func WithStrategy(s Strategy) Option {
 	return func(b *Backoff) error {
 		b.strategy = s
