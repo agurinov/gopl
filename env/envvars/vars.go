@@ -39,3 +39,9 @@ var (
 	ConsulAddress = String("CONSUL_HTTP_ADDR")
 	ConsulToken   = String("CONSUL_HTTP_TOKEN")
 )
+
+var (
+	GoFile    = String("GOFILE")
+	GoLine    = Int("GOLINE")
+	GoPackage = String("GOPACKAGE")
+)
