@@ -15,12 +15,9 @@ import (
 
 type (
 	Vault struct {
-		Roles    []VaultRole
-		Replicas int
-	}
-	VaultRole struct {
-		ID       uuid.UUID
-		SecretID uuid.UUID
+		Roles      map[uuid.UUID]uuid.UUID
+		UserPasses map[string]string
+		Replicas   int
 	}
 )
 
@@ -107,21 +104,24 @@ func (s Vault) Up(t *testing.T) bool {
 	if created {
 		require.NotNil(t, vault)
 
-		containerExec(t, vault, nil,
-			"vault", "auth", "enable", "approle",
-		)
 		containerExec(t, vault, strings.NewReader(vaultDevAdminPolicy),
 			"vault", "policy", "write", "dev-admin", "-",
 		)
+		containerExec(t, vault, nil,
+			"vault", "auth", "enable", "approle",
+		)
+		containerExec(t, vault, nil,
+			"vault", "auth", "enable", "userpass",
+		)
 
-		for i := range s.Roles {
-			require.NotEqual(t, s.Roles[i].ID, uuid.Nil)
-			require.NotEqual(t, s.Roles[i].SecretID, uuid.Nil)
+		for roleUUID, secretUUID := range s.Roles {
+			require.NotEqual(t, roleUUID, uuid.Nil)
+			require.NotEqual(t, secretUUID, uuid.Nil)
 
 			containerExec(t, vault, nil,
 				"vault", "write",
-				fmt.Sprintf("auth/approle/role/role%d", i),
-				fmt.Sprintf("role_id=%s", s.Roles[i].ID),
+				fmt.Sprintf("auth/approle/role/%s", roleUUID),
+				fmt.Sprintf("role_id=%s", roleUUID),
 				"secret_id_num_uses=0",
 				"secret_id_ttl=0",
 				"token_num_uses=0",
@@ -130,8 +130,20 @@ func (s Vault) Up(t *testing.T) bool {
 			)
 			containerExec(t, vault, nil,
 				"vault", "write",
-				fmt.Sprintf("auth/approle/role/role%d/custom-secret-id", i),
-				fmt.Sprintf("secret_id=%s", s.Roles[i].SecretID),
+				fmt.Sprintf("auth/approle/role/%s/custom-secret-id", roleUUID),
+				fmt.Sprintf("secret_id=%s", secretUUID),
+			)
+		}
+
+		for username, password := range s.UserPasses {
+			require.NotEmpty(t, username)
+			require.NotEmpty(t, password)
+
+			containerExec(t, vault, nil,
+				"vault", "write",
+				fmt.Sprintf("auth/userpass/users/%s", username),
+				fmt.Sprintf("password=%s", password),
+				"policies=dev-admin",
 			)
 		}
 	}

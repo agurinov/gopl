@@ -1,9 +1,9 @@
 package fsm_test
 
 import (
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
-	"github.com/agurinov/gopl/fsm/mock"
+	mock "github.com/agurinov/gopl/fsm/gomock"
 )
 
 type mocks struct {

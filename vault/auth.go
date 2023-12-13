@@ -4,15 +4,19 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	vault "github.com/hashicorp/vault/api"
+	"github.com/hashicorp/vault/api/auth/approle"
+	"github.com/hashicorp/vault/api/auth/userpass"
 )
 
 func Auth(ctx context.Context, cfg Config) (*vault.Client, error) {
 	if !cfg.Enabled {
-		return nil, fmt.Errorf("vault: feature disabled")
+		return nil, ErrDisabled
 	}
 
 	vaultCfg := vault.DefaultConfig()
+	// vaultCfg.ReadEnvironment
 	vaultCfg.Address = cfg.Address
 
 	client, err := vault.NewClient(vaultCfg)
@@ -25,14 +29,36 @@ func Auth(ctx context.Context, cfg Config) (*vault.Client, error) {
 		return client, nil
 	}
 
-	// https://developer.hashicorp.com/vault/docs/auth/approle
-	token, err := authAppRole(ctx, client, cfg)
-	if err != nil {
-		return nil, err
+	var (
+		token          string
+		isAppRoleAuth  = cfg.RoleUUID != uuid.Nil
+		isUserPassAuth = cfg.Username != ""
+	)
+
+	if isAppRoleAuth && isUserPassAuth {
+		return nil, ErrAmbiguousAuthMethod
 	}
 
-	// https://developer.hashicorp.com/vault/docs/auth/userpass
-	// TODO(a.gurinov)
+	switch {
+	case isAppRoleAuth:
+		// https://developer.hashicorp.com/vault/docs/auth/approle
+		authToken, authErr := authAppRole(ctx, cfg, client)
+		if authErr != nil {
+			return nil, fmt.Errorf("vault: can't auth via approle: %w", authErr)
+		}
+
+		token = authToken
+	case isUserPassAuth:
+		// https://developer.hashicorp.com/vault/docs/auth/userpass
+		authToken, authErr := authUserPass(ctx, cfg, client)
+		if authErr != nil {
+			return nil, fmt.Errorf("vault: can't auth via username: %w", authErr)
+		}
+
+		token = authToken
+	default:
+		return nil, ErrUnknownAuthMethod
+	}
 
 	client.SetToken(token)
 
@@ -41,19 +67,46 @@ func Auth(ctx context.Context, cfg Config) (*vault.Client, error) {
 
 func authAppRole(
 	ctx context.Context,
-	client *vault.Client,
 	cfg Config,
+	client *vault.Client,
 ) (string, error) {
-	auth, err := client.Logical().WriteWithContext(ctx,
-		"auth/approle/login",
-		map[string]any{
-			"role_id":   cfg.RoleUUID,
-			"secret_id": cfg.SecretUUID,
+	auth, err := approle.NewAppRoleAuth(
+		cfg.RoleUUID.String(),
+		&approle.SecretID{
+			FromString: cfg.SecretUUID.String(),
 		},
 	)
 	if err != nil {
-		return "", fmt.Errorf("vault: can't auth via approle: %w", err)
+		return "", err
 	}
 
-	return auth.Auth.ClientToken, nil
+	secret, err := auth.Login(ctx, client)
+	if err != nil {
+		return "", err
+	}
+
+	return secret.Auth.ClientToken, nil
+}
+
+func authUserPass(
+	ctx context.Context,
+	cfg Config,
+	client *vault.Client,
+) (string, error) {
+	auth, err := userpass.NewUserpassAuth(
+		cfg.Username,
+		&userpass.Password{
+			FromString: cfg.Password,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	secret, err := auth.Login(ctx, client)
+	if err != nil {
+		return "", err
+	}
+
+	return secret.Auth.ClientToken, nil
 }

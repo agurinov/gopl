@@ -110,12 +110,13 @@ TEST_VERBOSE_FLAG :=
 TEST_SHORT_FLAG   := -short
 TEST_COUNT_FLAG   := $(if $(findstring ./...,$(GO_PKG)),1,20)
 TEST_TIMEOUT_FLAG := 5s
+TEST_RUN_FLAG     :=
 
 BUILD_FLAGS  = -mod=vendor -tags='$(GO_TAGS)' $(BUILD_RACE_FLAG) -trimpath
 COVER_FLAGS := -cover -covermode=atomic
 PPROF_FLAGS := -cpuprofile=cpu.pprof -memprofile=mem.pprof -blockprofile=block.pprof -mutexprofile=mutex.pprof -trace=trace.trace
-TEST_FLAGS   = $(BUILD_FLAGS) $(COVER_FLAGS) $(TEST_VERBOSE_FLAG) $(TEST_SHORT_FLAG) -failfast -timeout='$(TEST_TIMEOUT_FLAG)' -count=$(TEST_COUNT_FLAG) $(TEST_USER_FLAGS)
-BENCH_FLAGS  = $(BUILD_FLAGS) $(COVER_FLAGS) $(TEST_VERBOSE_FLAG) $(TEST_SHORT_FLAG) $(PPROF_FLAGS) -bench=. -benchmem -run=NONE
+TEST_FLAGS   = $(BUILD_FLAGS) $(COVER_FLAGS) $(TEST_VERBOSE_FLAG) $(TEST_SHORT_FLAG) -run='$(TEST_RUN_FLAG)' -timeout='$(TEST_TIMEOUT_FLAG)' -failfast -count=$(TEST_COUNT_FLAG) $(TEST_USER_FLAGS)
+BENCH_FLAGS  = $(BUILD_FLAGS) $(COVER_FLAGS) $(TEST_VERBOSE_FLAG) $(TEST_SHORT_FLAG) -run='$(TEST_RUN_FLAG)' -timeout='$(TEST_TIMEOUT_FLAG)' $(PPROF_FLAGS) -bench=. -benchmem $(TEST_USER_FLAGS)
 # }}}
 
 # G_DEBUG / caches {{{
@@ -127,7 +128,6 @@ golangci_lint_no_cache : FORCE
 
 ifdef G_DEBUG
 TEST_VERBOSE_FLAG := -v
-TEST_SHORT_FLAG   :=
 TEST_COUNT_FLAG   := 1
 TEST_TIMEOUT_FLAG := 5m
 
@@ -135,10 +135,9 @@ go_mod_no_cache        : FORCE ; $(GO) clean -modcache
 go_build_no_cache      : FORCE ; $(GO) clean -cache
 go_test_no_cache       : FORCE ; $(GO) clean -testcache -fuzzcache
 golangci_lint_no_cache : FORCE ; $(GOLANGCI_LINT) cache clean
-
-go_build  : BUILD_FLAGS += -gcflags='-m=2'
-go_shared : BUILD_FLAGS += -gcflags='-m=2'
-go_run    : BUILD_FLAGS += -gcflags='-m=2'
+go_build               : BUILD_FLAGS += -gcflags='-m=2'
+go_shared              : BUILD_FLAGS += -gcflags='-m=2'
+go_run                 : BUILD_FLAGS += -gcflags='-m=2'
 endif
 # }}}
 
@@ -182,8 +181,15 @@ go_test: FORCE go_test_no_cache
 	$(GO) test $(TEST_FLAGS) $(GO_PKG)
 	$(COVER_FILES_CMD)
 
+go_itest: TEST_SHORT_FLAG   :=
+go_itest: TEST_COUNT_FLAG   := 1
+go_itest: TEST_TIMEOUT_FLAG := 5m
+go_itest: TEST_RUN_FLAG     := ^Test
+go_itest: FORCE go_test
+
 # https://pkg.go.dev/golang.org/x/perf/cmd/benchstat
 go_bench: COVERAGE_FILE_BASENAME := coverage_bench
+go_bench: TEST_RUN_FLAG          := NONE
 go_bench: FORCE go_test_no_cache
 	$(GO) test $(BENCH_FLAGS) $(GO_PKG)
 	$(COVER_FILES_CMD)
@@ -223,7 +229,7 @@ go_vet: FORCE
 	$(GO) vet $(BUILD_FLAGS) -c=5 $(GO_PKG)
 
 go_sec: FORCE
-	-$(GOVULNCHECK) -test -tags='$(GO_TAGS)' $(GO_PKG)
+	$(GOVULNCHECK) -test -tags='$(GO_TAGS)' $(GO_PKG)
 # }}}
 
 # codegen {{{
@@ -246,7 +252,7 @@ go_info: FORCE $(GO_DOT_VARIABLES)
 .DEFAULT_GOAL := go_info
 
 clean    : FORCE go_mod_no_cache go_build_no_cache go_test_no_cache golangci_lint_no_cache git_clean
-lint     : FORCE go_vet go_sec golangci-lint
+lint     : FORCE go_vet golangci-lint
 fmt      : FORCE go_fmt
 generate : FORCE go_generate
 vendor   : FORCE go_vendor
