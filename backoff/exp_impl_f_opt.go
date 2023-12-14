@@ -2,11 +2,7 @@ package backoff
 
 import (
 	"time"
-
-	c "github.com/agurinov/gopl/patterns/creational"
 )
-
-type ExponentialOption = c.Option[exponential]
 
 func WithMinDelay(d time.Duration) ExponentialOption {
 	return func(e *exponential) error {

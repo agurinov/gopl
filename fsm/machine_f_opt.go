@@ -1,11 +1,5 @@
 package fsm
 
-import (
-	c "github.com/agurinov/gopl/patterns/creational"
-)
-
-type StateMachineOption[C Context] c.Option[StateMachine[C]]
-
 func WithName[C Context](name string) StateMachineOption[C] {
 	return func(sm *StateMachine[C]) error {
 		sm.name = name

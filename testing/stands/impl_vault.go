@@ -45,7 +45,7 @@ func (s Vault) Name() string { return VaultStandName }
 func (s Vault) Up(t *testing.T) bool {
 	t.Helper()
 
-	require.Greater(t, s.Replicas, 0)
+	require.NotZero(t, s.Replicas)
 
 	var (
 		network      = network(t)
@@ -102,8 +102,6 @@ func (s Vault) Up(t *testing.T) bool {
 	}
 
 	if created {
-		require.NotNil(t, vault)
-
 		containerExec(t, vault, strings.NewReader(vaultDevAdminPolicy),
 			"vault", "policy", "write", "dev-admin", "-",
 		)

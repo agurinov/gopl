@@ -1,9 +1,8 @@
 package stands
 
-// TODO(a.gurinov): Cleanup based on debug (pass from testcase)
-
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"sync"
@@ -16,11 +15,19 @@ import (
 )
 
 var (
-	pool         *dockertest.Pool
-	errPoolInit  error
-	poolInitOnce sync.Once
-	poolMaxWait  = 10 * time.Second
+	pool               *dockertest.Pool
+	errPoolInit        error
+	poolInitOnce       sync.Once
+	defaultPoolMaxWait = 10 * time.Second
+	poolMaxWait        time.Duration
+	poolNoCleanup      bool
 )
+
+func init() {
+	// TODO(a.gurinov): flag.Parse()
+	flag.DurationVar(&poolMaxWait, "dockertest-pool-max-wait", defaultPoolMaxWait, "")
+	flag.BoolVar(&poolNoCleanup, "dockertest-pool-no-cleanup", false, "")
+}
 
 func Pool(t *testing.T) *dockertest.Pool {
 	t.Helper()
@@ -37,6 +44,7 @@ func Pool(t *testing.T) *dockertest.Pool {
 
 	require.NoError(t, errPoolInit)
 	require.NotNil(t, pool)
+	require.NotNil(t, pool.Client)
 	require.NoError(t, pool.Client.Ping())
 
 	return pool
@@ -66,6 +74,10 @@ func network(t *testing.T) *docker.Network {
 	require.NotNil(t, network)
 
 	t.Cleanup(func() {
+		if poolNoCleanup {
+			return
+		}
+
 		p.RemoveNetwork(&dockertest.Network{ //nolint:errcheck
 			Network: network,
 		})
@@ -108,6 +120,10 @@ func container(
 	require.True(t, container.Container.State.Running)
 
 	t.Cleanup(func() {
+		if poolNoCleanup {
+			return
+		}
+
 		if purgeErr := p.Purge(container); purgeErr != nil {
 			panic(purgeErr)
 		}

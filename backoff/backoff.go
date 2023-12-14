@@ -12,12 +12,15 @@ import (
 	pl_strings "github.com/agurinov/gopl/strings"
 )
 
-type Backoff struct {
-	strategy   Strategy
-	name       string
-	retries    uint32
-	maxRetries uint32
-}
+type (
+	Backoff struct {
+		strategy   Strategy
+		name       string
+		retries    uint32
+		maxRetries uint32
+	}
+	Option = c.Option[Backoff]
+)
 
 func (b *Backoff) Wait(ctx context.Context) (Stat, error) {
 	// Register new retry
