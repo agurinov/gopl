@@ -1,6 +1,7 @@
 package stands
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
@@ -18,15 +19,17 @@ var (
 	pool               *dockertest.Pool
 	errPoolInit        error
 	poolInitOnce       sync.Once
-	defaultPoolMaxWait = 10 * time.Second
+	defaultPoolMaxWait = 30 * time.Second
 	poolMaxWait        time.Duration
 	poolNoCleanup      bool
+	execVerbose        bool
 )
 
 func init() {
-	// TODO(a.gurinov): flag.Parse()
+	// TODO(a.gurinov): flag.Parse() panics here
 	flag.DurationVar(&poolMaxWait, "dockertest-pool-max-wait", defaultPoolMaxWait, "")
 	flag.BoolVar(&poolNoCleanup, "dockertest-pool-no-cleanup", false, "")
+	flag.BoolVar(&execVerbose, "dockertest-exec-verbose", false, "")
 }
 
 func Pool(t *testing.T) *dockertest.Pool {
@@ -142,28 +145,55 @@ func containerExec(
 
 	require.NotNil(t, container)
 	require.NotEmpty(t, cmd)
+	require.NotEmpty(t, container.Container.Name)
 
-	var (
-		p           = Pool(t)
-		execOptions = dockertest.ExecOptions{StdIn: stdin}
-	)
+	op := func() error {
+		var (
+			stdout bytes.Buffer
+			stderr bytes.Buffer
+		)
+
+		defer func() {
+			if !execVerbose {
+				return
+			}
+
+			t.Logf(
+				"stdout from %q exec(%s): %s",
+				container.Container.Name,
+				cmd,
+				stdout.String(),
+			)
+
+			t.Logf(
+				"stderr from %q exec(%s): %s",
+				container.Container.Name,
+				cmd,
+				stderr.String(),
+			)
+		}()
+
+		exitCode, err := container.Exec(cmd, dockertest.ExecOptions{
+			StdIn:  stdin,
+			StdOut: &stdout,
+			StdErr: &stderr,
+		})
+		if err != nil {
+			return err
+		}
+
+		if exitCode != 0 {
+			return fmt.Errorf(
+				"container %q exec: unexpected exit code: %d",
+				container.Container.Name,
+				exitCode,
+			)
+		}
+
+		return nil
+	}
 
 	require.NoError(t,
-		p.Retry(func() error {
-			exitCode, err := container.Exec(cmd, execOptions)
-			if err != nil {
-				return err
-			}
-
-			if exitCode != 0 {
-				return fmt.Errorf(
-					"container %q exec: unexpected exit code: %d",
-					container.Container.Name,
-					exitCode,
-				)
-			}
-
-			return nil
-		}),
+		Pool(t).Retry(op),
 	)
 }
