@@ -4,7 +4,7 @@ import "context"
 
 func NewWithContext[
 	O Object,
-	FO OptionWithContext[O] | OptionFuncWithContext[O],
+	FO OptionWithContext[O] | optionWithContextAlias[O],
 ](
 	ctx context.Context,
 	opts ...FO,
@@ -16,7 +16,7 @@ func NewWithContext[
 
 func ConstructWithContext[
 	O Object,
-	FO OptionWithContext[O] | OptionFuncWithContext[O],
+	FO OptionWithContext[O] | optionWithContextAlias[O],
 ](
 	ctx context.Context,
 	obj O,
