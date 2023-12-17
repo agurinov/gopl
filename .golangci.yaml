@@ -415,6 +415,7 @@ linters-settings:
       - yaml
       - yml
       - toml
+      - mapstructure
       - validate
   # https://golangci-lint.run/usage/linters/#tagliatelle
   tagliatelle:

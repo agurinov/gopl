@@ -11,7 +11,7 @@ import (
 //go:embed testdata/migrations.sql
 var liquibase string
 
-func TestMigration_Up(t *testing.T) {
+func TestLiquibase_MigrationUp(t *testing.T) {
 	pl_testing.Init(t,
 		stands.Mysql{
 			Replicas:  1,

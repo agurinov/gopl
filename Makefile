@@ -165,6 +165,7 @@ go_run: FORCE vendor go_build_no_cache
 # test / bench / delve {{{
 ifndef IS_CI
 go_test:  COVER_FLAGS += -coverprofile='$(COVERAGE_OUT_FLAG)'
+go_itest: COVER_FLAGS += -coverprofile='$(COVERAGE_OUT_FLAG)'
 go_bench: COVER_FLAGS += -coverprofile='$(COVERAGE_OUT_FLAG)'
 
 define COVER_FILES_CMD
@@ -185,7 +186,10 @@ go_itest: TEST_SHORT_FLAG   :=
 go_itest: TEST_COUNT_FLAG   := 1
 go_itest: TEST_TIMEOUT_FLAG := 5m
 go_itest: TEST_RUN_FLAG     := ^Test
-go_itest: FORCE go_test
+go_itest: COVERAGE_FILE_BASENAME := coverage_test
+go_itest: FORCE go_test_no_cache
+	$(GO) test $(TEST_FLAGS) $(GO_PKG)
+	$(COVER_FILES_CMD)
 
 # https://pkg.go.dev/golang.org/x/perf/cmd/benchstat
 go_bench: COVERAGE_FILE_BASENAME := coverage_bench

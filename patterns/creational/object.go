@@ -1,11 +1,6 @@
 package creational
 
-import "context"
-
 type (
-	Object         interface{ any }
-	ObjectExtended interface {
-		Validate() error
-		Init(context.Context) error
-	}
+	Object          interface{ any }
+	ObjectValidable interface{ Validate() error }
 )
