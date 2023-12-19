@@ -1,4 +1,4 @@
-package backoff
+package strategies
 
 import (
 	"time"
