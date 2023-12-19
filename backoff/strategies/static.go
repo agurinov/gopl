@@ -1,4 +1,4 @@
-package backoff
+package strategies
 
 import "time"
 
@@ -8,6 +8,6 @@ func (s static) Duration(_ uint32) time.Duration {
 	return time.Duration(s)
 }
 
-func NewStaticStrategy(d time.Duration) Strategy {
+func NewStatic(d time.Duration) Interface {
 	return static(d)
 }

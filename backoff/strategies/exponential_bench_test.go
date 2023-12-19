@@ -1,4 +1,4 @@
-package backoff_test
+package strategies_test
 
 import (
 	"math"

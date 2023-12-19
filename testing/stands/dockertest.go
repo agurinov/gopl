@@ -2,6 +2,7 @@ package stands
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,6 +14,9 @@ import (
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/require"
+
+	"github.com/agurinov/gopl/backoff"
+	"github.com/agurinov/gopl/backoff/strategies"
 )
 
 var (
@@ -147,7 +151,15 @@ func containerExec(
 	require.NotEmpty(t, cmd)
 	require.NotEmpty(t, container.Container.Name)
 
-	op := func() error {
+	b, err := backoff.New(
+		backoff.WithExponentialStrategy(
+			strategies.WithMaxDelay(poolMaxWait),
+		),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, b)
+
+	execOp := func() error {
 		var (
 			stdout bytes.Buffer
 			stderr bytes.Buffer
@@ -173,13 +185,13 @@ func containerExec(
 			)
 		}()
 
-		exitCode, err := container.Exec(cmd, dockertest.ExecOptions{
+		exitCode, execErr := container.Exec(cmd, dockertest.ExecOptions{
 			StdIn:  stdin,
 			StdOut: &stdout,
 			StdErr: &stderr,
 		})
-		if err != nil {
-			return err
+		if execErr != nil {
+			return execErr
 		}
 
 		if exitCode != 0 {
@@ -193,7 +205,20 @@ func containerExec(
 		return nil
 	}
 
-	require.NoError(t,
-		Pool(t).Retry(op),
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		poolMaxWait,
 	)
+	t.Cleanup(cancel)
+
+	for {
+		execErr := execOp()
+		if execErr == nil {
+			break
+		}
+
+		if _, backoffErr := b.Wait(ctx); backoffErr != nil {
+			require.NoError(t, execErr)
+		}
+	}
 }

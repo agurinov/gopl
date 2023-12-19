@@ -1,4 +1,4 @@
-package backoff
+package strategies
 
 import (
 	"math"
@@ -69,7 +69,7 @@ func (e exponential) Validate() error {
 		MinDelay   time.Duration `validate:"min=0s"`
 		MaxDelay   time.Duration `validate:"min=1s"`
 		Multiplier float64       `validate:"gte=1.0"`
-		Jitter     float64       `validate:"gte=0.01,lte=1.0"`
+		Jitter     float64       `validate:"gte=0.00,lte=1.0"`
 	}{
 		MinDelay:   e.minDelay,
 		MaxDelay:   e.maxDelay,
@@ -84,14 +84,14 @@ func (e exponential) Validate() error {
 	return nil
 }
 
-func NewExponentialStrategy(opts ...ExponentialOption) (Strategy, error) {
+func NewExponential(opts ...ExponentialOption) (Interface, error) {
 	//nolint:revive,gomnd
-	obj := exponential{
+	defaultObj := exponential{
 		minDelay:   1 * time.Second,
 		maxDelay:   2 * time.Minute,
 		multiplier: 1.6,
 		jitter:     0.2,
 	}
 
-	return c.Construct(obj, opts...)
+	return c.ConstructWithValidate(defaultObj, opts...)
 }

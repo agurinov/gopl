@@ -1,7 +1,7 @@
-package backoff
+package strategies
 
 import "time"
 
-type Strategy interface {
+type Interface interface {
 	Duration(retries uint32) time.Duration
 }

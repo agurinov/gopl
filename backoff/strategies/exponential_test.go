@@ -1,4 +1,4 @@
-package backoff_test
+package strategies_test
 
 import (
 	"testing"
@@ -6,18 +6,18 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/agurinov/gopl/backoff"
+	"github.com/agurinov/gopl/backoff/strategies"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
-func TestStrategy_Exponential_WithoutJitter(t *testing.T) {
+func TestExponential_WithoutJitter(t *testing.T) {
 	pl_testing.Init(t)
 
-	strategy, err := backoff.NewExponentialStrategy(
-		backoff.WithMinDelay(1*time.Second),
-		backoff.WithMaxDelay(10*time.Second),
-		backoff.WithMultiplier(2.0),
-		backoff.WithJitter(0.0),
+	strategy, err := strategies.NewExponential(
+		strategies.WithMinDelay(1*time.Second),
+		strategies.WithMaxDelay(10*time.Second),
+		strategies.WithMultiplier(2.0),
+		strategies.WithJitter(0.0),
 	)
 	require.NoError(t, err)
 
@@ -49,14 +49,14 @@ func TestStrategy_Exponential_WithoutJitter(t *testing.T) {
 	}
 }
 
-func TestStrategy_Exponential_WithJitter(t *testing.T) {
+func TestExponential_WithJitter(t *testing.T) {
 	pl_testing.Init(t)
 
-	strategy, err := backoff.NewExponentialStrategy(
-		backoff.WithMinDelay(1*time.Second),
-		backoff.WithMaxDelay(10*time.Second),
-		backoff.WithMultiplier(1.5),
-		backoff.WithJitter(0.2),
+	strategy, err := strategies.NewExponential(
+		strategies.WithMinDelay(1*time.Second),
+		strategies.WithMaxDelay(10*time.Second),
+		strategies.WithMultiplier(1.5),
+		strategies.WithJitter(0.2),
 	)
 	require.NoError(t, err)
 

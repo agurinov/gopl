@@ -1,6 +1,21 @@
 package backoff
 
-func WithStrategy(s Strategy) Option {
+import "github.com/agurinov/gopl/backoff/strategies"
+
+func WithExponentialStrategy(opts ...strategies.ExponentialOption) Option {
+	return func(b *Backoff) error {
+		exponentialStrategy, err := strategies.NewExponential(opts...)
+		if err != nil {
+			return err
+		}
+
+		b.strategy = exponentialStrategy
+
+		return nil
+	}
+}
+
+func WithStrategy(s strategies.Interface) Option {
 	return func(b *Backoff) error {
 		b.strategy = s
 
