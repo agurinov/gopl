@@ -8,8 +8,8 @@ import (
 
 type (
 	StateMachine[C Context] struct {
-		states  StateMap
-		storage StateStorage[C]
+		states  StateMap        `validate:"notblank"`
+		storage StateStorage[C] `validate:"required"`
 		name    string
 		version string
 	}
@@ -17,7 +17,7 @@ type (
 )
 
 func New[C Context](opts ...StateMachineOption[C]) (StateMachine[C], error) {
-	return c.New(opts...)
+	return c.NewWithValidate(opts...)
 }
 
 func (m StateMachine[C]) currentState(
