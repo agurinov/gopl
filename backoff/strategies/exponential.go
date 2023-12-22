@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/go-playground/validator/v10"
-
 	c "github.com/agurinov/gopl/patterns/creational"
 )
 
@@ -15,18 +13,18 @@ type (
 	// https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter
 	exponential struct {
 		// Global boundaries of delay duration
-		minDelay time.Duration
-		maxDelay time.Duration
+		minDelay time.Duration `validate:"min=0s"`
+		maxDelay time.Duration `validate:"min=1s"`
 
 		// multiplier is the multiplicator on each retry
 		// leverages increasing of the left boundary
 		// 1s, 2s, 4s, 8s, 16s (with multiplier=2.0 and minDelay=1s)
-		multiplier float64
+		multiplier float64 `validate:"gte=1.0"`
 
 		// jitter is the randomization factor in percent J%
 		// which applies boundaries on calculated backoff B
 		// B -> random_from([B - J% ; B + J%])
-		jitter float64
+		jitter float64 `validate:"gte=0.00,lte=1.0"`
 	}
 	ExponentialOption = c.Option[exponential]
 )
@@ -62,26 +60,6 @@ func (e exponential) Duration(retries uint32) time.Duration {
 	)
 
 	return time.Duration(backoff)
-}
-
-func (e exponential) Validate() error {
-	s := struct {
-		MinDelay   time.Duration `validate:"min=0s"`
-		MaxDelay   time.Duration `validate:"min=1s"`
-		Multiplier float64       `validate:"gte=1.0"`
-		Jitter     float64       `validate:"gte=0.00,lte=1.0"`
-	}{
-		MinDelay:   e.minDelay,
-		MaxDelay:   e.maxDelay,
-		Multiplier: e.multiplier,
-		Jitter:     e.jitter,
-	}
-
-	if err := validator.New().Struct(s); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func NewExponential(opts ...ExponentialOption) (Interface, error) {
