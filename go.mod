@@ -3,6 +3,7 @@ module github.com/agurinov/gopl
 go 1.18
 
 require (
+	github.com/dave/jennifer v1.7.0
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/vault/api v1.10.0

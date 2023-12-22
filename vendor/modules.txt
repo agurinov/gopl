@@ -19,6 +19,9 @@ github.com/cenkalti/backoff/v4
 # github.com/containerd/continuity v0.3.0
 ## explicit; go 1.17
 github.com/containerd/continuity/pathdriver
+# github.com/dave/jennifer v1.7.0
+## explicit; go 1.20
+github.com/dave/jennifer/jen
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
@@ -71,6 +74,7 @@ github.com/go-playground/universal-translator
 # github.com/go-playground/validator/v10 v10.14.1
 ## explicit; go 1.18
 github.com/go-playground/validator/v10
+github.com/go-playground/validator/v10/non-standard/validators
 # github.com/gogo/protobuf v1.3.2
 ## explicit; go 1.15
 github.com/gogo/protobuf/proto
