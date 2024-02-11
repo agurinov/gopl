@@ -1,8 +1,6 @@
 .PHONY: FORCE
 FORCE:
 
-include gitlabci.mk
-
 GO             := go
 JQ             := jq
 GIT            := git
@@ -43,6 +41,7 @@ GO_VERSION_MINOR         := $(_GO_VERSION_SEMVER_MAJOR).$(_GO_VERSION_SEMVER_MIN
 GO_CMD_DIR                 := $(realpath $(CURDIR)/cmd)
 GO_CMD_FILES               := $(realpath $(CURDIR)/main.go)
 GO_MODULE_FILE             := $(realpath go.mod)
+GO_WORKSPACE_FILE          := $(realpath go.work)
 GO_MODULE_PATH             := $(shell $(GO) mod edit -json | $(JQ) -Mr '.Module.Path';)
 GO_MODULE_GO_VERSION       := $(shell $(GO) mod edit -json | $(JQ) -Mr '.Go';)
 GO_MODULE_NAME             := $(basename $(notdir $(GO_MODULE_PATH)))
@@ -51,12 +50,19 @@ UNSPECIFIED_GO_MODULE_NAME := github.com/acme/goplay
 
 # deps / mod / vendor {{{
 go.mod:
+	$(eval URL            := $(shell git config --get remote.origin.url;))
+	$(eval URL_SCHEMA     := $(firstword $(subst ://, ,$(URL)))://)
+	$(eval URL_SCHEMALESS := $(subst $(URL_SCHEMA),,$(URL)))
 	$(GO) mod init '$(firstword $(URL_SCHEMALESS) $(UNSPECIFIED_GO_MODULE_NAME))'
 
 go_vendor: FORCE go.mod go_mod_no_cache
+ifneq '$(GO_WORKSPACE_FILE)' ''
+	$(GO) work vendor
+else
 	$(GO) mod tidy -v
 	$(GO) mod vendor
 	$(GO) mod verify
+endif
 # }}}
 
 # build tags {{{

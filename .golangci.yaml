@@ -423,6 +423,7 @@ linters-settings:
       use-field-name: false
       rules:
         json: snake
+        yaml: snake
   # https://golangci-lint.run/usage/linters/#tenv
   tenv:
     all: false
@@ -465,6 +466,7 @@ issues:
         - govet
         - revive
         - maintidx
+        - containedctx
     - source: '^//go:generate '
       linters:
         - lll
