@@ -1,6 +1,6 @@
 module github.com/agurinov/gopl
 
-go 1.18
+go 1.19
 
 require (
 	github.com/go-playground/validator/v10 v10.14.1
