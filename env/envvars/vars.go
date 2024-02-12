@@ -45,3 +45,8 @@ var (
 	GoLine    = Int("GOLINE")
 	GoPackage = String("GOPACKAGE")
 )
+
+var (
+	_ = Int("GRPC_GO_LOG_VERBOSITY_LEVEL")
+	_ = String("GRPC_GO_LOG_SEVERITY_LEVEL")
+)
