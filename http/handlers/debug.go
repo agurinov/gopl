@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 
+	"github.com/agurinov/gopl/diag/metrics"
 	c "github.com/agurinov/gopl/patterns/creational"
 )
 
@@ -27,8 +28,8 @@ func (h debug) Handler() http.Handler {
 	}
 
 	r.Mount("/debug", middleware.Profiler())
+	r.Mount("/metrics", metrics.Handler())
 
-	// r.Mount("/metrics", handlers.Prometheus)
 	// r.Mount("/health", handlers.Probes())
 
 	return r

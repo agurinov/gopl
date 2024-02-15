@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/agurinov/gopl/diag/log"
+	"github.com/agurinov/gopl/diag/metrics"
 )
 
 func Prepare(cmdName string) ( //nolint:revive
@@ -27,8 +28,12 @@ func Prepare(cmdName string) ( //nolint:revive
 		zap.String("cmd_name", cmdName),
 	)
 
+	if err := metrics.Init(cmdName); err != nil {
+		return ctx, stop, logger, err
+	}
+
 	if _, err := maxprocs.Set(maxprocs.Logger(logger.Sugar().Infof)); err != nil {
-		return nil, nil, nil, err
+		return ctx, stop, logger, err
 	}
 
 	// TODO(a.gurinov): k8s memlimit
