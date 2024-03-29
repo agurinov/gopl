@@ -5,6 +5,7 @@
 //
 //	mockgen -source=state_storage_iface.go -destination=gomock/state_storage_iface.go -package=gomock -mock_names=StateStorage=StateStorage
 //
+
 // Package gomock is a generated GoMock package.
 package gomock
 
