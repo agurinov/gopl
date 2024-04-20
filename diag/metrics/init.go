@@ -1,11 +1,8 @@
 package metrics
 
 import (
-	"net/http"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func Init(_ string) error {
@@ -24,8 +21,4 @@ func Init(_ string) error {
 	}
 
 	return nil
-}
-
-func Handler() http.Handler {
-	return promhttp.Handler()
 }

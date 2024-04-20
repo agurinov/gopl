@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/bufbuild/protovalidate-go v0.2.1
+	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/google/uuid v1.4.0
