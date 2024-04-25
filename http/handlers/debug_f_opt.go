@@ -1,6 +1,10 @@
 package handlers
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+
+	"github.com/agurinov/gopl/diag/probes"
+)
 
 func WithDebugAtomicLevel(lvl *zap.AtomicLevel) DebugOption {
 	return func(h *debug) error {
@@ -13,6 +17,14 @@ func WithDebugAtomicLevel(lvl *zap.AtomicLevel) DebugOption {
 func WithDebugLogger(logger *zap.Logger) DebugOption {
 	return func(h *debug) error {
 		h.logger = logger.Named("http.handler.debug")
+
+		return nil
+	}
+}
+
+func WithDebugProber(prober *probes.Prober) DebugOption {
+	return func(h *debug) error {
+		h.prober = prober
 
 		return nil
 	}
