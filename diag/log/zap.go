@@ -1,8 +1,11 @@
 package log
 
 import (
+	"testing"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest"
 )
 
 func NewZap(opts ...Option) (*zap.Logger, *zap.AtomicLevel, error) {
@@ -67,4 +70,13 @@ func MustNewZapSystem() *zap.Logger {
 	}
 
 	return logger
+}
+
+func NewZapTest(t *testing.T) *zap.Logger {
+	t.Helper()
+
+	// func WrapOptions(zapOpts ...zap.Option) LoggerOption
+	return zaptest.NewLogger(t,
+		zaptest.Level(zap.DebugLevel),
+	)
 }
