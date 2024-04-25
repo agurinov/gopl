@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 
+	"github.com/agurinov/gopl/diag/probes"
 	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
 )
@@ -15,6 +16,7 @@ type (
 	debug struct {
 		atomicLogLevel *zap.AtomicLevel
 		logger         *zap.Logger
+		prober         *probes.Prober
 	}
 	DebugOption c.Option[debug]
 )
@@ -37,7 +39,23 @@ func (h debug) Handler() http.Handler {
 
 	r.Mount("/debug", middleware.Profiler())
 	r.Mount("/metrics", Metrics())
-	// r.Mount("/health", handlers.Probes())
+
+	if h.prober != nil {
+		r.Get("/probes/startup", probeHandler(h.prober.Startup))
+		r.Get("/probes/readiness", probeHandler(h.prober.Readiness))
+		r.Get("/probes/liveness", probeHandler(h.prober.Liveness))
+	}
 
 	return r
+}
+
+func probeHandler(probeGetter func() bool) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch probeGetter() {
+		case true:
+			w.WriteHeader(http.StatusOK)
+		case false:
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}
+	})
 }
