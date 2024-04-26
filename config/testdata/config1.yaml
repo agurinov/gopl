@@ -1,0 +1,17 @@
+---
+logger:
+  format: json
+
+probes:
+  check_interval: 3s
+
+graceful:
+  shutdown_timeout: 2s
+
+grpc:
+  port: 9090
+  reflection_enabled: true
+
+debug_http:
+  port: 8081
+...
