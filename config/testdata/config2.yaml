@@ -1,0 +1,15 @@
+---
+logger:
+  level: info
+
+probes:
+  check_timeout: 5s
+
+graceful:
+  close_timeout: 1s
+
+grpc:
+  max_request_bytes: 100
+  max_response_bytes: 100
+  reflection_enabled: false
+...
