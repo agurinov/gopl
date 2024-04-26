@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/sync/errgroup"
 
 	c "github.com/agurinov/gopl/patterns/creational"
@@ -48,7 +49,7 @@ func (p *Prober) Run(ctx context.Context) error {
 
 	p.logger.Info(
 		"starting probes poller",
-		zap.Duration("check_inverval", p.checkInterval),
+		zap.Stringer("check_inverval", p.checkInterval),
 	)
 
 	for {
@@ -60,7 +61,12 @@ func (p *Prober) Run(ctx context.Context) error {
 			livenessErr := p.runProbes(ctx, p.livenessProbes)
 			p.liveness.Store(livenessErr == nil)
 
-			p.logger.Debug(
+			lvl := zapcore.DebugLevel
+			if readinessErr != nil || livenessErr != nil {
+				lvl = zapcore.ErrorLevel
+			}
+
+			p.logger.Log(lvl,
 				"finished probes polling iteration",
 				zap.NamedError("readiness_error", readinessErr),
 				zap.NamedError("liveness_error", livenessErr),
