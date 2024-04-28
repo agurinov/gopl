@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
 	"time"
 
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -29,22 +31,39 @@ type (
 
 var NewServer = c.NewWithValidate[Server, ServerOption]
 
-func (s Server) ListenAndServe(_ context.Context) error {
+func (s Server) GRPC() *grpc.Server {
+	serviceInfo := s.grpcServer.GetServiceInfo()
+
+	if s.grpcServerReflection {
+		serviceName := "grpc.reflection.v1alpha.ServerReflection"
+		if _, registered := serviceInfo[serviceName]; !registered {
+			reflection.Register(s.grpcServer)
+		}
+	}
+
+	for desc, impl := range s.grpcServices {
+		if _, registered := serviceInfo[desc.ServiceName]; registered {
+			continue
+		}
+
+		s.grpcServer.RegisterService(desc, impl)
+	}
+
+	return s.grpcServer
+}
+
+func (s Server) GRPCWeb() http.Handler {
+	return grpcweb.WrapServer(s.GRPC())
+}
+
+func (s Server) ListenAndServe(context.Context) error {
 	s.logger.Info(
 		"starting grpc server",
 		zap.String("server_name", s.name),
 		zap.Stringer("server_address", s.grpcListener.Addr()),
 	)
 
-	if s.grpcServerReflection {
-		reflection.Register(s.grpcServer)
-	}
-
-	for desc, impl := range s.grpcServices {
-		s.grpcServer.RegisterService(desc, impl)
-	}
-
-	switch err := s.grpcServer.Serve(s.grpcListener); {
+	switch err := s.GRPC().Serve(s.grpcListener); {
 	case err == nil:
 	case errors.Is(err, grpc.ErrServerStopped):
 	default:
@@ -63,7 +82,7 @@ func (s Server) WaitForShutdown(ctx context.Context) error {
 		zap.Stringer("server_address", s.grpcListener.Addr()),
 	)
 
-	s.grpcServer.GracefulStop()
+	s.GRPC().GracefulStop()
 
 	return nil
 }
