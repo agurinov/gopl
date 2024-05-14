@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset agurinov:SCHEMA
+--changeset agurinov:SCHEMA1
 CREATE TABLE `foobar`
 (
 	`uuid` binary(16) NOT NULL,

@@ -1,17 +1,23 @@
 package stands_test
 
 import (
-	_ "embed"
+	"embed"
+	"io/fs"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	pl_testing "github.com/agurinov/gopl/testing"
 	"github.com/agurinov/gopl/testing/stands"
 )
 
-//go:embed etc/mysql/liquibase/migrations.sql
-var liquibase string
+//go:embed etc/mysql/liquibase
+var liquibase embed.FS
 
 func TestStandsUp(t *testing.T) {
+	trimmed, err := fs.Sub(liquibase, "etc/mysql/liquibase/tree")
+	require.NoError(t, err)
+
 	pl_testing.Init(t,
 		stands.Kafka{
 			Replicas: 3,
@@ -21,9 +27,13 @@ func TestStandsUp(t *testing.T) {
 			},
 		},
 		stands.Mysql{
-			Replicas:  1,
-			DB:        "testdb",
-			Liquibase: liquibase,
+			Replicas: 1,
+			DB:       "testdb",
+			Liquibase: stands.Liquibase{
+				Enabled:    true,
+				FS:         trimmed,
+				Entrypoint: "changelog.xml",
+			},
 		},
 	)
 }
