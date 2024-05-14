@@ -6,6 +6,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func AccessLog(logger *zap.Logger) Middleware {
@@ -20,7 +21,13 @@ func AccessLog(logger *zap.Logger) Middleware {
 			next.ServeHTTP(recorder, r)
 			elapsedTime := time.Since(startTime)
 
-			logger.Info("http served request",
+			logLvl := zapcore.InfoLevel
+			if recorder.Status >= 500 && recorder.Status <= 599 {
+				logLvl = zapcore.ErrorLevel
+			}
+
+			logger.Log(logLvl,
+				"http served request",
 				zap.Int("status_code", recorder.Status),
 				zap.String("remote_addr", r.RemoteAddr),
 				zap.String("http_method", r.Method),
