@@ -1,8 +1,10 @@
 package stands
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
+	"io/fs"
+	"path/filepath"
 	"testing"
 
 	"github.com/ory/dockertest/v3"
@@ -11,9 +13,14 @@ import (
 )
 
 type (
+	Liquibase struct {
+		FS         fs.FS
+		Entrypoint string
+		Enabled    bool
+	}
 	Mysql struct {
 		DB        string
-		Liquibase string
+		Liquibase Liquibase
 		Replicas  int
 	}
 )
@@ -35,7 +42,7 @@ var (
 	// https://github.com/liquibase/docker/blob/main/Dockerfile.alpine
 	liquibaseImage = docker.PullImageOptions{
 		Repository: "docker.io/liquibase/liquibase",
-		Tag:        "4.25-alpine",
+		Tag:        "4.27-alpine",
 	}
 	//nolint:gomnd
 	mysqlPorts = ports{
@@ -44,6 +51,8 @@ var (
 )
 
 func (Mysql) Name() string { return MysqlStandName }
+
+//nolint:maintidx
 func (s Mysql) Up(t *testing.T) bool {
 	t.Helper()
 
@@ -98,11 +107,15 @@ func (s Mysql) Up(t *testing.T) bool {
 		"-w",
 	)
 
-	if s.Liquibase != "" {
+	if s.Liquibase.Enabled {
 		liquibaseNode := node{domain: LiquibaseStandName, index: 0}
 
 		require.NoError(t,
 			Pool(t).RemoveContainerByName(liquibaseNode.Hostname(t)),
+		)
+
+		const (
+			liquibaseChangelogDir = "/liquibase/changelog"
 		)
 
 		liquibase, liquibaseCreated := container(t, &dockertest.RunOptions{
@@ -118,9 +131,10 @@ func (s Mysql) Up(t *testing.T) bool {
 				"INSTALL_MYSQL=true",
 				"LIQUIBASE_HEADLESS=true",
 				"LIQUIBASE_LOG_LEVEL=INFO",
-				"LIQUIBASE_COMMAND_USERNAME=root",
+				fmt.Sprintf("LIQUIBASE_SEARCH_PATH=%s", liquibaseChangelogDir),
 				"LIQUIBASE_COMMAND_PASSWORD=root",
-				"LIQUIBASE_COMMAND_CHANGELOG_FILE=migrations.sql",
+				"LIQUIBASE_COMMAND_USERNAME=root",
+				fmt.Sprintf("LIQUIBASE_COMMAND_CHANGELOG_FILE=%s", s.Liquibase.Entrypoint),
 				fmt.Sprintf("LIQUIBASE_COMMAND_URL=jdbc:mysql://%s:%s/%s",
 					mysqlNode.Hostname(t),
 					mysqlNode.ExternalPortRaw(),
@@ -131,9 +145,36 @@ func (s Mysql) Up(t *testing.T) bool {
 
 		require.True(t, liquibaseCreated)
 
-		containerExec(t, liquibase, strings.NewReader(s.Liquibase),
-			"cp", "/dev/stdin", "/liquibase/changelog/migrations.sql",
+		containerExec(t, liquibase, nil,
+			"mkdir", "-p", liquibaseChangelogDir,
 		)
+
+		walkErr := fs.WalkDir(s.Liquibase.FS, ".", func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if d.IsDir() {
+				containerExec(t, liquibase, nil,
+					"mkdir", "-p", filepath.Join(liquibaseChangelogDir, path),
+				)
+
+				return nil
+			}
+
+			content, err := fs.ReadFile(s.Liquibase.FS, path)
+			if err != nil {
+				return err
+			}
+
+			containerExec(t, liquibase, bytes.NewReader(content),
+				"cp", "/dev/stdin", filepath.Join(liquibaseChangelogDir, path),
+			)
+
+			return nil
+		})
+
+		require.NoError(t, walkErr)
 
 		containerExec(t, liquibase, nil,
 			"/liquibase/docker-entrypoint.sh", "update",
