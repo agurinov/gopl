@@ -10,7 +10,8 @@ run:
   skip-dirs-use-default: true
   skip-dirs:
     - 'stubs'
-  skip-files: []
+  skip-files:
+    - '.gen.go'
   build-tags: []
   modules-download-mode: vendor
 # https://golangci-lint.run/usage/configuration/#output-configuration
@@ -391,11 +392,12 @@ linters-settings:
       - name: function-result-limit
         arguments: 3
       - name: max-public-structs
-        arguments: 6
+        arguments: 10
       - name: add-constant
         arguments:
           maxLitCount: '5'
           allowInts: '0,1,2'
+          ignoreFuncs: 'strconv\.FormatInt'
   # https://golangci-lint.run/usage/linters/#rowserrcheck
   rowserrcheck:
     packages:

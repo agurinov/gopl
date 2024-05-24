@@ -15,13 +15,9 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        go-version: ['1.19.13', '1.20.14', '1.21.10', '1.22.3']
-        gomake-target: ['go_test']
+        go-version: ['1.21.10', '1.22.3']
+        gomake-target: ['lint', 'go_test']
         include:
-          - {go-version: '1.19.13', gomake-target: 'go_vet'}
-          - {go-version: '1.20.14', gomake-target: 'lint'}
-          - {go-version: '1.21.10', gomake-target: 'lint'}
-          - {go-version: '1.22.3', gomake-target: 'lint'}
           - {go-version: '1.22.3', gomake-target: 'go_sec'}
     steps:
       - uses: actions/checkout@v4

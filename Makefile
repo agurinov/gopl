@@ -1,13 +1,14 @@
 .PHONY: FORCE
 FORCE:
 
-GO             := go
-JQ             := jq
-GIT            := git
-DELVE          := dlv
-GOLANGCI_LINT  := golangci-lint
-FIELDALIGNMENT := fieldalignment
-GOVULNCHECK    := govulncheck
+GO               := go
+JQ               := jq
+GIT              := git
+DELVE            := dlv
+GOLANGCI_LINT    := golangci-lint
+FIELDALIGNMENT   := fieldalignment
+GOVULNCHECK      := govulncheck
+GO_COVER_TREEMAP := go-cover-treemap
 
 IS_CI := $(firstword $(CI) $(GITLAB_CI) $(GITHUB_ACTIONS) $(CIRCLECI) $(DRONE) $(TEAMCITY_VERSION))
 
@@ -69,6 +70,7 @@ endif
 GREP_TAGS_CMD                     := grep -I -h -R --exclude-dir=.git --exclude-dir=vendor --include=*.go '//go:build' | awk '{for (i=2; i<=NF; i++) print $$i}'
 
 _GO_IGNORED_BUILD_TAGS            := ignore devtools tools neverbuild
+_GO_INTEGRATION_BUILD_TAGS        := integration integ
 _GO_OS_ARCH_BUILD_TAGS            := unix linux darwin windows 386 amd64 arm arm64 wasm
 _GO_SYS_BUILD_TAGS                := cgo gc gccgo
 
@@ -88,7 +90,8 @@ GO_DISCOVERED_BUILD_TAGS_ALL      := $(sort $(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_FILTERED := $(filter-out $(_GO_IGNORED_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 
 ifndef GO_TAGS
-go_test dlv_test go_bench:   GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_FILTERED)
+go_test:                     GO_TAGS := $(filter-out $(_GO_INTEGRATION_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_FILTERED))
+go_itest dlv_test go_bench:  GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_FILTERED)
 golangci-lint go_vet go_sec: GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_FILTERED)
 go_generate:                 GO_TAGS := $(GO_DISCOVERED_BUILD_TAGS_ALL)
 endif
@@ -133,7 +136,7 @@ go_test_no_cache       : FORCE
 golangci_lint_no_cache : FORCE
 
 ifdef G_DEBUG
-TEST_VERBOSE_FLAG := -v
+# TEST_VERBOSE_FLAG := -v
 TEST_COUNT_FLAG   := 1
 TEST_TIMEOUT_FLAG := 5m
 
@@ -178,22 +181,22 @@ define COVER_FILES_CMD
 	test -r '$(COVERAGE_OUT_FLAG)'
 	$(GO) tool cover -html='$(COVERAGE_OUT_FLAG)' -o '$(COVERAGE_FILE_BASENAME).html'
 	$(GO) tool cover -func='$(COVERAGE_OUT_FLAG)' -o '$(COVERAGE_FILE_BASENAME).func'
+	$(GO_COVER_TREEMAP) -coverprofile '$(COVERAGE_OUT_FLAG)' > '$(COVERAGE_FILE_BASENAME).svg'
 	test -r '$(COVERAGE_FILE_BASENAME).html'
 	test -r '$(COVERAGE_FILE_BASENAME).func'
+	test -r '$(COVERAGE_FILE_BASENAME).svg'
 endef
 endif
 
 go_test: COVERAGE_FILE_BASENAME := coverage_test
-go_test: FORCE go_test_no_cache
-	$(GO) test $(TEST_FLAGS) $(GO_PKG)
-	$(COVER_FILES_CMD)
 
-go_itest: TEST_SHORT_FLAG   :=
-go_itest: TEST_COUNT_FLAG   := 1
-go_itest: TEST_TIMEOUT_FLAG := 5m
-go_itest: TEST_RUN_FLAG     := ^Test
+go_itest: TEST_SHORT_FLAG        :=
+go_itest: TEST_COUNT_FLAG        := 1
+go_itest: TEST_TIMEOUT_FLAG      := 5m
+go_itest: TEST_RUN_FLAG          := ^Test
 go_itest: COVERAGE_FILE_BASENAME := coverage_test
-go_itest: FORCE go_test_no_cache
+
+go_test go_itest: FORCE go_test_no_cache
 	$(GO) test $(TEST_FLAGS) $(GO_PKG)
 	$(COVER_FILES_CMD)
 
