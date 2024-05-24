@@ -20,20 +20,28 @@ import (
 )
 
 var (
-	pool               *dockertest.Pool
-	errPoolInit        error
-	poolInitOnce       sync.Once
-	defaultPoolMaxWait = 30 * time.Second
-	poolMaxWait        time.Duration
-	poolNoCleanup      bool
-	execVerbose        bool
+	pool         *dockertest.Pool
+	errPoolInit  error
+	poolInitOnce sync.Once
+)
+
+var (
+	defaultPoolMaxWait   = 30 * time.Second
+	defaultPoolNoCleanup = false
+	defaultExecVerbose   = false
+)
+
+var (
+	dockertestPoolMaxWait   time.Duration
+	dockertestPoolNoCleanup bool
+	dockertestExecVerbose   bool
 )
 
 func init() {
 	// TODO(a.gurinov): flag.Parse() panics here
-	flag.DurationVar(&poolMaxWait, "dockertest-pool-max-wait", defaultPoolMaxWait, "")
-	flag.BoolVar(&poolNoCleanup, "dockertest-pool-no-cleanup", false, "")
-	flag.BoolVar(&execVerbose, "dockertest-exec-verbose", false, "")
+	flag.DurationVar(&dockertestPoolMaxWait, "dockertest-pool-max-wait", defaultPoolMaxWait, "")
+	flag.BoolVar(&dockertestPoolNoCleanup, "dockertest-pool-no-cleanup", defaultPoolNoCleanup, "")
+	flag.BoolVar(&dockertestExecVerbose, "dockertest-exec-verbose", defaultExecVerbose, "")
 }
 
 func Pool(t *testing.T) *dockertest.Pool {
@@ -46,7 +54,7 @@ func Pool(t *testing.T) *dockertest.Pool {
 			return
 		}
 
-		pool.MaxWait = poolMaxWait
+		pool.MaxWait = dockertestPoolMaxWait
 	})
 
 	require.NoError(t, errPoolInit)
@@ -81,7 +89,7 @@ func network(t *testing.T) *docker.Network {
 	require.NotNil(t, network)
 
 	t.Cleanup(func() {
-		if poolNoCleanup {
+		if dockertestPoolNoCleanup {
 			return
 		}
 
@@ -127,7 +135,7 @@ func container(
 	require.True(t, container.Container.State.Running)
 
 	t.Cleanup(func() {
-		if poolNoCleanup {
+		if dockertestPoolNoCleanup {
 			return
 		}
 
@@ -153,7 +161,7 @@ func containerExec(
 
 	b, err := backoff.New(
 		backoff.WithExponentialStrategy(
-			strategies.WithMaxDelay(poolMaxWait),
+			strategies.WithMaxDelay(dockertestPoolMaxWait),
 		),
 	)
 	require.NoError(t, err)
@@ -166,7 +174,7 @@ func containerExec(
 		)
 
 		defer func() {
-			if !execVerbose {
+			if !dockertestExecVerbose {
 				return
 			}
 
@@ -207,7 +215,7 @@ func containerExec(
 
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
-		poolMaxWait,
+		dockertestPoolMaxWait,
 	)
 	t.Cleanup(cancel)
 
