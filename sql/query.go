@@ -18,7 +18,7 @@ func (q Query) WithSpan(span trace.Span) string {
 	)
 
 	return fmt.Sprintf(
-		"-- trace_id: %s\n-- span_id: %s\n%s",
+		"-- trace_id %s\n-- span_id %s\n%s",
 		traceid,
 		spanid,
 		q.String(),
