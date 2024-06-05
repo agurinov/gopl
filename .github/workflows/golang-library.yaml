@@ -15,10 +15,10 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        go-version: ['1.21.10', '1.22.3']
+        go-version: ['1.21.11', '1.22.4']
         gomake-target: ['lint', 'go_test']
         include:
-          - {go-version: '1.22.3', gomake-target: 'go_sec'}
+          - {go-version: '1.22.4', gomake-target: 'go_sec'}
     steps:
       - uses: actions/checkout@v4
       - uses: agurinov/pipelines/github-actions/actions/setup-dotfiles@main
