@@ -1,5 +1,6 @@
 package strings
 
 const (
-	UnspecifiedPlaceholder = "<unspecified>"
+	UnspecifiedPlaceholder   = "<unspecified>"
+	UnimplementedPlaceholder = "<unimplemented>"
 )

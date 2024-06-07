@@ -4,6 +4,7 @@ import (
 	"embed"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -124,6 +125,34 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusOK,
 				content:    "index.html\n",
+			},
+		},
+		"case07: SPA any other route on slash: os fs": {
+			args: args{
+				staticOptions: []handlers.StaticOption{
+					handlers.WithStaticLogger(zaptest.NewLogger(t)),
+					handlers.WithStaticFS(os.DirFS("testdata"), ""),
+					handlers.WithStaticSPA(true),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/js", nil),
+			},
+			results: results{
+				statusCode: http.StatusOK,
+				content:    "index.html\n",
+			},
+		},
+		"case05: SPA static 404: os fs": {
+			args: args{
+				staticOptions: []handlers.StaticOption{
+					handlers.WithStaticLogger(zaptest.NewLogger(t)),
+					handlers.WithStaticFS(os.DirFS("testdata"), ""),
+					handlers.WithStaticSPA(true),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/js/foo.js/", nil),
+			},
+			results: results{
+				statusCode: http.StatusNotFound,
+				content:    "404 page not found\n",
 			},
 		},
 	}

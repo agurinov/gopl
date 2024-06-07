@@ -16,12 +16,16 @@ func WithStaticLogger(logger *zap.Logger) StaticOption {
 
 func WithStaticFS(staticFS fs.FS, dirname string) StaticOption {
 	return func(h *static) error {
-		rootFS, err := fs.Sub(staticFS, dirname)
-		if err != nil {
-			return err
+		if dirname != "" {
+			subFS, err := fs.Sub(staticFS, dirname)
+			if err != nil {
+				return err
+			}
+
+			staticFS = subFS
 		}
 
-		h.fs = rootFS
+		h.fs = staticFS
 
 		return nil
 	}

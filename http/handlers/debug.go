@@ -27,7 +27,7 @@ func (h debug) Handler() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(
-		// middlewares.Trace,
+		middlewares.Trace,
 		// middlewares.Metrics(),
 		middlewares.AccessLog(h.logger),
 		// middlewares.Panic(obj.logger),

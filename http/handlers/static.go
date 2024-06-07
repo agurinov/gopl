@@ -28,7 +28,7 @@ func (h static) Handler() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(
-		// middlewares.Trace,
+		middlewares.Trace,
 		// middlewares.Metrics(),
 		middlewares.AccessLog(h.logger),
 		chimw.GetHead,
