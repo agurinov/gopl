@@ -41,6 +41,11 @@ var (
 )
 
 var (
+	JaegerAgentHost = String("JAEGER_AGENT_HOST")
+	JaegerAgentPort = Int("JAEGER_AGENT_PORT")
+)
+
+var (
 	GoFile    = String("GOFILE")
 	GoLine    = Int("GOLINE")
 	GoPackage = String("GOPACKAGE")
