@@ -10,7 +10,6 @@ import (
 
 	"github.com/agurinov/gopl/diag/log"
 	"github.com/agurinov/gopl/diag/metrics"
-	"github.com/agurinov/gopl/diag/trace"
 )
 
 func Prepare(cmdName string) ( //nolint:revive
@@ -30,10 +29,6 @@ func Prepare(cmdName string) ( //nolint:revive
 	)
 
 	if err := metrics.Init(cmdName); err != nil {
-		return ctx, stop, logger, err
-	}
-
-	if err := trace.Init(cmdName); err != nil {
 		return ctx, stop, logger, err
 	}
 
