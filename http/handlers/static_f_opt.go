@@ -38,3 +38,11 @@ func WithStaticSPA(spaEnabled bool) StaticOption {
 		return nil
 	}
 }
+
+func WithStaticIndexCacheable(indexCacheable bool) StaticOption {
+	return func(h *static) error {
+		h.indexCacheable = indexCacheable
+
+		return nil
+	}
+}
