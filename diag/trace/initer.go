@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 
+	"github.com/agurinov/gopl/env/envvars"
 	c "github.com/agurinov/gopl/patterns/creational"
 )
 
@@ -24,6 +25,17 @@ type (
 )
 
 func Init(ctx context.Context, opts ...IniterOption) error {
+	if !envvars.OtelTraceEnabled.Present() {
+		return nil
+	}
+
+	switch enabled, err := envvars.OtelTraceEnabled.Value(); {
+	case err != nil:
+		return err
+	case !enabled:
+		return nil
+	}
+
 	i, err := c.NewWithValidate(opts...)
 	if err != nil {
 		return err
