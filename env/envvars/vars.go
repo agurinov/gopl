@@ -46,6 +46,12 @@ var (
 )
 
 var (
+	OtelTraceEnabled  = Bool("OTEL_EXPORTER_OTLP_TRACES_ENABLED")
+	OtelTraceEndpoint = String("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+	OtelTraceInsecure = Bool("OTEL_EXPORTER_OTLP_TRACES_INSECURE")
+)
+
+var (
 	GoFile    = String("GOFILE")
 	GoLine    = Int("GOLINE")
 	GoPackage = String("GOPACKAGE")
