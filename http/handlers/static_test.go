@@ -14,18 +14,19 @@ import (
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
-//go:embed all:testdata
+//go:embed testdata
 var content embed.FS
 
 func TestStatic(t *testing.T) {
 	type (
 		args struct {
-			staticOptions []handlers.StaticOption
-			request       *http.Request
+			staticHandlerOptions []handlers.StaticOption
+			request              *http.Request
 		}
 		results struct {
 			statusCode int
 			content    string
+			headers    http.Header
 		}
 	)
 
@@ -34,9 +35,9 @@ func TestStatic(t *testing.T) {
 		results results
 		pl_testing.TestCase
 	}{
-		"case00: index on slash": {
+		"case00: embed: index on slash": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(content, "testdata"),
 				},
@@ -45,11 +46,16 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusOK,
 				content:    "index.html\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"11"},
+					"Content-Type":   []string{"text/html; charset=utf-8"},
+				},
 			},
 		},
-		"case01: static file 200": {
+		"case01: embed: static file 200": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(content, "testdata"),
 				},
@@ -58,11 +64,16 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusOK,
 				content:    "robots.txt\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"11"},
+					"Content-Type":   []string{"text/plain; charset=utf-8"},
+				},
 			},
 		},
-		"case02: static file 404": {
+		"case02: embed: static file 404": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(content, "testdata"),
 				},
@@ -71,11 +82,16 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusNotFound,
 				content:    "404 page not found\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"11"},
+					"Content-Type":   []string{"text/html; charset=utf-8"},
+				},
 			},
 		},
-		"case03: non GET not allowed": {
+		"case03: embed: nothing except GET is allowed": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(content, "testdata"),
 				},
@@ -83,11 +99,14 @@ func TestStatic(t *testing.T) {
 			},
 			results: results{
 				statusCode: http.StatusMethodNotAllowed,
+				headers: http.Header{
+					"Allow": []string{"GET"},
+				},
 			},
 		},
-		"case04: SPA static 200": {
+		"case04: embed: SPA: static file 200": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(content, "testdata"),
 					handlers.WithStaticSPA(true),
@@ -97,11 +116,16 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusOK,
 				content:    "main.js\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"8"},
+					"Content-Type":   []string{"text/javascript; charset=utf-8"},
+				},
 			},
 		},
-		"case05: SPA static 404": {
+		"case05: embed: SPA: static file 404": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(content, "testdata"),
 					handlers.WithStaticSPA(true),
@@ -113,9 +137,9 @@ func TestStatic(t *testing.T) {
 				content:    "404 page not found\n",
 			},
 		},
-		"case06: SPA any other route on slash": {
+		"case06: embed: SPA: any route on slash": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(content, "testdata"),
 					handlers.WithStaticSPA(true),
@@ -125,11 +149,16 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusOK,
 				content:    "index.html\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"11"},
+					"Content-Type":   []string{"text/html; charset=utf-8"},
+				},
 			},
 		},
-		"case07: SPA any other route on slash: os fs": {
+		"case07: os fs: SPA any route on slash": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(os.DirFS("testdata"), ""),
 					handlers.WithStaticSPA(true),
@@ -139,11 +168,16 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusOK,
 				content:    "index.html\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"11"},
+					"Content-Type":   []string{"text/html; charset=utf-8"},
+				},
 			},
 		},
-		"case05: SPA static 404: os fs": {
+		"case08: os fs: SPA static file 404": {
 			args: args{
-				staticOptions: []handlers.StaticOption{
+				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticLogger(zaptest.NewLogger(t)),
 					handlers.WithStaticFS(os.DirFS("testdata"), ""),
 					handlers.WithStaticSPA(true),
@@ -153,6 +187,51 @@ func TestStatic(t *testing.T) {
 			results: results{
 				statusCode: http.StatusNotFound,
 				content:    "404 page not found\n",
+			},
+		},
+		"case09: embed: static file 200 non cacheable": {
+			args: args{
+				staticHandlerOptions: []handlers.StaticOption{
+					handlers.WithStaticLogger(zaptest.NewLogger(t)),
+					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticNoCachePaths("/", "/index.html", "/robots.txt"),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/robots.txt", nil),
+			},
+			results: results{
+				statusCode: http.StatusOK,
+				content:    "robots.txt\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"11"},
+					"Content-Type":   []string{"text/plain; charset=utf-8"},
+					"Cache-Control":  []string{"no-cache, no-store, must-revalidate"},
+					"Pragma":         []string{"no-cache"},
+					"Expires":        []string{"0"},
+				},
+			},
+		},
+		"case10: embed: SPA any route on slash non cacheable": {
+			args: args{
+				staticHandlerOptions: []handlers.StaticOption{
+					handlers.WithStaticLogger(zaptest.NewLogger(t)),
+					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticSPA(true),
+					handlers.WithStaticNoCachePaths("/", "/index.html"),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/foo/bar", nil),
+			},
+			results: results{
+				statusCode: http.StatusOK,
+				content:    "index.html\n",
+				headers: http.Header{
+					"Accept-Ranges":  []string{"bytes"},
+					"Content-Length": []string{"11"},
+					"Content-Type":   []string{"text/html; charset=utf-8"},
+					"Cache-Control":  []string{"no-cache, no-store, must-revalidate"},
+					"Pragma":         []string{"no-cache"},
+					"Expires":        []string{"0"},
+				},
 			},
 		},
 	}
@@ -165,7 +244,7 @@ func TestStatic(t *testing.T) {
 
 			recorder := httptest.NewRecorder()
 
-			static, err := handlers.NewStatic(tc.args.staticOptions...)
+			static, err := handlers.NewStatic(tc.args.staticHandlerOptions...)
 			require.NoError(t, err)
 			require.NotNil(t, static)
 
@@ -176,6 +255,16 @@ func TestStatic(t *testing.T) {
 
 			require.Equal(t, tc.results.statusCode, recorder.Code)
 			require.Equal(t, tc.results.content, recorder.Body.String())
+
+			if tc.results.statusCode == http.StatusNotFound {
+				return
+			}
+
+			headers := recorder.Header()
+
+			delete(headers, "Last-Modified")
+
+			require.Equal(t, tc.results.headers, headers)
 		})
 	}
 }

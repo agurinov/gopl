@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
+	"golang.org/x/exp/slices"
 
 	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
@@ -15,10 +16,10 @@ import (
 
 type (
 	static struct {
-		logger         *zap.Logger
-		fs             fs.FS
-		spaEnabled     bool
-		indexCacheable bool
+		logger       *zap.Logger
+		fs           fs.FS
+		noCachePaths []string
+		spaEnabled   bool
 	}
 	StaticOption c.Option[static]
 )
@@ -50,7 +51,7 @@ func (h static) Handler() http.Handler {
 			}
 		}
 
-		if r.URL.Path == "/" && !h.indexCacheable {
+		if slices.Contains(h.noCachePaths, r.URL.Path) {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			w.Header().Set("Pragma", "no-cache")
 			w.Header().Set("Expires", "0")
