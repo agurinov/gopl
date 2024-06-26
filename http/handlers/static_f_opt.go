@@ -39,9 +39,9 @@ func WithStaticSPA(spaEnabled bool) StaticOption {
 	}
 }
 
-func WithStaticIndexCacheable(indexCacheable bool) StaticOption {
+func WithStaticNoCachePaths(paths ...string) StaticOption {
 	return func(h *static) error {
-		h.indexCacheable = indexCacheable
+		h.noCachePaths = paths
 
 		return nil
 	}
