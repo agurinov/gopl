@@ -11,6 +11,22 @@ func New[
 	return Construct(obj, opts...)
 }
 
+func MustNew[
+	O Object,
+	FO Option[O] | optionAlias[O],
+](
+	opts ...FO,
+) O {
+	var obj O
+
+	obj, err := Construct(obj, opts...)
+	if err != nil {
+		panic(err)
+	}
+
+	return obj
+}
+
 func Construct[
 	O Object,
 	FO Option[O] | optionAlias[O],
