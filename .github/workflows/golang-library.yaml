@@ -4,8 +4,6 @@ run-name: 'Golang library jobs'
 
 on:
   push:
-    branches:
-      - '**'
   workflow_call:
 
 jobs:
