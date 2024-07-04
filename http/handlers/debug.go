@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 
+	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/diag/probes"
 	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
@@ -28,7 +29,9 @@ func (h debug) Handler() http.Handler {
 
 	r.Use(
 		middlewares.Trace,
-		// middlewares.Metrics(),
+		middlewares.Metrics(
+			metrics.WithBuckets(metrics.BucketFast),
+		),
 		middlewares.AccessLog(h.logger),
 		// middlewares.Panic(obj.logger),
 	)

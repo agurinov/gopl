@@ -1,5 +1,5 @@
 package metrics
 
 const (
-	HTTPDurationHistogramName = "gopl_??"
+	HTTPServerDurationHistogramName = "gopl_http_server_duration_seconds"
 )

@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/agurinov/gopl/diag/metrics"
 )
 
 func Metrics() http.Handler {
-	return promhttp.Handler()
+	return metrics.Handler()
 }

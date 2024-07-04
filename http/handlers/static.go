@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 
+	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
 )
@@ -31,7 +32,9 @@ func (h static) Handler() http.Handler {
 
 	r.Use(
 		middlewares.Trace,
-		// middlewares.Metrics(),
+		middlewares.Metrics(
+			metrics.WithBuckets(metrics.BucketFast),
+		),
 		middlewares.AccessLog(h.logger),
 		chimw.GetHead,
 		// middlewares.Panic(obj.logger),
