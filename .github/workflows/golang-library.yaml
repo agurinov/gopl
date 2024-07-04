@@ -1,5 +1,6 @@
 ---
 name: 'golang'
+run-name: 'golang'
 
 on:
   push:
