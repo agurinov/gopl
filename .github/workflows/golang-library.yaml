@@ -1,10 +1,11 @@
 ---
-name: 'go'
+name: 'golang'
 run-name: 'Golang library jobs'
 
 on:
   push:
-  workflow_call:
+    branches:
+      - '**'
 
 jobs:
   code-quality:
