@@ -1,11 +1,9 @@
 ---
-name: 'golang'
-run-name: 'golang'
+name: 'Golang library jobs'
+run-name: 'Golang library jobs'
 
 on:
   push:
-    branches:
-      - '**'
   workflow_call:
 
 jobs:

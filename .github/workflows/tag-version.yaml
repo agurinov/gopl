@@ -5,7 +5,7 @@ run-name: 'Bump tag version'
 on:
   workflow_run:
     workflows:
-      - 'golang'
+      - 'Golang library jobs'
     branches:
       - master
       - main
