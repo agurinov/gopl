@@ -8,6 +8,7 @@ import (
 	"github.com/agurinov/gopl/grpc"
 	"github.com/agurinov/gopl/http"
 	"github.com/agurinov/gopl/sql"
+	"github.com/agurinov/gopl/telegram"
 	"github.com/agurinov/gopl/vault"
 )
 
@@ -23,4 +24,8 @@ type (
 	Graceful = graceful.Config
 	GRPC     = grpc.Config
 	HTTP     = http.Config
+)
+
+type (
+	Telegram = telegram.Config
 )
