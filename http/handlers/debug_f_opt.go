@@ -16,6 +16,10 @@ func WithDebugAtomicLevel(lvl *zap.AtomicLevel) DebugOption {
 
 func WithDebugLogger(logger *zap.Logger) DebugOption {
 	return func(h *debug) error {
+		if logger == nil {
+			return nil
+		}
+
 		h.logger = logger.Named("http.handler.debug")
 
 		return nil

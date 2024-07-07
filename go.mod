@@ -23,6 +23,7 @@ require (
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/prometheus/client_golang v1.18.0
 	github.com/stretchr/testify v1.9.0
+	github.com/telegram-mini-apps/init-data-golang v1.1.5
 	go.opentelemetry.io/otel v1.27.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.27.0
 	go.opentelemetry.io/otel/sdk v1.27.0
@@ -40,6 +41,7 @@ require (
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20230802163732-1c33ebd9ecfa.1 // indirect
+	cloud.google.com/go/compute/metadata v0.4.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect

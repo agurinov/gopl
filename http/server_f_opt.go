@@ -44,6 +44,10 @@ func WithServerName(name string) ServerOption {
 
 func WithServerLogger(logger *zap.Logger) ServerOption {
 	return func(s *Server) error {
+		if logger == nil {
+			return nil
+		}
+
 		s.logger = logger.Named("http.server")
 
 		return nil
