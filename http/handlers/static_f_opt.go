@@ -8,6 +8,10 @@ import (
 
 func WithStaticLogger(logger *zap.Logger) StaticOption {
 	return func(h *static) error {
+		if logger == nil {
+			return nil
+		}
+
 		h.logger = logger.Named("http.handler.static")
 
 		return nil
