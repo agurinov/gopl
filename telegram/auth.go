@@ -100,16 +100,17 @@ func (a Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var initDataString string
 
-		parts := strings.SplitN(
+		switch parts := strings.SplitN(
 			r.Header.Get("Authorization"),
 			" ",
 			authHeaderParts,
-		)
-		switch {
-		case len(parts) != authHeaderParts:
+		); {
+		case
+			len(parts) != authHeaderParts,
+			parts[0] != tmaAuthSchema:
 			http.Error(w, "", http.StatusUnauthorized)
-		case parts[0] != tmaAuthSchema:
-			http.Error(w, "", http.StatusUnauthorized)
+
+			return
 		default:
 			initDataString = parts[1]
 		}
@@ -117,6 +118,8 @@ func (a Auth) Middleware(next http.Handler) http.Handler {
 		user, err := a.AuthFunc(initDataString)
 		if err != nil {
 			http.Error(w, "", http.StatusUnauthorized)
+
+			return
 		}
 
 		ctx := r.Context()
