@@ -266,6 +266,8 @@ linters-settings:
         ignored-numbers:
           - '0666'
           - '0755'
+          - '100'
+          - '100500'
         ignored-files: []
         ignored-functions: []
   # https://golangci-lint.run/usage/linters/#gomoddirectives
@@ -396,7 +398,8 @@ linters-settings:
       - name: add-constant
         arguments:
           maxLitCount: '5'
-          allowInts: '0,1,2'
+          allowInts: '0,1,2,100,100500'
+          allowStrs: '""'
           ignoreFuncs: 'strconv\.FormatInt'
   # https://golangci-lint.run/usage/linters/#rowserrcheck
   rowserrcheck:
