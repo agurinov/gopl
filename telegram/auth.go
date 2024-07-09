@@ -31,7 +31,7 @@ const (
 
 var NewAuth = c.NewWithValidate[Auth, AuthOption]
 
-func (a Auth) AuthFunc(initDataString string) (User, error) {
+func (a Auth) authFunc(initDataString string) (User, error) {
 	if a.dummyEnabled {
 		a.logger.Warn(
 			"authenticated user",
@@ -86,7 +86,7 @@ func (a Auth) UnaryServerInterceptor(
 		return ctx, err
 	}
 
-	user, err := a.AuthFunc(initDataString)
+	user, err := a.authFunc(initDataString)
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, err.Error())
 	}
@@ -105,9 +105,11 @@ func (a Auth) Middleware(next http.Handler) http.Handler {
 			" ",
 			authHeaderParts,
 		); {
-		case
-			len(parts) != authHeaderParts,
-			parts[0] != tmaAuthSchema:
+		case len(parts) != authHeaderParts:
+			http.Error(w, "", http.StatusUnauthorized)
+
+			return
+		case parts[0] != tmaAuthSchema:
 			http.Error(w, "", http.StatusUnauthorized)
 
 			return
@@ -115,7 +117,7 @@ func (a Auth) Middleware(next http.Handler) http.Handler {
 			initDataString = parts[1]
 		}
 
-		user, err := a.AuthFunc(initDataString)
+		user, err := a.authFunc(initDataString)
 		if err != nil {
 			http.Error(w, "", http.StatusUnauthorized)
 

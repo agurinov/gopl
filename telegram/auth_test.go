@@ -1,6 +1,9 @@
 package telegram_test
 
 import (
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,16 +13,33 @@ import (
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
-func TestAuth_AuthFunc(t *testing.T) {
+func TestAuth_Middleware(t *testing.T) {
 	type (
 		args struct {
-			initDataString string
-			dummyEnabled   bool
+			request      *http.Request
+			dummyEnabled bool
 		}
 		results struct {
-			user telegram.User
+			statusCode int
+			content    string
 		}
 	)
+
+	newRequest := func(authHeader string) *http.Request {
+		request := httptest.NewRequest(http.MethodGet, "/", nil)
+		request.Header.Set("Authorization", authHeader)
+
+		return request
+	}
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user, err := telegram.GetUser(r.Context())
+		if err != nil {
+			http.Error(w, "oops", http.StatusInternalServerError)
+		}
+
+		io.WriteString(w, user.Username) //nolint:errcheck
+	})
 
 	cases := map[string]struct {
 		args    args
@@ -28,38 +48,50 @@ func TestAuth_AuthFunc(t *testing.T) {
 	}{
 		"case00: no header": {
 			args: args{
-				initDataString: "",
+				request: newRequest(""),
 			},
-			results: results{},
-			TestCase: pl_testing.TestCase{
-				MustFail: true,
+			results: results{
+				statusCode: http.StatusUnauthorized,
+				content:    "\n",
 			},
 		},
 		"case01: wrong token": {
 			args: args{
-				initDataString: "tma foobar",
+				request: newRequest("tma foobar"),
 			},
-			results: results{},
-			TestCase: pl_testing.TestCase{
-				MustFail: true,
+			results: results{
+				statusCode: http.StatusUnauthorized,
+				content:    "\n",
 			},
 		},
 		"case02: dummy: no header": {
 			args: args{
-				initDataString: "",
-				dummyEnabled:   true,
+				request:      newRequest(""),
+				dummyEnabled: true,
 			},
 			results: results{
-				user: telegram.Dummy(),
+				statusCode: http.StatusUnauthorized,
+				content:    "\n",
+			},
+		},
+		"case02: dummy: wrong schema": {
+			args: args{
+				request:      newRequest("bearer foobar"),
+				dummyEnabled: true,
+			},
+			results: results{
+				statusCode: http.StatusUnauthorized,
+				content:    "\n",
 			},
 		},
 		"case03: dummy: wrong token": {
 			args: args{
-				initDataString: "tma foobar",
-				dummyEnabled:   true,
+				request:      newRequest("tma foobar"),
+				dummyEnabled: true,
 			},
 			results: results{
-				user: telegram.Dummy(),
+				statusCode: http.StatusOK,
+				content:    telegram.Dummy().Username,
 			},
 		},
 	}
@@ -78,9 +110,15 @@ func TestAuth_AuthFunc(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, auth)
 
-			user, err := auth.AuthFunc(tc.args.initDataString)
-			tc.CheckError(t, err)
-			require.Equal(t, tc.results.user, user)
+			var (
+				recorder    = httptest.NewRecorder()
+				authHandler = auth.Middleware(handler)
+			)
+
+			authHandler.ServeHTTP(recorder, tc.args.request)
+
+			require.Equal(t, tc.results.statusCode, recorder.Code)
+			require.Equal(t, tc.results.content, recorder.Body.String())
 		})
 	}
 }
