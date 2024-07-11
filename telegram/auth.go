@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -20,6 +21,7 @@ type (
 		logger       *zap.Logger
 		botTokens    map[string]string
 		dummyEnabled bool
+		noBot        bool
 	}
 	AuthOption c.Option[Auth]
 )
@@ -70,6 +72,10 @@ LOOP:
 	initData, err := initdata.Parse(initDataString)
 	if err != nil {
 		return User{}, err
+	}
+
+	if a.noBot && initData.User.IsBot {
+		return User{}, errors.New("can't authenticate bot")
 	}
 
 	return initData.User, nil
