@@ -29,3 +29,11 @@ func WithAuthLogger(logger *zap.Logger) AuthOption {
 		return nil
 	}
 }
+
+func WithAuthNoBot() AuthOption {
+	return func(s *Auth) error {
+		s.noBot = true
+
+		return nil
+	}
+}
