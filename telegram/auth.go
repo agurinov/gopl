@@ -89,7 +89,7 @@ func (a Auth) UnaryServerInterceptor(
 ) (any, error) {
 	initDataString, err := auth.AuthFromMD(ctx, tmaAuthSchema)
 	if err != nil {
-		return ctx, err
+		return nil, err
 	}
 
 	user, err := a.authFunc(initDataString)
