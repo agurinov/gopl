@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/auth"
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 	"go.uber.org/zap"
@@ -43,7 +44,10 @@ func (a Auth) authFunc(initDataString string) (User, error) {
 		return Dummy(), nil
 	}
 
-	var validateErr error
+	var (
+		validateErr  error
+		authorityBot string
+	)
 
 LOOP:
 	for botName, botToken := range a.botTokens {
@@ -54,6 +58,7 @@ LOOP:
 				"authenticated user",
 				zap.String("bot_name", botName),
 			)
+			authorityBot = botName
 
 			break LOOP
 		default:
@@ -74,11 +79,24 @@ LOOP:
 		return User{}, err
 	}
 
-	if a.noBot && initData.User.IsBot {
+	user := User{
+		ID:           initData.User.ID,
+		Username:     initData.User.Username,
+		FirstName:    initData.User.FirstName,
+		LastName:     initData.User.LastName,
+		IsBot:        initData.User.IsBot,
+		AuthorityBot: authorityBot,
+	}
+
+	if vErr := validator.New().Struct(user); vErr != nil {
+		return User{}, vErr
+	}
+
+	if a.noBot && user.IsBot {
 		return User{}, errors.New("can't authenticate bot")
 	}
 
-	return initData.User, nil
+	return user, nil
 }
 
 func (a Auth) UnaryServerInterceptor(

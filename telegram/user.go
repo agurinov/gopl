@@ -1,14 +1,21 @@
 package telegram
 
-import initdata "github.com/telegram-mini-apps/init-data-golang"
-
-type User = initdata.User
+type User struct {
+	Username     string `validate:"required"`
+	FirstName    string `validate:"required"`
+	LastName     string `validate:"required"`
+	AuthorityBot string `validate:"required"`
+	ID           int64  `validate:"required"`
+	IsBot        bool
+}
 
 func Dummy() User {
 	return User{
-		ID:        100500,
-		Username:  "johndoe",
-		FirstName: "John",
-		LastName:  "Doe",
+		ID:           100500,
+		Username:     "johndoe",
+		FirstName:    "John",
+		LastName:     "Doe",
+		IsBot:        false,
+		AuthorityBot: "DummyBot",
 	}
 }
