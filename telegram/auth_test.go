@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -234,6 +235,74 @@ func TestAuth_Interceptor(t *testing.T) {
 
 			require.Equal(t, tc.results.statusCode, code)
 			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
+
+func TestAuth_Validate(t *testing.T) {
+	type (
+		args struct {
+			botTokens map[string]string
+		}
+	)
+
+	cases := map[string]struct {
+		args args
+		pl_testing.TestCase
+	}{
+		"case00: no bot tokens": {
+			args: args{},
+			TestCase: pl_testing.TestCase{
+				MustFail:      true,
+				MustFailAsErr: new(validator.ValidationErrors),
+			},
+		},
+		"case01: empty key": {
+			args: args{
+				botTokens: map[string]string{
+					"": "token",
+				},
+			},
+			TestCase: pl_testing.TestCase{
+				MustFail:      true,
+				MustFailAsErr: new(validator.ValidationErrors),
+			},
+		},
+		"case02: empty token": {
+			args: args{
+				botTokens: map[string]string{
+					"FooBot": "",
+				},
+			},
+			TestCase: pl_testing.TestCase{
+				MustFail:      true,
+				MustFailAsErr: new(validator.ValidationErrors),
+			},
+		},
+		"case03: success": {
+			args: args{
+				botTokens: map[string]string{
+					"FooBot": "token",
+				},
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			auth, err := telegram.NewAuth(
+				telegram.WithAuthLogger(zaptest.NewLogger(t)),
+				telegram.WithAuthBotTokens(tc.args.botTokens),
+			)
+			tc.CheckError(t, err)
+			require.NotNil(t, auth)
+
+			err = auth.Validate()
+			tc.CheckError(t, err)
 		})
 	}
 }
