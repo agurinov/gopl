@@ -95,7 +95,7 @@ func TestAuth_Middleware(t *testing.T) {
 			},
 			results: results{
 				statusCode: http.StatusOK,
-				content:    telegram.Dummy().Username,
+				content:    telegram.DummyUser().Username,
 			},
 		},
 		"case05: dummy: non auth header format": {
@@ -105,7 +105,7 @@ func TestAuth_Middleware(t *testing.T) {
 			},
 			results: results{
 				statusCode: http.StatusOK,
-				content:    telegram.Dummy().Username,
+				content:    telegram.DummyUser().Username,
 			},
 		},
 		"case06: dummy: wrong schema": {
@@ -115,7 +115,7 @@ func TestAuth_Middleware(t *testing.T) {
 			},
 			results: results{
 				statusCode: http.StatusOK,
-				content:    telegram.Dummy().Username,
+				content:    telegram.DummyUser().Username,
 			},
 		},
 		"case07: dummy: wrong token": {
@@ -125,7 +125,7 @@ func TestAuth_Middleware(t *testing.T) {
 			},
 			results: results{
 				statusCode: http.StatusOK,
-				content:    telegram.Dummy().Username,
+				content:    telegram.DummyUser().Username,
 			},
 		},
 	}
@@ -233,7 +233,7 @@ func TestAuth_Interceptor(t *testing.T) {
 			},
 			results: results{
 				statusCode: codes.OK,
-				out:        telegram.Dummy().Username,
+				out:        telegram.DummyUser().Username,
 			},
 		},
 		"case05: dummy: non auth header format": {
@@ -243,7 +243,7 @@ func TestAuth_Interceptor(t *testing.T) {
 			},
 			results: results{
 				statusCode: codes.OK,
-				out:        telegram.Dummy().Username,
+				out:        telegram.DummyUser().Username,
 			},
 		},
 		"case06: dummy: wrong schema": {
@@ -253,7 +253,7 @@ func TestAuth_Interceptor(t *testing.T) {
 			},
 			results: results{
 				statusCode: codes.OK,
-				out:        telegram.Dummy().Username,
+				out:        telegram.DummyUser().Username,
 			},
 		},
 		"case07: dummy: wrong token": {
@@ -263,7 +263,7 @@ func TestAuth_Interceptor(t *testing.T) {
 			},
 			results: results{
 				statusCode: codes.OK,
-				out:        telegram.Dummy().Username,
+				out:        telegram.DummyUser().Username,
 			},
 		},
 	}

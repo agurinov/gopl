@@ -38,7 +38,7 @@ func (a Auth) authFunc(initDataString string) (User, error) {
 			zap.Bool("dummy", true),
 		)
 
-		return Dummy(), nil
+		return DummyUser(), nil
 	}
 
 	var (
