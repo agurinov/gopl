@@ -61,7 +61,25 @@ func TestAuth_Middleware(t *testing.T) {
 				content:    "\n",
 			},
 		},
-		"case01: wrong token": {
+		"case01: non auth header format": {
+			args: args{
+				request: newRequest("foobar"),
+			},
+			results: results{
+				statusCode: http.StatusUnauthorized,
+				content:    "\n",
+			},
+		},
+		"case02: wrong schema": {
+			args: args{
+				request: newRequest("bearer foobar"),
+			},
+			results: results{
+				statusCode: http.StatusUnauthorized,
+				content:    "\n",
+			},
+		},
+		"case03: wrong token": {
 			args: args{
 				request: newRequest("tma foobar"),
 			},
@@ -70,34 +88,44 @@ func TestAuth_Middleware(t *testing.T) {
 				content:    "\n",
 			},
 		},
-		"case02: dummy: no header": {
+		"case04: dummy: no header": {
 			args: args{
 				request:      newRequest(""),
 				dummyEnabled: true,
 			},
 			results: results{
-				statusCode: http.StatusUnauthorized,
-				content:    "\n",
+				statusCode: http.StatusOK,
+				content:    telegram.DummyUser().Username,
 			},
 		},
-		"case02: dummy: wrong schema": {
+		"case05: dummy: non auth header format": {
+			args: args{
+				request:      newRequest("foobar"),
+				dummyEnabled: true,
+			},
+			results: results{
+				statusCode: http.StatusOK,
+				content:    telegram.DummyUser().Username,
+			},
+		},
+		"case06: dummy: wrong schema": {
 			args: args{
 				request:      newRequest("bearer foobar"),
 				dummyEnabled: true,
 			},
 			results: results{
-				statusCode: http.StatusUnauthorized,
-				content:    "\n",
+				statusCode: http.StatusOK,
+				content:    telegram.DummyUser().Username,
 			},
 		},
-		"case03: dummy: wrong token": {
+		"case07: dummy: wrong token": {
 			args: args{
 				request:      newRequest("tma foobar"),
 				dummyEnabled: true,
 			},
 			results: results{
 				statusCode: http.StatusOK,
-				content:    telegram.Dummy().Username,
+				content:    telegram.DummyUser().Username,
 			},
 		},
 	}
@@ -171,7 +199,25 @@ func TestAuth_Interceptor(t *testing.T) {
 				out:        nil,
 			},
 		},
-		"case01: wrong token": {
+		"case01: non auth header format": {
+			args: args{
+				ctx: newCtx("foobar"),
+			},
+			results: results{
+				statusCode: codes.Unauthenticated,
+				out:        nil,
+			},
+		},
+		"case02: wrong schema": {
+			args: args{
+				ctx: newCtx("bearer foobar"),
+			},
+			results: results{
+				statusCode: codes.Unauthenticated,
+				out:        nil,
+			},
+		},
+		"case03: wrong token": {
 			args: args{
 				ctx: newCtx("tma foobar"),
 			},
@@ -180,33 +226,44 @@ func TestAuth_Interceptor(t *testing.T) {
 				out:        nil,
 			},
 		},
-		"case02: dummy: no header": {
+		"case04: dummy: no header": {
 			args: args{
 				ctx:          newCtx(""),
 				dummyEnabled: true,
 			},
 			results: results{
-				statusCode: codes.Unauthenticated,
+				statusCode: codes.OK,
+				out:        telegram.DummyUser().Username,
 			},
 		},
-		"case02: dummy: wrong schema": {
+		"case05: dummy: non auth header format": {
+			args: args{
+				ctx:          newCtx("foobar"),
+				dummyEnabled: true,
+			},
+			results: results{
+				statusCode: codes.OK,
+				out:        telegram.DummyUser().Username,
+			},
+		},
+		"case06: dummy: wrong schema": {
 			args: args{
 				ctx:          newCtx("bearer foobar"),
 				dummyEnabled: true,
 			},
 			results: results{
-				statusCode: codes.Unauthenticated,
-				out:        nil,
+				statusCode: codes.OK,
+				out:        telegram.DummyUser().Username,
 			},
 		},
-		"case03: dummy: wrong token": {
+		"case07: dummy: wrong token": {
 			args: args{
 				ctx:          newCtx("tma foobar"),
 				dummyEnabled: true,
 			},
 			results: results{
 				statusCode: codes.OK,
-				out:        telegram.Dummy().Username,
+				out:        telegram.DummyUser().Username,
 			},
 		},
 	}

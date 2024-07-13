@@ -9,7 +9,7 @@ type User struct {
 	IsBot        bool
 }
 
-func Dummy() User {
+func DummyUser() User {
 	return User{
 		ID:           100500,
 		Username:     "johndoe",

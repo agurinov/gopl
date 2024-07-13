@@ -18,7 +18,7 @@ func SetUser(ctx context.Context, user User) context.Context {
 func GetUser(ctx context.Context) (User, error) {
 	user, ok := ctx.Value(userCtxKey).(User)
 	if !ok {
-		return User{}, status.Errorf(codes.Unauthenticated, "")
+		return User{}, status.Errorf(codes.Unauthenticated, "context is not authenticated")
 	}
 
 	return user, nil
