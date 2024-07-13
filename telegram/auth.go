@@ -27,10 +27,7 @@ type (
 	AuthOption c.Option[Auth]
 )
 
-const (
-	tmaAuthSchema   = "tma"
-	authHeaderParts = 2
-)
+const tmaAuthSchema = "tma"
 
 var NewAuth = c.NewWithValidate[Auth, AuthOption]
 
@@ -106,7 +103,7 @@ func (a Auth) UnaryServerInterceptor(
 	handler grpc.UnaryHandler,
 ) (any, error) {
 	initDataString, err := auth.AuthFromMD(ctx, tmaAuthSchema)
-	if err != nil {
+	if err != nil && !a.dummyEnabled {
 		return nil, err
 	}
 
@@ -120,25 +117,31 @@ func (a Auth) UnaryServerInterceptor(
 	return handler(ctx, in)
 }
 
+func (Auth) authFromHeader(r *http.Request, expectedScheme string) (string, error) {
+	val := r.Header.Get("Authorization")
+	if val == "" {
+		return "", errors.New("request unauthenticated with " + expectedScheme)
+	}
+
+	scheme, token, found := strings.Cut(val, " ")
+	if !found {
+		return "", errors.New("bad authorization string")
+	}
+
+	if !strings.EqualFold(scheme, expectedScheme) {
+		return "", errors.New("request unauthenticated with " + expectedScheme)
+	}
+
+	return token, nil
+}
+
 func (a Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var initDataString string
-
-		switch parts := strings.SplitN(
-			r.Header.Get("Authorization"),
-			" ",
-			authHeaderParts,
-		); {
-		case len(parts) != authHeaderParts:
+		initDataString, err := a.authFromHeader(r, tmaAuthSchema)
+		if err != nil && !a.dummyEnabled {
 			http.Error(w, "", http.StatusUnauthorized)
 
 			return
-		case parts[0] != tmaAuthSchema:
-			http.Error(w, "", http.StatusUnauthorized)
-
-			return
-		default:
-			initDataString = parts[1]
 		}
 
 		user, err := a.authFunc(initDataString)
