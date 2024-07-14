@@ -106,7 +106,12 @@ func (a Auth) UnaryServerInterceptor(
 
 	user, err := a.authFunc(initDataString)
 	if err != nil {
-		return nil, status.Error(codes.Unauthenticated, err.Error())
+		a.logger.Debug(
+			"can't authenticate user",
+			zap.Error(err),
+		)
+
+		return nil, status.Error(codes.Unauthenticated, "")
 	}
 
 	ctx = SetUser(ctx, user)
