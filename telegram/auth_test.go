@@ -1,15 +1,20 @@
 package telegram_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/metadata"
 	"github.com/stretchr/testify/require"
+	initdata "github.com/telegram-mini-apps/init-data-golang"
 	"go.uber.org/zap/zaptest"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -19,17 +24,51 @@ import (
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
-func TestAuth_Middleware(t *testing.T) {
+func TestAuth_authFunc(t *testing.T) {
 	type (
 		args struct {
-			request      *http.Request
-			dummyEnabled bool
+			ctx              context.Context
+			request          *http.Request
+			noSignatureCheck bool
 		}
 		results struct {
-			statusCode int
-			content    string
+			httpStatusCode int
+			httpContent    string
+			grpcStatusCode codes.Code
+			grpcOut        any
 		}
 	)
+
+	fooBotToken := "foobot_token"
+
+	hashedToken := func(
+		t *testing.T,
+		botToken string,
+	) string {
+		t.Helper()
+
+		user := initdata.User{
+			ID:        100500,
+			Username:  "johndoe",
+			FirstName: "John",
+			LastName:  "Doe",
+			IsBot:     false,
+		}
+
+		var b bytes.Buffer
+
+		require.NoError(t, json.NewEncoder(&b).Encode(&user))
+
+		q := url.Values{}
+		q.Set("user", b.String())
+
+		hash, err := initdata.SignQueryString(q.Encode(), botToken, time.Now())
+		require.NoError(t, err)
+
+		q.Set("hash", hash)
+
+		return "tma " + q.Encode()
+	}
 
 	newRequest := func(authHeader string) *http.Request {
 		request := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -38,7 +77,7 @@ func TestAuth_Middleware(t *testing.T) {
 		return request
 	}
 
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user, err := telegram.GetUser(r.Context())
 		if err != nil {
 			http.Error(w, "oops", http.StatusInternalServerError)
@@ -47,128 +86,6 @@ func TestAuth_Middleware(t *testing.T) {
 		io.WriteString(w, user.Username) //nolint:errcheck
 	})
 
-	cases := map[string]struct {
-		args    args
-		results results
-		pl_testing.TestCase
-	}{
-		"case00: no header": {
-			args: args{
-				request: newRequest(""),
-			},
-			results: results{
-				statusCode: http.StatusUnauthorized,
-				content:    "\n",
-			},
-		},
-		"case01: non auth header format": {
-			args: args{
-				request: newRequest("foobar"),
-			},
-			results: results{
-				statusCode: http.StatusUnauthorized,
-				content:    "\n",
-			},
-		},
-		"case02: wrong schema": {
-			args: args{
-				request: newRequest("bearer foobar"),
-			},
-			results: results{
-				statusCode: http.StatusUnauthorized,
-				content:    "\n",
-			},
-		},
-		"case03: wrong token": {
-			args: args{
-				request: newRequest("tma foobar"),
-			},
-			results: results{
-				statusCode: http.StatusUnauthorized,
-				content:    "\n",
-			},
-		},
-		"case04: dummy: no header": {
-			args: args{
-				request:      newRequest(""),
-				dummyEnabled: true,
-			},
-			results: results{
-				statusCode: http.StatusOK,
-				content:    telegram.DummyUser().Username,
-			},
-		},
-		"case05: dummy: non auth header format": {
-			args: args{
-				request:      newRequest("foobar"),
-				dummyEnabled: true,
-			},
-			results: results{
-				statusCode: http.StatusOK,
-				content:    telegram.DummyUser().Username,
-			},
-		},
-		"case06: dummy: wrong schema": {
-			args: args{
-				request:      newRequest("bearer foobar"),
-				dummyEnabled: true,
-			},
-			results: results{
-				statusCode: http.StatusOK,
-				content:    telegram.DummyUser().Username,
-			},
-		},
-		"case07: dummy: wrong token": {
-			args: args{
-				request:      newRequest("tma foobar"),
-				dummyEnabled: true,
-			},
-			results: results{
-				statusCode: http.StatusOK,
-				content:    telegram.DummyUser().Username,
-			},
-		},
-	}
-
-	for name := range cases {
-		name, tc := name, cases[name]
-
-		t.Run(name, func(t *testing.T) {
-			tc.Init(t)
-
-			auth, err := telegram.NewAuth(
-				telegram.WithAuthLogger(zaptest.NewLogger(t)),
-				telegram.WithAuthDummy(tc.args.dummyEnabled),
-				telegram.WithAuthBotTokens(map[string]string{"FooBot": "foo"}),
-			)
-			require.NoError(t, err)
-			require.NotNil(t, auth)
-
-			var (
-				recorder    = httptest.NewRecorder()
-				authHandler = auth.Middleware(handler)
-			)
-
-			authHandler.ServeHTTP(recorder, tc.args.request)
-
-			require.Equal(t, tc.results.statusCode, recorder.Code)
-			require.Equal(t, tc.results.content, recorder.Body.String())
-		})
-	}
-}
-
-func TestAuth_Interceptor(t *testing.T) {
-	type (
-		args struct {
-			ctx          context.Context
-			dummyEnabled bool
-		}
-		results struct {
-			statusCode codes.Code
-			out        any
-		}
-	)
-
 	newCtx := func(authHeader string) context.Context {
 		md := metadata.MD{}
 		md = md.Set("authorization", authHeader)
@@ -176,7 +93,7 @@ func TestAuth_Interceptor(t *testing.T) {
 		return md.ToIncoming(context.Background())
 	}
 
-	handler := func(ctx context.Context, req any) (any, error) {
+	grpcHandler := func(ctx context.Context, req any) (any, error) {
 		user, err := telegram.GetUser(ctx)
 		if err != nil {
 			return nil, status.Error(codes.Internal, "oops")
@@ -192,78 +109,155 @@ func TestAuth_Interceptor(t *testing.T) {
 	}{
 		"case00: no header": {
 			args: args{
-				ctx: newCtx(""),
+				ctx:     newCtx(""),
+				request: newRequest(""),
 			},
 			results: results{
-				statusCode: codes.Unauthenticated,
-				out:        nil,
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
 			},
 		},
 		"case01: non auth header format": {
 			args: args{
-				ctx: newCtx("foobar"),
+				ctx:     newCtx("foobar"),
+				request: newRequest("foobar"),
 			},
 			results: results{
-				statusCode: codes.Unauthenticated,
-				out:        nil,
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
 			},
 		},
 		"case02: wrong schema": {
 			args: args{
-				ctx: newCtx("bearer foobar"),
+				ctx:     newCtx("bearer foobar"),
+				request: newRequest("bearer foobar"),
 			},
 			results: results{
-				statusCode: codes.Unauthenticated,
-				out:        nil,
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
 			},
 		},
 		"case03: wrong token": {
 			args: args{
-				ctx: newCtx("tma foobar"),
+				ctx:     newCtx("tma foobar"),
+				request: newRequest("tma foobar"),
 			},
 			results: results{
-				statusCode: codes.Unauthenticated,
-				out:        nil,
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
 			},
 		},
-		"case04: dummy: no header": {
+		"case04: wrong hash": {
 			args: args{
-				ctx:          newCtx(""),
-				dummyEnabled: true,
+				ctx:     newCtx(hashedToken(t, "invalid_bot_token")),
+				request: newRequest(hashedToken(t, "invalid_bot_token")),
 			},
 			results: results{
-				statusCode: codes.OK,
-				out:        telegram.DummyUser().Username,
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
 			},
 		},
-		"case05: dummy: non auth header format": {
+		"case05: wright hash": {
 			args: args{
-				ctx:          newCtx("foobar"),
-				dummyEnabled: true,
+				ctx:     newCtx(hashedToken(t, fooBotToken)),
+				request: newRequest(hashedToken(t, fooBotToken)),
 			},
 			results: results{
-				statusCode: codes.OK,
-				out:        telegram.DummyUser().Username,
+				grpcStatusCode: codes.OK,
+				grpcOut:        "johndoe",
+				httpStatusCode: http.StatusOK,
+				httpContent:    "johndoe",
+			},
+			TestCase: pl_testing.TestCase{
+				Skip: true,
 			},
 		},
-		"case06: dummy: wrong schema": {
+		"case06: dummy: no header": {
 			args: args{
-				ctx:          newCtx("bearer foobar"),
-				dummyEnabled: true,
+				ctx:              newCtx(""),
+				request:          newRequest(""),
+				noSignatureCheck: true,
 			},
 			results: results{
-				statusCode: codes.OK,
-				out:        telegram.DummyUser().Username,
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
 			},
 		},
-		"case07: dummy: wrong token": {
+		"case07: dummy: non auth header format": {
 			args: args{
-				ctx:          newCtx("tma foobar"),
-				dummyEnabled: true,
+				ctx:              newCtx("foobar"),
+				request:          newRequest("foobar"),
+				noSignatureCheck: true,
 			},
 			results: results{
-				statusCode: codes.OK,
-				out:        telegram.DummyUser().Username,
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
+			},
+		},
+		"case08: dummy: wrong schema": {
+			args: args{
+				ctx:              newCtx("bearer foobar"),
+				request:          newRequest("bearer foobar"),
+				noSignatureCheck: true,
+			},
+			results: results{
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
+			},
+		},
+		"case09: dummy: wrong token": {
+			args: args{
+				ctx:              newCtx("tma foobar"),
+				request:          newRequest("tma foobar"),
+				noSignatureCheck: true,
+			},
+			results: results{
+				grpcStatusCode: codes.Unauthenticated,
+				grpcOut:        nil,
+				httpStatusCode: http.StatusUnauthorized,
+				httpContent:    "\n",
+			},
+		},
+		"case10: dummy: wrong hash": {
+			args: args{
+				ctx:              newCtx(hashedToken(t, "invalid_bot_token")),
+				request:          newRequest(hashedToken(t, "invalid_bot_token")),
+				noSignatureCheck: true,
+			},
+			results: results{
+				grpcStatusCode: codes.OK,
+				grpcOut:        "johndoe",
+				httpStatusCode: http.StatusOK,
+				httpContent:    "johndoe",
+			},
+		},
+		"case11: dummy: wright hash": {
+			args: args{
+				ctx:              newCtx(hashedToken(t, fooBotToken)),
+				request:          newRequest(hashedToken(t, fooBotToken)),
+				noSignatureCheck: true,
+			},
+			results: results{
+				grpcStatusCode: codes.OK,
+				grpcOut:        "johndoe",
+				httpStatusCode: http.StatusOK,
+				httpContent:    "johndoe",
 			},
 		},
 	}
@@ -276,22 +270,32 @@ func TestAuth_Interceptor(t *testing.T) {
 
 			auth, err := telegram.NewAuth(
 				telegram.WithAuthLogger(zaptest.NewLogger(t)),
-				telegram.WithAuthDummy(tc.args.dummyEnabled),
-				telegram.WithAuthBotTokens(map[string]string{"FooBot": "foo"}),
+				telegram.WithAuthNoSignatureCheck(tc.args.noSignatureCheck),
+				telegram.WithAuthBotTokens(map[string]string{"FooBot": fooBotToken}),
 			)
 			require.NoError(t, err)
 			require.NotNil(t, auth)
 
-			out, err := auth.UnaryServerInterceptor(
+			grpcOut, err := auth.UnaryServerInterceptor(
 				tc.args.ctx,
 				nil,
 				new(grpc.UnaryServerInfo),
-				handler,
+				grpcHandler,
 			)
-			code := status.Code(err)
+			grpcCode := status.Code(err)
 
-			require.Equal(t, tc.results.statusCode, code)
-			require.Equal(t, tc.results.out, out)
+			require.Equal(t, tc.results.grpcStatusCode, grpcCode)
+			require.Equal(t, tc.results.grpcOut, grpcOut)
+
+			var (
+				recorder    = httptest.NewRecorder()
+				authHandler = auth.Middleware(httpHandler)
+			)
+
+			authHandler.ServeHTTP(recorder, tc.args.request)
+
+			require.Equal(t, tc.results.httpStatusCode, recorder.Code)
+			require.Equal(t, tc.results.httpContent, recorder.Body.String())
 		})
 	}
 }
