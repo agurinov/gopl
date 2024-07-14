@@ -2,14 +2,6 @@ package telegram
 
 import "go.uber.org/zap"
 
-func WithAuthDummy(dummyEnabled bool) AuthOption {
-	return func(s *Auth) error {
-		s.dummyEnabled = dummyEnabled
-
-		return nil
-	}
-}
-
 func WithAuthBotTokens(botTokens map[string]string) AuthOption {
 	return func(s *Auth) error {
 		s.botTokens = botTokens
@@ -30,9 +22,17 @@ func WithAuthLogger(logger *zap.Logger) AuthOption {
 	}
 }
 
-func WithAuthNoBot() AuthOption {
+func WithAuthNoBotAllowed() AuthOption {
 	return func(s *Auth) error {
-		s.noBot = true
+		s.noBotAllowed = true
+
+		return nil
+	}
+}
+
+func WithAuthNoSignatureCheck(noSignatureCheck bool) AuthOption {
+	return func(s *Auth) error {
+		s.noSignatureCheck = noSignatureCheck
 
 		return nil
 	}

@@ -19,10 +19,10 @@ import (
 
 type (
 	Auth struct {
-		logger       *zap.Logger
-		botTokens    map[string]string
-		dummyEnabled bool
-		noBot        bool
+		logger           *zap.Logger
+		botTokens        map[string]string
+		noSignatureCheck bool
+		noBotAllowed     bool
 	}
 	AuthOption c.Option[Auth]
 )
@@ -31,51 +31,10 @@ const tmaAuthSchema = "tma"
 
 var NewAuth = c.NewWithValidate[Auth, AuthOption]
 
-func (a Auth) authFunc(initDataString string) (User, error) {
-	if a.dummyEnabled {
-		a.logger.Warn(
-			"authenticated user",
-			zap.Bool("dummy", true),
-		)
-
-		return DummyUser(), nil
-	}
-
-	var (
-		validateErr  error
-		authorityBot string
-	)
-
-LOOP:
-	for botName, botToken := range a.botTokens {
-		validateErr = initdata.Validate(initDataString, botToken, 0)
-		switch validateErr {
-		case nil:
-			a.logger.Debug(
-				"authenticated user",
-				zap.String("bot_name", botName),
-			)
-			authorityBot = botName
-
-			break LOOP
-		default:
-			a.logger.Debug(
-				"can't authenticate user",
-				zap.String("bot_name", botName),
-				zap.Error(validateErr),
-			)
-		}
-	}
-
-	if validateErr != nil {
-		return User{}, validateErr
-	}
-
-	initData, err := initdata.Parse(initDataString)
-	if err != nil {
-		return User{}, err
-	}
-
+func (a Auth) parseUser(
+	initData initdata.InitData,
+	authorityBot string,
+) (User, error) {
 	user := User{
 		ID:           initData.User.ID,
 		Username:     initData.User.Username,
@@ -85,15 +44,53 @@ LOOP:
 		AuthorityBot: authorityBot,
 	}
 
-	if vErr := validator.New().Struct(user); vErr != nil {
-		return User{}, vErr
+	if err := validator.New().Struct(user); err != nil {
+		return User{}, err
 	}
 
-	if a.noBot && user.IsBot {
+	if a.noBotAllowed && user.IsBot {
 		return User{}, errors.New("can't authenticate bot")
 	}
 
+	a.logger.Debug(
+		"authenticated user",
+		zap.String("authority_bot", authorityBot),
+		zap.String("tg_username", user.Username),
+		zap.Int64("tg_id", user.ID),
+	)
+
 	return user, nil
+}
+
+func (a Auth) authFunc(initDataString string) (User, error) {
+	initData, err := initdata.Parse(initDataString)
+	if err != nil {
+		return User{}, err
+	}
+
+	if a.noSignatureCheck {
+		return a.parseUser(initData, "DummyBot")
+	}
+
+	signatureErr := errors.New("no authority bots found")
+
+	for botName, botToken := range a.botTokens {
+		signatureErr = initdata.Validate(initDataString, botToken, 0)
+
+		if signatureErr == nil {
+			return a.parseUser(initData, botName)
+		}
+
+		a.logger.Debug(
+			"can't authenticate user, trying next",
+			zap.String("authority_bot", botName),
+			zap.String("tg_username", initData.User.Username),
+			zap.Int64("tg_id", initData.User.ID),
+			zap.Error(signatureErr),
+		)
+	}
+
+	return User{}, signatureErr
 }
 
 func (a Auth) UnaryServerInterceptor(
@@ -103,7 +100,7 @@ func (a Auth) UnaryServerInterceptor(
 	handler grpc.UnaryHandler,
 ) (any, error) {
 	initDataString, err := auth.AuthFromMD(ctx, tmaAuthSchema)
-	if err != nil && !a.dummyEnabled {
+	if err != nil {
 		return nil, err
 	}
 
@@ -138,7 +135,7 @@ func (Auth) authFromHeader(r *http.Request, expectedScheme string) (string, erro
 func (a Auth) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		initDataString, err := a.authFromHeader(r, tmaAuthSchema)
-		if err != nil && !a.dummyEnabled {
+		if err != nil {
 			http.Error(w, "", http.StatusUnauthorized)
 
 			return
