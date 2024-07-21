@@ -1,7 +1,7 @@
 package telegram
 
 type User struct {
-	Username     string `validate:"required"`
+	Username     string
 	FirstName    string
 	LastName     string
 	AuthorityBot string `validate:"required"`
