@@ -27,7 +27,10 @@ type (
 	AuthOption c.Option[Auth]
 )
 
-const tmaAuthSchema = "tma"
+const (
+	tmaAuthSchema    = "tma"
+	dummyBotUsername = "DummyBot"
+)
 
 var NewAuth = c.NewWithValidate[Auth, AuthOption]
 
@@ -69,7 +72,7 @@ func (a Auth) authFunc(initDataString string) (User, error) {
 	}
 
 	if a.noSignatureCheck {
-		return a.parseUser(initData, "DummyBot")
+		return a.parseUser(initData, dummyBotUsername)
 	}
 
 	signatureErr := errors.New("no authority bots found")
