@@ -29,9 +29,12 @@ func (u User) String() string {
 }
 
 func Username(username string) string {
-	if strings.HasPrefix(username, "@") {
+	switch {
+	case username == "":
+		return ""
+	case strings.HasPrefix(username, "@"):
 		return username
+	default:
+		return "@" + username
 	}
-
-	return "@" + username
 }
