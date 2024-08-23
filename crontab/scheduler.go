@@ -18,10 +18,10 @@ type (
 		jobs            map[string]Job
 		shutdownTimeout time.Duration
 	}
-	SchedulerOption c.Option[Scheduler]
+	SchedulerOption c.OptionWithContext[Scheduler]
 )
 
-var New = c.NewWithValidate[Scheduler, SchedulerOption]
+var New = c.NewWithContextValidate[Scheduler, SchedulerOption]
 
 func (s Scheduler) Run(_ context.Context) error {
 	s.logger.Info("starting crontab")
