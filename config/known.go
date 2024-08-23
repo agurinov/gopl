@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/agurinov/gopl/crontab"
 	"github.com/agurinov/gopl/diag/log"
 	"github.com/agurinov/gopl/diag/probes"
 	"github.com/agurinov/gopl/diag/trace"
@@ -28,4 +29,5 @@ type (
 
 type (
 	Telegram = telegram.Config
+	Crontab  = crontab.Config
 )

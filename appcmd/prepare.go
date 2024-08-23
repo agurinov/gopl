@@ -10,6 +10,7 @@ import (
 
 	"github.com/agurinov/gopl/diag/log"
 	"github.com/agurinov/gopl/diag/metrics"
+	"github.com/agurinov/gopl/env/envvars"
 )
 
 func Prepare(cmdName string) ( //nolint:revive
@@ -28,15 +29,26 @@ func Prepare(cmdName string) ( //nolint:revive
 		zap.String("cmd_name", cmdName),
 	)
 
-	if err := metrics.Init(cmdName); err != nil {
-		return ctx, stop, logger, err
-	}
+	var (
+		goMaxProcs, _ = envvars.GoMaxProcs.Value() //nolint:errcheck
+		goMemLimit, _ = envvars.GoMemLimit.Value() //nolint:errcheck
+	)
+
+	logger.Info(
+		"resources from env",
+		zap.Int(envvars.GoMaxProcs.String(), goMaxProcs),
+		zap.String(envvars.GoMemLimit.String(), goMemLimit),
+	)
 
 	if _, err := maxprocs.Set(maxprocs.Logger(logger.Sugar().Infof)); err != nil {
 		return ctx, stop, logger, err
 	}
 
 	// TODO(a.gurinov): k8s memlimit
+
+	if err := metrics.Init(cmdName); err != nil {
+		return ctx, stop, logger, err
+	}
 
 	return ctx, stop, logger, nil
 }

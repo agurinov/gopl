@@ -58,6 +58,11 @@ var (
 )
 
 var (
+	GoMaxProcs = Int("GOMAXPROCS")
+	GoMemLimit = String("GOMEMLIMIT")
+)
+
+var (
 	_ = Int("GRPC_GO_LOG_VERBOSITY_LEVEL")
 	_ = String("GRPC_GO_LOG_SEVERITY_LEVEL")
 )
