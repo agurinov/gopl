@@ -46,14 +46,15 @@ func (cr creator) newCounter(name string, labels ...string) *prometheus.CounterV
 func (cr creator) newHistogram(name string, labels ...string) *prometheus.HistogramVec {
 	metricName := cr.metricName(name)
 
-	if len(cr.buckets) == 0 {
-		cr.buckets = prometheus.DefBuckets
+	buckets := cr.buckets
+	if len(buckets) == 0 {
+		buckets = prometheus.DefBuckets
 	}
 
 	histogramVec := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    metricName,
-			Buckets: cr.buckets,
+			Buckets: buckets,
 		},
 		labels,
 	)

@@ -34,7 +34,7 @@ var (
 		Repository: "docker.io/bitnami/kafka",
 		Tag:        "3.4.0",
 	}
-	//nolint:gomnd
+	//nolint:gomnd,mnd
 	kafkaPorts = ports{
 		internal: 9093,
 		external: 9094,
@@ -57,6 +57,8 @@ func (s Kafka) SecurityProtocol() string {
 }
 
 func (Kafka) Name() string { return KafkaStandName }
+
+//nolint:perfsprint
 func (s Kafka) Up(t *testing.T) bool {
 	t.Helper()
 

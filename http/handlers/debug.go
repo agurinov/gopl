@@ -53,7 +53,7 @@ func (h debug) Handler() http.Handler {
 }
 
 func probeHandler(probeGetter func() bool) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		switch probeGetter() {
 		case true:
 			w.WriteHeader(http.StatusOK)

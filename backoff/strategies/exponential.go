@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 
 	c "github.com/agurinov/gopl/patterns/creational"
 )
@@ -45,7 +45,7 @@ func (e exponential) Duration(retries uint32) time.Duration {
 		// https://pkg.go.dev/math/rand#Float64
 		// rand.Float64() returns value from [0.0 ; 1.0)
 		// So random is from [-1.0 ; 1.0)
-		random := 2*rand.Float64() - 1 //nolint:gosec,gomnd
+		random := 2*rand.Float64() - 1 //nolint:gosec,gomnd,mnd
 
 		// backoff is random from [b - delta ; b + delta)
 		// where delta := b * J
@@ -85,7 +85,7 @@ func (e exponential) Validate() error {
 }
 
 func NewExponential(opts ...ExponentialOption) (Interface, error) {
-	//nolint:revive,gomnd
+	//nolint:revive,gomnd,mnd
 	defaultObj := exponential{
 		minDelay:   1 * time.Second,
 		maxDelay:   2 * time.Minute,

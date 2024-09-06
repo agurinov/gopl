@@ -2,11 +2,11 @@ package backoff_test
 
 import (
 	"context"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/agurinov/gopl/backoff"
 	"github.com/agurinov/gopl/backoff/strategies"
@@ -35,20 +35,17 @@ func TestBackoff_Concurrency(t *testing.T) {
 		require.NotNil(t, b)
 
 		doValidRetries := func(ctx context.Context, b *backoff.Backoff) {
-			var wg sync.WaitGroup
-
-			wg.Add(maxRetries)
+			g, ctx := errgroup.WithContext(ctx)
 
 			for i := 0; i < maxRetries; i++ {
-				go func() {
-					defer wg.Done()
-
+				g.Go(func() error {
 					_, err := b.Wait(ctx)
-					require.NoError(t, err)
-				}()
+
+					return err
+				})
 			}
 
-			wg.Wait()
+			require.NoError(t, g.Wait())
 		}
 
 		// First batch of valid retries

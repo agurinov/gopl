@@ -10,7 +10,7 @@ import (
 func GRPC(logger *zap.Logger) logging.Logger {
 	sl := logger.Named("grpc.handler").Sugar()
 
-	return logging.LoggerFunc(func(ctx context.Context, lvl logging.Level, msg string, fields ...any) {
+	return logging.LoggerFunc(func(_ context.Context, lvl logging.Level, msg string, fields ...any) {
 		var logfn func(string, ...any)
 
 		switch lvl {

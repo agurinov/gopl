@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 
 	c "github.com/agurinov/gopl/patterns/creational"
 )

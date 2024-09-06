@@ -26,6 +26,7 @@ func (db DB) NamedQueryContext(
 	ctx, span := trace.StartSpan(ctx, "db.NamedQueryContext")
 	defer span.End()
 
+	//nolint:sqlclosecheck
 	rows, err := db.sqlxClient.NamedQueryContext(ctx, query.WithSpan(span), args)
 	if err != nil {
 		return nil, err

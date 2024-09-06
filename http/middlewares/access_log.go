@@ -18,7 +18,9 @@ func AccessLog(logger *zap.Logger) Middleware {
 			}
 
 			startTime := time.Now()
+
 			next.ServeHTTP(recorder, r)
+
 			elapsedTime := time.Since(startTime)
 
 			logLvl := zapcore.InfoLevel

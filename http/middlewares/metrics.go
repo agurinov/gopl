@@ -37,7 +37,9 @@ func Metrics(options ...metrics.Option) Middleware {
 			}
 
 			startTime := time.Now()
+
 			next.ServeHTTP(recorder, r)
+
 			elapsedTime := time.Since(startTime)
 
 			var (
