@@ -11,7 +11,7 @@ import (
 )
 
 func WithLogger(logger *zap.Logger) SchedulerOption {
-	return func(ctx context.Context, s *Scheduler) error {
+	return func(_ context.Context, s *Scheduler) error {
 		if logger == nil {
 			return nil
 		}
@@ -23,7 +23,7 @@ func WithLogger(logger *zap.Logger) SchedulerOption {
 }
 
 func WithJobRegistry(jobs map[string]Job) SchedulerOption {
-	return func(ctx context.Context, s *Scheduler) error {
+	return func(_ context.Context, s *Scheduler) error {
 		s.jobs = jobs
 
 		return nil
@@ -31,7 +31,7 @@ func WithJobRegistry(jobs map[string]Job) SchedulerOption {
 }
 
 func WithShutdownTimeout(t time.Duration) SchedulerOption {
-	return func(ctx context.Context, s *Scheduler) error {
+	return func(_ context.Context, s *Scheduler) error {
 		s.shutdownTimeout = t
 
 		return nil

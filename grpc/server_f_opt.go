@@ -1,6 +1,7 @@
 package grpc
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -85,7 +86,7 @@ func WithService(desc *grpc.ServiceDesc, impl any) ServerOption {
 func WithServerOptions(opts ...grpc.ServerOption) ServerOption {
 	return func(s *Server) error {
 		if s.grpcServer != nil {
-			return fmt.Errorf("server options already binded")
+			return errors.New("server options already binded")
 		}
 
 		s.grpcServer = grpc.NewServer(opts...)

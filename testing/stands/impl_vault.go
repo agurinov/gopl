@@ -31,7 +31,7 @@ var (
 		Repository: "docker.io/bitnami/vault",
 		Tag:        "1.14.0",
 	}
-	//nolint:gomnd
+	//nolint:gomnd,mnd
 	vaultPorts = ports{
 		external: 8200,
 		cluster:  8201,
@@ -42,6 +42,8 @@ var (
 var vaultDevAdminPolicy string
 
 func (s Vault) Name() string { return VaultStandName }
+
+//nolint:perfsprint
 func (s Vault) Up(t *testing.T) bool {
 	t.Helper()
 

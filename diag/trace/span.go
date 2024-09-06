@@ -31,7 +31,7 @@ func StartSpan(
 		return ctx, span
 	}
 
-	return otel.Tracer(tracerName).Start(ctx, spanName, opts...)
+	return otel.Tracer(tracerName).Start(ctx, spanName, opts...) //nolint:spancheck
 }
 
 func StartNamedSpan(

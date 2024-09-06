@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 
 	"github.com/agurinov/gopl/backoff/strategies"
 	c "github.com/agurinov/gopl/patterns/creational"

@@ -44,7 +44,7 @@ var (
 		Repository: "docker.io/liquibase/liquibase",
 		Tag:        "4.27-alpine",
 	}
-	//nolint:gomnd
+	//nolint:gomnd,mnd
 	mysqlPorts = ports{
 		external: 3306,
 	}
@@ -52,7 +52,7 @@ var (
 
 func (Mysql) Name() string { return MysqlStandName }
 
-//nolint:maintidx
+//nolint:maintidx,perfsprint
 func (s Mysql) Up(t *testing.T) bool {
 	t.Helper()
 

@@ -50,6 +50,8 @@ linters:
     - testableexamples
     - structcheck
     - inamedparam
+    - intrange
+    - copyloopvar
 # linters-settings {{{
 # https://golangci-lint.run/usage/configuration/#linters-settings-configuration
 linters-settings:
@@ -399,7 +401,7 @@ linters-settings:
         arguments:
           maxLitCount: '5'
           allowInts: '0,1,2,100,100500'
-          allowStrs: '""'
+          allowStrs: '"","uuid"'
           ignoreFuncs: 'strconv\.FormatInt'
   # https://golangci-lint.run/usage/linters/#rowserrcheck
   rowserrcheck:
@@ -442,16 +444,25 @@ linters-settings:
   # https://github.com/bombsimon/wsl/blob/master/doc/configuration.md
   wsl:
     strict-append: true
-    allow-assign-and-anything: false
     allow-assign-and-call: true
-    allow-cuddle-declarations: false
+    allow-assign-and-anything: false
     allow-multiline-assign: true
+    allow-cuddle-declarations: false
     allow-separated-leading-comment: false
     allow-trailing-comment: false
     force-case-trailing-whitespace: 0
     force-err-cuddling: true
     error-variable-names: ['err']
     force-short-decl-cuddling: false
+  # https://golangci-lint.run/usage/linters/#spancheck
+  spancheck:
+    checks:
+      - end
+      - record-error
+      - set-status
+  # https://golangci-lint.run/usage/linters/#testifylint
+  testifylint:
+    enable-all: true
 # }}}
 
 # issues {{{

@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/agurinov/gopl/diag/trace"
@@ -12,7 +12,7 @@ func Trace(next http.Handler) http.Handler {
 		ctx := r.Context()
 
 		if r.Header != nil {
-			ctx = trace.TraceparentToContext(ctx, r.Header.Get("traceparent"))
+			ctx = trace.TraceparentToContext(ctx, r.Header.Get("Traceparent"))
 		}
 
 		recorder := &statusRecorder{
@@ -24,7 +24,7 @@ func Trace(next http.Handler) http.Handler {
 		defer func() {
 			switch recorder.Status {
 			case http.StatusInternalServerError:
-				trace.RegisterError(span, fmt.Errorf("possible panic"))
+				trace.RegisterError(span, errors.New("possible panic"))
 			case http.StatusNotFound, http.StatusMethodNotAllowed:
 				return
 			}
