@@ -2,8 +2,6 @@ module github.com/agurinov/gopl
 
 go 1.21
 
-toolchain go1.21.10
-
 require (
 	github.com/bufbuild/protovalidate-go v0.2.1
 	github.com/dustin/go-humanize v1.0.1
