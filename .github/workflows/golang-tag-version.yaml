@@ -1,6 +1,6 @@
 ---
-name: 'Bump tag version'
-run-name: 'Bump tag version'
+name: 'Golang tag version'
+run-name: 'Golang tag version'
 
 on:
   workflow_run:
@@ -21,4 +21,5 @@ jobs:
       - uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          fetch_all_tags: true
 ...
