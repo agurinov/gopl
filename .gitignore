@@ -2,8 +2,8 @@
 .dotfiles
 
 # Ctags
-tags
-tags.tmp
+/tags
+/tags.tmp
 
 # Golang
 coverage.*
