@@ -38,6 +38,62 @@ func WithShutdownTimeout(t time.Duration) SchedulerOption {
 	}
 }
 
+func withDefaultScheduler() SchedulerOption {
+	return func(_ context.Context, s *Scheduler) error {
+		if s.logger == nil {
+			return errors.New("crontab: scheduler requires logger")
+		}
+
+		scheduler, err := gocron.NewScheduler(
+			gocron.WithLogger(loggerAdapter(s.logger)),
+			gocron.WithStopTimeout(s.shutdownTimeout),
+			gocron.WithGlobalJobOptions(
+				gocron.WithSingletonMode(gocron.LimitModeReschedule),
+				gocron.WithEventListeners(
+					gocron.BeforeJobRuns(func(jobUUID uuid.UUID, jobName string) {
+						s.logger.Info(
+							"starting job",
+							zap.String("job_name", jobName),
+							zap.String("job_uuid", jobUUID.String()),
+						)
+					}),
+					gocron.AfterJobRuns(func(jobUUID uuid.UUID, jobName string) {
+						s.logger.Info(
+							"job finished",
+							zap.String("job_name", jobName),
+							zap.String("job_uuid", jobUUID.String()),
+						)
+					}),
+					gocron.AfterJobRunsWithError(func(jobUUID uuid.UUID, jobName string, err error) {
+						s.logger.Error(
+							"can't finish job: error",
+							zap.String("job_name", jobName),
+							zap.String("job_uuid", jobUUID.String()),
+							zap.Error(err),
+						)
+					}),
+					gocron.AfterJobRunsWithPanic(func(jobUUID uuid.UUID, jobName string, recoverData any) {
+						s.logger.Error(
+							"can't finish job: panic",
+							zap.String("job_name", jobName),
+							zap.String("job_uuid", jobUUID.String()),
+							zap.Any("panic", recoverData),
+							zap.Stack("stack"),
+						)
+					}),
+				),
+			),
+		)
+		if err != nil {
+			return err
+		}
+
+		s.scheduler = scheduler
+
+		return nil
+	}
+}
+
 func WithJob(cfg JobConfig) SchedulerOption {
 	return func(ctx context.Context, s *Scheduler) error {
 		if len(s.jobs) == 0 {
@@ -50,15 +106,9 @@ func WithJob(cfg JobConfig) SchedulerOption {
 		}
 
 		if s.scheduler == nil {
-			scheduler, err := gocron.NewScheduler(
-				gocron.WithLogger(loggerAdapter(s.logger)),
-				gocron.WithStopTimeout(s.shutdownTimeout),
-			)
-			if err != nil {
+			if err := withDefaultScheduler()(ctx, s); err != nil {
 				return err
 			}
-
-			s.scheduler = scheduler
 		}
 
 		if _, jobErr := s.scheduler.NewJob(
@@ -68,7 +118,6 @@ func WithJob(cfg JobConfig) SchedulerOption {
 			gocron.WithIdentifier(
 				uuid.NewMD5(uuid.Nil, []byte(cfg.Name)),
 			),
-			gocron.WithSingletonMode(gocron.LimitModeReschedule),
 		); jobErr != nil {
 			return jobErr
 		}
