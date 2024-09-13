@@ -48,11 +48,12 @@ func TestAuth_authFunc(t *testing.T) {
 		t.Helper()
 
 		user := initdata.User{
-			ID:        100500,
-			Username:  "johndoe",
-			FirstName: "John",
-			LastName:  "Doe",
-			IsBot:     false,
+			ID:              100500,
+			Username:        "johndoe",
+			FirstName:       "John",
+			LastName:        "Doe",
+			IsBot:           false,
+			AllowsWriteToPm: true,
 		}
 
 		var b bytes.Buffer

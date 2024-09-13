@@ -13,9 +13,10 @@ type (
 		AuthorityBot string `validate:"required"`
 		ID           int64  `validate:"required"`
 		IsBot        bool
+		PersonalChat PersonalChat
 	}
 	PersonalChat struct {
-		ID      int64 `validate:"required"`
+		// ID      int64 `validate:"required"`
 		Enabled bool
 	}
 )

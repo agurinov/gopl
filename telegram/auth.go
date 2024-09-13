@@ -45,6 +45,9 @@ func (a Auth) parseUser(
 		LastName:     initData.User.LastName,
 		IsBot:        initData.User.IsBot,
 		AuthorityBot: authorityBot,
+		PersonalChat: PersonalChat{
+			Enabled: initData.User.AllowsWriteToPm,
+		},
 	}
 
 	if err := validator.New().Struct(user); err != nil {
