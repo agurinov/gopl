@@ -1,7 +1,6 @@
 package telegram
 
 import (
-	"cmp"
 	"strconv"
 	"strings"
 )
@@ -23,10 +22,11 @@ type (
 )
 
 func (u User) String() string {
-	return cmp.Or(
-		Username(u.Username),
-		strconv.FormatInt(u.ID, 10),
-	)
+	if uname := Username(u.Username); uname != "" {
+		return uname
+	}
+
+	return strconv.FormatInt(u.ID, 10)
 }
 
 func Username(username string) string {
