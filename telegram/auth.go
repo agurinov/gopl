@@ -34,19 +34,29 @@ const (
 
 var NewAuth = c.NewWithValidate[Auth, AuthOption]
 
-func (a Auth) parseUser(
-	initData initdata.InitData,
+func (a Auth) parseInitData(
+	id initdata.InitData,
 	authorityBot string,
 ) (User, error) {
+	var privateChatID int64
+
+	switch {
+	case id.ChatType == initdata.ChatTypePrivate:
+		privateChatID = id.ChatInstance
+	case id.Chat.Type == initdata.ChatTypePrivate:
+		privateChatID = id.Chat.ID
+	}
+
 	user := User{
-		ID:           initData.User.ID,
-		Username:     initData.User.Username,
-		FirstName:    initData.User.FirstName,
-		LastName:     initData.User.LastName,
-		IsBot:        initData.User.IsBot,
+		ID:           id.User.ID,
+		Username:     id.User.Username,
+		FirstName:    id.User.FirstName,
+		LastName:     id.User.LastName,
+		IsBot:        id.User.IsBot,
 		AuthorityBot: authorityBot,
-		PersonalChat: PersonalChat{
-			Enabled: initData.User.AllowsWriteToPm,
+		PrivateChat: PrivateChat{
+			ID:      privateChatID,
+			Enabled: id.User.AllowsWriteToPm,
 		},
 	}
 
@@ -75,7 +85,7 @@ func (a Auth) authFunc(initDataString string) (User, error) {
 	}
 
 	if a.noSignatureCheck {
-		return a.parseUser(initData, dummyBotUsername)
+		return a.parseInitData(initData, dummyBotUsername)
 	}
 
 	signatureErr := errors.New("no authority bots found")
@@ -84,7 +94,7 @@ func (a Auth) authFunc(initDataString string) (User, error) {
 		signatureErr = initdata.Validate(initDataString, botToken, 0)
 
 		if signatureErr == nil {
-			return a.parseUser(initData, botName)
+			return a.parseInitData(initData, botName)
 		}
 
 		a.logger.Debug(

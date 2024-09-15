@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"cmp"
 	"strconv"
 	"strings"
 )
@@ -13,20 +14,19 @@ type (
 		AuthorityBot string `validate:"required"`
 		ID           int64  `validate:"required"`
 		IsBot        bool
-		PersonalChat PersonalChat
+		PrivateChat  PrivateChat
 	}
-	PersonalChat struct {
-		// ID      int64 `validate:"required"`
+	PrivateChat struct {
+		ID      int64
 		Enabled bool
 	}
 )
 
 func (u User) String() string {
-	if u.Username != "" {
-		return u.Username
-	}
-
-	return strconv.FormatInt(u.ID, 10)
+	return cmp.Or(
+		Username(u.Username),
+		strconv.FormatInt(u.ID, 10),
+	)
 }
 
 func Username(username string) string {
