@@ -45,6 +45,8 @@ func (a Auth) parseInitData(
 		privateChatID = id.ChatInstance
 	case id.Chat.Type == initdata.ChatTypePrivate:
 		privateChatID = id.Chat.ID
+	case id.User.AllowsWriteToPm:
+		privateChatID = id.User.ID
 	}
 
 	user := User{

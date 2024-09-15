@@ -24,6 +24,54 @@ import (
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
+var (
+	dummyInitData = initdata.User{
+		ID:              100500,
+		Username:        "johndoe",
+		FirstName:       "John",
+		LastName:        "Doe",
+		IsBot:           false,
+		AllowsWriteToPm: true,
+	}
+	dummyUser = telegram.User{
+		ID:           100500,
+		Username:     "johndoe",
+		FirstName:    "John",
+		LastName:     "Doe",
+		IsBot:        false,
+		AuthorityBot: "DummyBot",
+		PrivateChat: telegram.PrivateChat{
+			Enabled: true,
+			ID:      100500,
+		},
+	}
+)
+
+func hashTmaToken(
+	t *testing.T,
+	botToken string,
+) string {
+	t.Helper()
+
+	user := dummyInitData
+
+	var b bytes.Buffer
+
+	require.NoError(t,
+		json.NewEncoder(&b).Encode(&user),
+	)
+
+	q := url.Values{}
+	q.Set("user", b.String())
+
+	hash, err := initdata.SignQueryString(q.Encode(), botToken, time.Now())
+	require.NoError(t, err)
+
+	q.Set("hash", hash)
+
+	return "tma " + q.Encode()
+}
+
 func TestAuth_authFunc(t *testing.T) {
 	type (
 		args struct {
@@ -40,36 +88,6 @@ func TestAuth_authFunc(t *testing.T) {
 	)
 
 	fooBotToken := "foobot_token"
-
-	hashedToken := func(
-		t *testing.T,
-		botToken string,
-	) string {
-		t.Helper()
-
-		user := initdata.User{
-			ID:              100500,
-			Username:        "johndoe",
-			FirstName:       "John",
-			LastName:        "Doe",
-			IsBot:           false,
-			AllowsWriteToPm: true,
-		}
-
-		var b bytes.Buffer
-
-		require.NoError(t, json.NewEncoder(&b).Encode(&user))
-
-		q := url.Values{}
-		q.Set("user", b.String())
-
-		hash, err := initdata.SignQueryString(q.Encode(), botToken, time.Now())
-		require.NoError(t, err)
-
-		q.Set("hash", hash)
-
-		return "tma " + q.Encode()
-	}
 
 	newRequest := func(authHeader string) *http.Request {
 		request := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -100,7 +118,7 @@ func TestAuth_authFunc(t *testing.T) {
 			return nil, status.Error(codes.Internal, "oops")
 		}
 
-		return user.Username, nil
+		return user, nil
 	}
 
 	cases := map[string]struct {
@@ -158,8 +176,8 @@ func TestAuth_authFunc(t *testing.T) {
 		},
 		"case04: wrong hash": {
 			args: args{
-				ctx:     newCtx(hashedToken(t, "invalid_bot_token")),
-				request: newRequest(hashedToken(t, "invalid_bot_token")),
+				ctx:     newCtx(hashTmaToken(t, "invalid_bot_token")),
+				request: newRequest(hashTmaToken(t, "invalid_bot_token")),
 			},
 			results: results{
 				grpcStatusCode: codes.Unauthenticated,
@@ -170,12 +188,12 @@ func TestAuth_authFunc(t *testing.T) {
 		},
 		"case05: wright hash": {
 			args: args{
-				ctx:     newCtx(hashedToken(t, fooBotToken)),
-				request: newRequest(hashedToken(t, fooBotToken)),
+				ctx:     newCtx(hashTmaToken(t, fooBotToken)),
+				request: newRequest(hashTmaToken(t, fooBotToken)),
 			},
 			results: results{
 				grpcStatusCode: codes.OK,
-				grpcOut:        "johndoe",
+				grpcOut:        dummyUser,
 				httpStatusCode: http.StatusOK,
 				httpContent:    "johndoe",
 			},
@@ -237,26 +255,26 @@ func TestAuth_authFunc(t *testing.T) {
 		},
 		"case10: dummy: wrong hash": {
 			args: args{
-				ctx:              newCtx(hashedToken(t, "invalid_bot_token")),
-				request:          newRequest(hashedToken(t, "invalid_bot_token")),
+				ctx:              newCtx(hashTmaToken(t, "invalid_bot_token")),
+				request:          newRequest(hashTmaToken(t, "invalid_bot_token")),
 				noSignatureCheck: true,
 			},
 			results: results{
 				grpcStatusCode: codes.OK,
-				grpcOut:        "johndoe",
+				grpcOut:        dummyUser,
 				httpStatusCode: http.StatusOK,
 				httpContent:    "johndoe",
 			},
 		},
 		"case11: dummy: wright hash": {
 			args: args{
-				ctx:              newCtx(hashedToken(t, fooBotToken)),
-				request:          newRequest(hashedToken(t, fooBotToken)),
+				ctx:              newCtx(hashTmaToken(t, fooBotToken)),
+				request:          newRequest(hashTmaToken(t, fooBotToken)),
 				noSignatureCheck: true,
 			},
 			results: results{
 				grpcStatusCode: codes.OK,
-				grpcOut:        "johndoe",
+				grpcOut:        dummyUser,
 				httpStatusCode: http.StatusOK,
 				httpContent:    "johndoe",
 			},
