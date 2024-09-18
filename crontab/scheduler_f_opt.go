@@ -38,13 +38,13 @@ func WithShutdownTimeout(t time.Duration) SchedulerOption {
 	}
 }
 
-func withDefaultScheduler() SchedulerOption {
+func withScheduler(opts ...gocron.SchedulerOption) SchedulerOption {
 	return func(_ context.Context, s *Scheduler) error {
 		if s.logger == nil {
 			return errors.New("crontab: scheduler requires logger")
 		}
 
-		scheduler, err := gocron.NewScheduler(
+		opts = append(opts,
 			gocron.WithLogger(loggerAdapter(s.logger)),
 			gocron.WithStopTimeout(s.shutdownTimeout),
 			gocron.WithGlobalJobOptions(
@@ -84,6 +84,8 @@ func withDefaultScheduler() SchedulerOption {
 				),
 			),
 		)
+
+		scheduler, err := gocron.NewScheduler(opts...)
 		if err != nil {
 			return err
 		}
@@ -106,7 +108,7 @@ func WithJob(cfg JobConfig) SchedulerOption {
 		}
 
 		if s.scheduler == nil {
-			if err := withDefaultScheduler()(ctx, s); err != nil {
+			if err := withScheduler()(ctx, s); err != nil {
 				return err
 			}
 		}
@@ -120,6 +122,16 @@ func WithJob(cfg JobConfig) SchedulerOption {
 			),
 		); jobErr != nil {
 			return jobErr
+		}
+
+		return nil
+	}
+}
+
+func WithGocronOptions(opts ...gocron.SchedulerOption) SchedulerOption {
+	return func(ctx context.Context, s *Scheduler) error {
+		if err := withScheduler(opts...)(ctx, s); err != nil {
+			return err
 		}
 
 		return nil
