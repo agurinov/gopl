@@ -29,7 +29,7 @@ func (db DB) NamedQueryContext(
 	//nolint:sqlclosecheck
 	rows, err := db.sqlxClient.NamedQueryContext(ctx, query.WithSpan(span), args)
 	if err != nil {
-		return nil, err
+		return nil, trace.CatchError(span, err)
 	}
 
 	return rows, nil
@@ -48,7 +48,26 @@ func (db DB) NamedExecContext(
 
 	result, err := db.sqlxClient.NamedExecContext(ctx, query.WithSpan(span), args)
 	if err != nil {
-		return nil, err
+		return nil, trace.CatchError(span, err)
+	}
+
+	return result, nil
+}
+
+func (db DB) MultiNamedExecContext(
+	ctx context.Context,
+	query Query,
+	args []map[string]any,
+) (
+	sql.Result,
+	error,
+) {
+	ctx, span := trace.StartSpan(ctx, "db.MultiNamedExecContext")
+	defer span.End()
+
+	result, err := db.sqlxClient.NamedExecContext(ctx, query.WithSpan(span), args)
+	if err != nil {
+		return nil, trace.CatchError(span, err)
 	}
 
 	return result, nil
