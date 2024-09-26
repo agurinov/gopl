@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"io/fs"
+	"path/filepath"
 
 	"go.uber.org/zap"
 )
@@ -18,7 +19,7 @@ func WithStaticLogger(logger *zap.Logger) StaticOption {
 	}
 }
 
-func WithStaticFS(staticFS fs.FS, dirname string) StaticOption {
+func WithStaticBundle(staticFS fs.FS, dirname string) StaticOption {
 	return func(h *static) error {
 		if dirname != "" {
 			subFS, err := fs.Sub(staticFS, dirname)
@@ -30,6 +31,20 @@ func WithStaticFS(staticFS fs.FS, dirname string) StaticOption {
 		}
 
 		h.fs = staticFS
+
+		return nil
+	}
+}
+
+func WithStaticKnownFile(path string, f []byte) StaticOption {
+	return func(h *static) error {
+		path = filepath.Clean(path)
+
+		if h.knownPaths == nil {
+			h.knownPaths = make(map[string][]byte)
+		}
+
+		h.knownPaths[path] = f
 
 		return nil
 	}

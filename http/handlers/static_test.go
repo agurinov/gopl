@@ -15,7 +15,7 @@ import (
 )
 
 //go:embed testdata
-var content embed.FS
+var bundle embed.FS
 
 func TestStatic(t *testing.T) {
 	type (
@@ -38,8 +38,7 @@ func TestStatic(t *testing.T) {
 		"case00: embed: index on slash": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/", nil),
 			},
@@ -56,8 +55,7 @@ func TestStatic(t *testing.T) {
 		"case01: embed: static file 200": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/robots.txt", nil),
 			},
@@ -74,8 +72,7 @@ func TestStatic(t *testing.T) {
 		"case02: embed: static file 404": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/js/foo.txt", nil),
 			},
@@ -92,8 +89,7 @@ func TestStatic(t *testing.T) {
 		"case03: embed: nothing except GET is allowed": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 				},
 				request: httptest.NewRequest(http.MethodPost, "/js/foo.txt", nil),
 			},
@@ -107,8 +103,7 @@ func TestStatic(t *testing.T) {
 		"case04: embed: SPA: static file 200": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticSPA(true),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/js/main.js", nil),
@@ -126,8 +121,7 @@ func TestStatic(t *testing.T) {
 		"case05: embed: SPA: static file 404": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticSPA(true),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/js/foo.js/", nil),
@@ -140,8 +134,7 @@ func TestStatic(t *testing.T) {
 		"case06: embed: SPA: any route on slash": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticSPA(true),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/js", nil),
@@ -159,8 +152,7 @@ func TestStatic(t *testing.T) {
 		"case07: os fs: SPA any route on slash": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(os.DirFS("testdata"), ""),
+					handlers.WithStaticBundle(os.DirFS("testdata"), ""),
 					handlers.WithStaticSPA(true),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/js", nil),
@@ -178,8 +170,7 @@ func TestStatic(t *testing.T) {
 		"case08: os fs: SPA static file 404": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(os.DirFS("testdata"), ""),
+					handlers.WithStaticBundle(os.DirFS("testdata"), ""),
 					handlers.WithStaticSPA(true),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/js/foo.js/", nil),
@@ -192,8 +183,7 @@ func TestStatic(t *testing.T) {
 		"case09: embed: static file 200 non cacheable": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticNoCachePaths("/", "/index.html", "/robots.txt"),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/robots.txt", nil),
@@ -214,8 +204,7 @@ func TestStatic(t *testing.T) {
 		"case10: embed: SPA any route on slash non cacheable": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
-					handlers.WithStaticLogger(zaptest.NewLogger(t)),
-					handlers.WithStaticFS(content, "testdata"),
+					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticSPA(true),
 					handlers.WithStaticNoCachePaths("/", "/index.html"),
 				},
@@ -234,6 +223,27 @@ func TestStatic(t *testing.T) {
 				},
 			},
 		},
+		"case11: embed: SPA: known file 200": {
+			args: args{
+				staticHandlerOptions: []handlers.StaticOption{
+					handlers.WithStaticBundle(bundle, "testdata"),
+					handlers.WithStaticKnownFile("/config.json", []byte(`{"foo":"bar"}`)),
+					handlers.WithStaticSPA(true),
+					handlers.WithStaticNoCachePaths("/config.json"),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/config.json", nil),
+			},
+			results: results{
+				statusCode: http.StatusOK,
+				content:    `{"foo":"bar"}`,
+				headers: http.Header{
+					"Content-Type":  []string{"application/json"},
+					"Cache-Control": []string{"no-cache, no-store, must-revalidate"},
+					"Pragma":        []string{"no-cache"},
+					"Expires":       []string{"0"},
+				},
+			},
+		},
 	}
 
 	for name := range cases {
@@ -243,6 +253,10 @@ func TestStatic(t *testing.T) {
 			tc.Init(t)
 
 			recorder := httptest.NewRecorder()
+
+			tc.args.staticHandlerOptions = append(tc.args.staticHandlerOptions,
+				handlers.WithStaticLogger(zaptest.NewLogger(t)),
+			)
 
 			static, err := handlers.NewStatic(tc.args.staticHandlerOptions...)
 			require.NoError(t, err)
