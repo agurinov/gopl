@@ -121,7 +121,8 @@ TEST_COUNT_FLAG   := $(if $(findstring ./...,$(GO_PKG)),1,20)
 TEST_TIMEOUT_FLAG := 5s
 TEST_RUN_FLAG     :=
 
-BUILD_FLAGS  = -mod=vendor -tags='$(GO_TAGS)' $(BUILD_RACE_FLAG) -trimpath
+LD_FLAGS    := -s -w
+BUILD_FLAGS  = -mod=vendor -tags='$(GO_TAGS)' $(BUILD_RACE_FLAG) -trimpath -ldflags='$(LD_FLAGS)'
 COVER_FLAGS := -cover -covermode=atomic
 PPROF_FLAGS := -cpuprofile=cpu.pprof -memprofile=mem.pprof -blockprofile=block.pprof -mutexprofile=mutex.pprof -trace=trace.trace
 TEST_FLAGS   = $(BUILD_FLAGS) $(COVER_FLAGS) $(TEST_VERBOSE_FLAG) $(TEST_SHORT_FLAG) -run='$(TEST_RUN_FLAG)' -timeout='$(TEST_TIMEOUT_FLAG)' -failfast -count=$(TEST_COUNT_FLAG) $(TEST_USER_FLAGS)
@@ -179,9 +180,11 @@ go_bench: COVER_FLAGS += -coverprofile='$(COVERAGE_OUT_FLAG)'
 
 define COVER_FILES_CMD
 	test -r '$(COVERAGE_OUT_FLAG)'
+	sed -i '' '/mock/d' '$(COVERAGE_OUT_FLAG)'
+	sed -i '' '/gen.go/d' '$(COVERAGE_OUT_FLAG)'
 	$(GO) tool cover -html='$(COVERAGE_OUT_FLAG)' -o '$(COVERAGE_FILE_BASENAME).html'
 	$(GO) tool cover -func='$(COVERAGE_OUT_FLAG)' -o '$(COVERAGE_FILE_BASENAME).func'
-	$(GO_COVER_TREEMAP) -coverprofile '$(COVERAGE_OUT_FLAG)' > '$(COVERAGE_FILE_BASENAME).svg'
+	$(GO_COVER_TREEMAP) -coverprofile '$(COVERAGE_OUT_FLAG)' -statements=false -h 1080 -w 1080 > '$(COVERAGE_FILE_BASENAME).svg'
 	test -r '$(COVERAGE_FILE_BASENAME).html'
 	test -r '$(COVERAGE_FILE_BASENAME).func'
 	test -r '$(COVERAGE_FILE_BASENAME).svg'
