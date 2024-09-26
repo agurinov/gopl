@@ -12,8 +12,8 @@ require (
 	github.com/goccy/go-yaml v1.12.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
-	github.com/hashicorp/vault/api v1.10.0
-	github.com/hashicorp/vault/api/auth/approle v0.5.0
+	github.com/hashicorp/vault/api v1.15.0
+	github.com/hashicorp/vault/api/auth/approle v0.8.0
 	github.com/hashicorp/vault/api/auth/userpass v0.5.0
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/jackc/pgx/v5 v5.6.0
@@ -48,7 +48,6 @@ require (
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
@@ -60,7 +59,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
+	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
