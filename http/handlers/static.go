@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"io/fs"
+	"mime"
 	"net/http"
 	"path/filepath"
 
@@ -19,6 +20,7 @@ type (
 	static struct {
 		logger       *zap.Logger
 		fs           fs.FS
+		knownPaths   map[string][]byte
 		noCachePaths []string
 		spaEnabled   bool
 	}
@@ -43,24 +45,36 @@ func (h static) Handler() http.Handler {
 	fsHandler := http.FileServer(http.FS(h.fs))
 
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
-		if h.spaEnabled {
-			var (
-				path = filepath.Clean(r.URL.Path)
-				ext  = filepath.Ext(path)
-			)
+		var (
+			path  = filepath.Clean(r.URL.Path)
+			ext   = filepath.Ext(path)
+			isDir = ext == ""
+		)
 
-			if isDir := ext == ""; isDir {
-				r.URL.Path = "/"
-			}
+		if h.spaEnabled && isDir {
+			path = "/"
 		}
 
-		if slices.Contains(h.noCachePaths, r.URL.Path) {
+		if slices.Contains(h.noCachePaths, path) {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			w.Header().Set("Pragma", "no-cache")
 			w.Header().Set("Expires", "0")
 		}
 
-		fsHandler.ServeHTTP(w, r)
+		r.URL.Path = path
+
+		switch f, isKnownPath := h.knownPaths[path]; isKnownPath {
+		case true:
+			mimeType := mime.TypeByExtension(ext)
+			if mimeType == "" {
+				mimeType = http.DetectContentType(f)
+			}
+
+			w.Header().Set("Content-Type", mimeType)
+			w.Write(f) //nolint:errcheck
+		default:
+			fsHandler.ServeHTTP(w, r)
+		}
 	})
 
 	return r
