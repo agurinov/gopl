@@ -14,4 +14,8 @@ grpc:
 
 debug_http:
   port: 8081
+
+merged_map:
+  foo: bar
+  lol: kek
 ...

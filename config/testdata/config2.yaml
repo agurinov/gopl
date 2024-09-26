@@ -12,4 +12,8 @@ grpc:
   max_request_bytes: 100
   max_response_bytes: 100
   reflection_enabled: false
+
+merged_map:
+  foo: bar2
+  bar: baz
 ...

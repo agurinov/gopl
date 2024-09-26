@@ -38,6 +38,8 @@ func Parse[T any](
 	switch bs := bitset.New(flags); {
 	case bs.Has(YAML):
 		parser = parseYAML
+	case bs.Has(JSON):
+		parser = parseJSON
 	default:
 		return cfg, errors.New("unsupported parser")
 	}

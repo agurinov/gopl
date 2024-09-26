@@ -10,8 +10,8 @@ type (
 	Config struct {
 		Format          string `validate:"oneof=json console"`
 		Level           string `validate:"oneof=debug info warn error"`
-		EnableCaller    bool   `yaml:"enable_caller"`
-		EnableTraceback bool   `yaml:"enable_traceback"`
+		EnableCaller    bool   `json:"enable_caller" yaml:"enable_caller"`
+		EnableTraceback bool   `json:"enable_traceback" yaml:"enable_traceback"`
 	}
 	Option = c.Option[Config]
 )

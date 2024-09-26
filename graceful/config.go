@@ -3,6 +3,6 @@ package graceful
 import "time"
 
 type Config struct {
-	ShutdownTimeout time.Duration `yaml:"shutdown_timeout" validate:"min=200ms"`
-	CloseTimeout    time.Duration `yaml:"close_timeout" validate:"min=100ms"`
+	ShutdownTimeout time.Duration `json:"shutdown_timeout" yaml:"shutdown_timeout" validate:"min=200ms"` //nolint:lll
+	CloseTimeout    time.Duration `json:"close_timeout" yaml:"close_timeout" validate:"min=100ms"`
 }

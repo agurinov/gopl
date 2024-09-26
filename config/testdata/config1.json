@@ -1,0 +1,22 @@
+{
+	"logger": {
+		"format": "json"
+	},
+	"probes": {
+		"check_interval": 3000000000
+	},
+	"graceful": {
+		"shutdown_timeout": 2000000000
+	},
+	"grpc": {
+		"port": 9090,
+		"reflection_enabled": true
+	},
+	"debug_http": {
+		"port": 8081
+	},
+	"merged_map": {
+		"foo": "bar",
+		"lol": "kek"
+	}
+}
