@@ -28,6 +28,10 @@ type (
 )
 
 type (
-	Telegram = telegram.Config
-	Crontab  = crontab.Config
+	Crontab = crontab.Config
+)
+
+type (
+	TelegramWebApp = telegram.WebAppConfig
+	TelegramBot    = telegram.BotConfig
 )

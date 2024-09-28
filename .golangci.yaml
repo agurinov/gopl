@@ -396,7 +396,7 @@ linters-settings:
       - name: function-result-limit
         arguments: 3
       - name: max-public-structs
-        arguments: 10
+        arguments: 20
       - name: add-constant
         arguments:
           maxLitCount: '5'
