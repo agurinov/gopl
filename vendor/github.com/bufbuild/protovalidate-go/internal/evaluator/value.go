@@ -1,4 +1,4 @@
-// Copyright 2023 Buf Technologies, Inc.
+// Copyright 2023-2024 Buf Technologies, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,13 +21,14 @@ import (
 // value performs validation on any concrete value contained within a singular
 // field, repeated elements, or the keys/values of a map.
 type value struct {
-	// Zero is the default or zero-value for this value's type
-	Zero protoreflect.Value
 	// Constraints are the individual evaluators applied to a value
 	Constraints evaluators
 	// IgnoreEmpty indicates that the Constraints should not be applied if the
-	// field is unset or the default (typically zero) value.
+	// value is unset or the default (typically zero) value. This only applies to
+	// repeated elements or map keys/values with an ignore_empty rule.
 	IgnoreEmpty bool
+	// Zero is the default or zero-value for this value's type
+	Zero protoreflect.Value
 }
 
 func (v *value) Evaluate(val protoreflect.Value, failFast bool) error {

@@ -1,7 +1,6 @@
-# buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.31.0-20230802163732-1c33ebd9ecfa.1
-## explicit
+# buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240920164238-5a7b106cbb87.2
+## explicit; go 1.20
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate
-buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate/priv
 # cloud.google.com/go/compute/metadata v0.5.0
 ## explicit; go 1.20
 # filippo.io/edwards25519 v1.1.0
@@ -20,20 +19,22 @@ github.com/Microsoft/go-winio/pkg/guid
 # github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5
 ## explicit
 github.com/Nvveen/Gotty
-# github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9
-## explicit; go 1.18
-github.com/antlr/antlr4/runtime/Go/antlr/v4
+# github.com/antlr4-go/antlr/v4 v4.13.0
+## explicit; go 1.20
+github.com/antlr4-go/antlr/v4
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
-# github.com/bufbuild/protovalidate-go v0.2.1
-## explicit; go 1.18
+# github.com/bufbuild/protovalidate-go v0.7.0
+## explicit; go 1.21
 github.com/bufbuild/protovalidate-go
-github.com/bufbuild/protovalidate-go/internal/celext
+github.com/bufbuild/protovalidate-go/celext
 github.com/bufbuild/protovalidate-go/internal/constraints
 github.com/bufbuild/protovalidate-go/internal/errors
 github.com/bufbuild/protovalidate-go/internal/evaluator
 github.com/bufbuild/protovalidate-go/internal/expression
+github.com/bufbuild/protovalidate-go/internal/extensions
+github.com/bufbuild/protovalidate-go/resolver
 # github.com/cenkalti/backoff/v4 v4.3.0
 ## explicit; go 1.18
 github.com/cenkalti/backoff/v4
@@ -135,7 +136,7 @@ github.com/goccy/go-yaml/token
 # github.com/gogo/protobuf v1.3.2
 ## explicit; go 1.15
 github.com/gogo/protobuf/proto
-# github.com/google/cel-go v0.17.1
+# github.com/google/cel-go v0.21.0
 ## explicit; go 1.18
 github.com/google/cel-go/cel
 github.com/google/cel-go/checker

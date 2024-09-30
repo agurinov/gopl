@@ -1,4 +1,4 @@
-// Copyright 2023 Buf Technologies, Inc.
+// Copyright 2023-2024 Buf Technologies, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@ package constraints
 
 import (
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate/priv"
+	"github.com/bufbuild/protovalidate-go/celext"
 	"github.com/bufbuild/protovalidate-go/internal/errors"
 	"github.com/bufbuild/protovalidate-go/internal/expression"
+	"github.com/bufbuild/protovalidate-go/internal/extensions"
 	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/common/types"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
 // Cache is a build-through cache to computed standard constraints.
@@ -43,11 +46,24 @@ func (c *Cache) Build(
 	env *cel.Env,
 	fieldDesc protoreflect.FieldDescriptor,
 	fieldConstraints *validate.FieldConstraints,
+	extensionTypeResolver protoregistry.ExtensionTypeResolver,
+	allowUnknownFields bool,
 	forItems bool,
 ) (set expression.ProgramSet, err error) {
-	constraints, done, err := c.resolveConstraints(fieldDesc, fieldConstraints, forItems)
+	constraints, done, err := c.resolveConstraints(
+		fieldDesc,
+		fieldConstraints,
+		forItems,
+	)
 	if done {
 		return nil, err
+	}
+
+	if err = reparseUnrecognized(extensionTypeResolver, constraints); err != nil {
+		return nil, errors.NewCompilationErrorf("error reparsing message: %w", err)
+	}
+	if !allowUnknownFields && len(constraints.GetUnknown()) > 0 {
+		return nil, errors.NewCompilationErrorf("unknown constraints in %s; see protovalidate.WithExtensionTypeResolver", constraints.Descriptor().FullName())
 	}
 
 	env, err = c.prepareEnvironment(env, fieldDesc, constraints, forItems)
@@ -56,8 +72,19 @@ func (c *Cache) Build(
 	}
 
 	var asts expression.ASTSet
-	constraints.Range(func(desc protoreflect.FieldDescriptor, val protoreflect.Value) bool {
-		precomputedASTs, compileErr := c.loadOrCompileStandardConstraint(env, desc)
+	constraints.Range(func(desc protoreflect.FieldDescriptor, rule protoreflect.Value) bool {
+		fieldEnv, compileErr := env.Extend(
+			cel.Constant(
+				"rule",
+				celext.ProtoFieldToCELType(desc, true, forItems),
+				types.DefaultTypeAdapter.NativeToValue(rule.Interface()),
+			),
+		)
+		if compileErr != nil {
+			err = compileErr
+			return false
+		}
+		precomputedASTs, compileErr := c.loadOrCompileStandardConstraint(fieldEnv, desc)
 		if compileErr != nil {
 			err = compileErr
 			return false
@@ -114,7 +141,7 @@ func (c *Cache) prepareEnvironment(
 ) (*cel.Env, error) {
 	env, err := env.Extend(
 		cel.Types(rules.Interface()),
-		cel.Variable("this", c.getCELType(fieldDesc, forItems)),
+		cel.Variable("this", celext.ProtoFieldToCELType(fieldDesc, true, forItems)),
 		cel.Variable("rules",
 			cel.ObjectType(string(rules.Descriptor().FullName()))),
 	)
@@ -136,7 +163,10 @@ func (c *Cache) loadOrCompileStandardConstraint(
 	if cachedConstraint, ok := c.cache[constraintFieldDesc]; ok {
 		return cachedConstraint, nil
 	}
-	exprs, _ := proto.GetExtension(constraintFieldDesc.Options(), priv.E_Field).(*priv.FieldConstraints)
+	exprs := extensions.Resolve[*validate.PredefinedConstraints](
+		constraintFieldDesc.Options(),
+		validate.E_Predefined,
+	)
 	set, err = expression.CompileASTs(exprs.GetCel(), env)
 	if err != nil {
 		return set, errors.NewCompilationErrorf(
@@ -160,7 +190,8 @@ func (c *Cache) getExpectedConstraintDescriptor(
 		return mapFieldConstraintsDesc, true
 	case targetFieldDesc.IsList() && !forItems:
 		return repeatedFieldConstraintsDesc, true
-	case targetFieldDesc.Kind() == protoreflect.MessageKind:
+	case targetFieldDesc.Kind() == protoreflect.MessageKind,
+		targetFieldDesc.Kind() == protoreflect.GroupKind:
 		expected, ok = expectedWKTConstraints[targetFieldDesc.Message().FullName()]
 		return expected, ok
 	default:
@@ -169,33 +200,19 @@ func (c *Cache) getExpectedConstraintDescriptor(
 	}
 }
 
-// getCELType resolves the CEL value type for the provided FieldDescriptor. If
-// forItems is true, the type for the repeated list items is returned instead of
-// the list type itself.
-func (c *Cache) getCELType(fieldDesc protoreflect.FieldDescriptor, forItems bool) *cel.Type {
-	if !forItems {
-		switch {
-		case fieldDesc.IsMap():
-			return cel.MapType(
-				c.getCELType(fieldDesc.MapKey(), true),
-				c.getCELType(fieldDesc.MapValue(), true),
-			)
-		case fieldDesc.IsList():
-			return cel.ListType(c.getCELType(fieldDesc, true))
+func reparseUnrecognized(
+	extensionTypeResolver protoregistry.ExtensionTypeResolver,
+	reflectMessage protoreflect.Message,
+) error {
+	if unknown := reflectMessage.GetUnknown(); len(unknown) > 0 {
+		reflectMessage.SetUnknown(nil)
+		options := proto.UnmarshalOptions{
+			Resolver: extensionTypeResolver,
+			Merge:    true,
+		}
+		if err := options.Unmarshal(unknown, reflectMessage.Interface()); err != nil {
+			return err
 		}
 	}
-
-	if fieldDesc.Kind() == protoreflect.MessageKind {
-		switch fqn := fieldDesc.Message().FullName(); fqn {
-		case "google.protobuf.Any":
-			return cel.AnyType
-		case "google.protobuf.Duration":
-			return cel.DurationType
-		case "google.protobuf.Timestamp":
-			return cel.TimestampType
-		default:
-			return cel.ObjectType(string(fqn))
-		}
-	}
-	return ProtoKindToCELType(fieldDesc.Kind())
+	return nil
 }

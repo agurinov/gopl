@@ -162,7 +162,9 @@ func (f *FunctionDecl) AddOverload(overload *OverloadDecl) error {
 		if oID == overload.ID() {
 			if o.SignatureEquals(overload) && o.IsNonStrict() == overload.IsNonStrict() {
 				// Allow redefinition of an overload implementation so long as the signatures match.
-				f.overloads[oID] = overload
+				if overload.hasBinding() {
+					f.overloads[oID] = overload
+				}
 				return nil
 			}
 			return fmt.Errorf("overload redefinition in function. %s: %s has multiple definitions", f.Name(), oID)
@@ -243,7 +245,8 @@ func (f *FunctionDecl) Bindings() ([]*functions.Overload, error) {
 	// performs dynamic dispatch to the proper overload based on the argument types.
 	bindings := append([]*functions.Overload{}, overloads...)
 	funcDispatch := func(args ...ref.Val) ref.Val {
-		for _, o := range f.overloads {
+		for _, oID := range f.overloadOrdinals {
+			o := f.overloads[oID]
 			// During dynamic dispatch over multiple functions, signature agreement checks
 			// are preserved in order to assist with the function resolution step.
 			switch len(args) {
