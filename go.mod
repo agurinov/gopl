@@ -6,7 +6,7 @@ require (
 	github.com/bufbuild/protovalidate-go v0.7.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.1.0
-	github.com/go-co-op/gocron/v2 v2.11.0
+	github.com/go-co-op/gocron/v2 v2.12.1
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goccy/go-yaml v1.12.0
