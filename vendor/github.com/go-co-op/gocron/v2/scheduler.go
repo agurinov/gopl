@@ -311,7 +311,7 @@ func (s *scheduler) selectRemoveJob(id uuid.UUID) {
 }
 
 // Jobs coming back from the executor to the scheduler that
-// need to evaluated for rescheduling.
+// need to be evaluated for rescheduling.
 func (s *scheduler) selectExecJobsOutForRescheduling(id uuid.UUID) {
 	select {
 	case <-s.shutdownCtx.Done():
@@ -359,6 +359,13 @@ func (s *scheduler) selectExecJobsOutForRescheduling(id uuid.UUID) {
 			next = j.next(next)
 		}
 	}
+
+	// Clean up any existing timer to prevent leaks
+	if j.timer != nil {
+		j.timer.Stop()
+		j.timer = nil // Ensure timer is cleared for GC
+	}
+
 	j.nextScheduled = append(j.nextScheduled, next)
 	j.timer = s.exec.clock.AfterFunc(next.Sub(s.now()), func() {
 		// set the actual timer on the job here and listen for
