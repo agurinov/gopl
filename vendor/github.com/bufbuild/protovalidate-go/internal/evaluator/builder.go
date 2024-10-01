@@ -1,4 +1,4 @@
-// Copyright 2023 Buf Technologies, Inc.
+// Copyright 2023-2024 Buf Technologies, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,28 +16,36 @@ package evaluator
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	"github.com/bufbuild/protovalidate-go/celext"
 	"github.com/bufbuild/protovalidate-go/internal/constraints"
 	"github.com/bufbuild/protovalidate-go/internal/errors"
 	"github.com/bufbuild/protovalidate-go/internal/expression"
 	"github.com/google/cel-go/cel"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
 // Builder is a build-through cache of message evaluators keyed off the provided
 // descriptor.
 type Builder struct {
-	// TODO: (TCN-1708) based on benchmarks, about 50% of CPU time is spent obtaining a read
-	//  lock on this mutex. Ideally, this can be reworked to be thread-safe while
-	//  minimizing the need to obtain a lock.
-	mtx         sync.RWMutex
-	cache       map[protoreflect.MessageDescriptor]*message
-	env         *cel.Env
-	constraints constraints.Cache
-	resolver    StandardConstraintResolver
-	Load        func(desc protoreflect.MessageDescriptor) MessageEvaluator
+	mtx                   sync.Mutex                   // serializes cache writes.
+	cache                 atomic.Pointer[MessageCache] // copy-on-write cache.
+	env                   *cel.Env
+	constraints           constraints.Cache
+	resolver              StandardConstraintResolver
+	extensionTypeResolver protoregistry.ExtensionTypeResolver
+	allowUnknownFields    bool
+	Load                  func(desc protoreflect.MessageDescriptor) MessageEvaluator
+}
+
+type StandardConstraintResolver interface {
+	ResolveMessageConstraints(desc protoreflect.MessageDescriptor) *validate.MessageConstraints
+	ResolveOneofConstraints(desc protoreflect.OneofDescriptor) *validate.OneofConstraints
+	ResolveFieldConstraints(desc protoreflect.FieldDescriptor) *validate.FieldConstraints
 }
 
 // NewBuilder initializes a new Builder.
@@ -45,13 +53,16 @@ func NewBuilder(
 	env *cel.Env,
 	disableLazy bool,
 	res StandardConstraintResolver,
+	extensionTypeResolver protoregistry.ExtensionTypeResolver,
+	allowUnknownFields bool,
 	seedDesc ...protoreflect.MessageDescriptor,
 ) *Builder {
 	bldr := &Builder{
-		cache:       map[protoreflect.MessageDescriptor]*message{},
-		env:         env,
-		constraints: constraints.NewCache(),
-		resolver:    res,
+		env:                   env,
+		constraints:           constraints.NewCache(),
+		resolver:              res,
+		extensionTypeResolver: extensionTypeResolver,
+		allowUnknownFields:    allowUnknownFields,
 	}
 
 	if disableLazy {
@@ -60,10 +71,11 @@ func NewBuilder(
 		bldr.Load = bldr.loadOrBuild
 	}
 
+	cache := make(MessageCache, len(seedDesc))
 	for _, desc := range seedDesc {
-		bldr.build(desc)
+		bldr.build(desc, cache)
 	}
-
+	bldr.cache.Store(&cache)
 	return bldr
 }
 
@@ -71,39 +83,48 @@ func NewBuilder(
 // the descriptor is unknown, returns an evaluator that always resolves to a
 // errors.CompilationError.
 func (bldr *Builder) load(desc protoreflect.MessageDescriptor) MessageEvaluator {
-	if eval, ok := bldr.cache[desc]; ok {
+	if eval, ok := (*bldr.cache.Load())[desc]; ok {
 		return eval
 	}
 	return unknownMessage{desc: desc}
 }
 
 // loadOrBuild either returns a memoized MessageEvaluator for the given
-// descriptor, or lazily constructs a new one. This method is thread-safe via
+// descriptor or lazily constructs a new one. This method is thread-safe via
 // locking.
 func (bldr *Builder) loadOrBuild(desc protoreflect.MessageDescriptor) MessageEvaluator {
-	bldr.mtx.RLock()
-	if eval, ok := bldr.cache[desc]; ok {
-		bldr.mtx.RUnlock()
+	if eval, ok := (*bldr.cache.Load())[desc]; ok {
 		return eval
 	}
-	bldr.mtx.RUnlock()
-
 	bldr.mtx.Lock()
 	defer bldr.mtx.Unlock()
-	return bldr.build(desc)
-}
-
-func (bldr *Builder) build(desc protoreflect.MessageDescriptor) *message {
-	if eval, ok := bldr.cache[desc]; ok {
+	cache := *bldr.cache.Load()
+	if eval, ok := cache[desc]; ok {
 		return eval
 	}
-	msgEval := &message{}
-	bldr.cache[desc] = msgEval
-	bldr.buildMessage(desc, msgEval)
+	newCache := cache.Clone()
+	msgEval := bldr.build(desc, newCache)
+	bldr.cache.Store(&newCache)
 	return msgEval
 }
 
-func (bldr *Builder) buildMessage(desc protoreflect.MessageDescriptor, msgEval *message) {
+func (bldr *Builder) build(
+	desc protoreflect.MessageDescriptor,
+	cache MessageCache,
+) *message {
+	if eval, ok := cache[desc]; ok {
+		return eval
+	}
+	msgEval := &message{}
+	cache[desc] = msgEval
+	bldr.buildMessage(desc, msgEval, cache)
+	return msgEval
+}
+
+func (bldr *Builder) buildMessage(
+	desc protoreflect.MessageDescriptor, msgEval *message,
+	cache MessageCache,
+) {
 	msgConstraints := bldr.resolver.ResolveMessageConstraints(desc)
 	if msgConstraints.GetDisabled() {
 		return
@@ -113,6 +134,7 @@ func (bldr *Builder) buildMessage(desc protoreflect.MessageDescriptor, msgEval *
 		desc protoreflect.MessageDescriptor,
 		msgConstraints *validate.MessageConstraints,
 		msg *message,
+		cache MessageCache,
 	){
 		bldr.processMessageExpressions,
 		bldr.processOneofConstraints,
@@ -120,7 +142,7 @@ func (bldr *Builder) buildMessage(desc protoreflect.MessageDescriptor, msgEval *
 	}
 
 	for _, step := range steps {
-		if step(desc, msgConstraints, msgEval); msgEval.Err != nil {
+		if step(desc, msgConstraints, msgEval, cache); msgEval.Err != nil {
 			break
 		}
 	}
@@ -130,6 +152,7 @@ func (bldr *Builder) processMessageExpressions(
 	desc protoreflect.MessageDescriptor,
 	msgConstraints *validate.MessageConstraints,
 	msgEval *message,
+	_ MessageCache,
 ) {
 	compiledExprs, err := expression.Compile(
 		msgConstraints.GetCel(),
@@ -149,6 +172,7 @@ func (bldr *Builder) processOneofConstraints(
 	desc protoreflect.MessageDescriptor,
 	_ *validate.MessageConstraints,
 	msgEval *message,
+	_ MessageCache,
 ) {
 	oneofs := desc.Oneofs()
 	for i := 0; i < oneofs.Len(); i++ {
@@ -166,12 +190,13 @@ func (bldr *Builder) processFields(
 	desc protoreflect.MessageDescriptor,
 	_ *validate.MessageConstraints,
 	msgEval *message,
+	cache MessageCache,
 ) {
 	fields := desc.Fields()
 	for i := 0; i < fields.Len(); i++ {
 		fdesc := fields.Get(i)
 		fieldConstraints := bldr.resolver.ResolveFieldConstraints(fdesc)
-		fldEval, err := bldr.buildField(fdesc, fieldConstraints)
+		fldEval, err := bldr.buildField(fdesc, fieldConstraints, cache)
 		if err != nil {
 			msgEval.Err = err
 			return
@@ -183,13 +208,20 @@ func (bldr *Builder) processFields(
 func (bldr *Builder) buildField(
 	fieldDescriptor protoreflect.FieldDescriptor,
 	fieldConstraints *validate.FieldConstraints,
+	cache MessageCache,
 ) (field, error) {
 	fld := field{
 		Descriptor: fieldDescriptor,
 		Required:   fieldConstraints.GetRequired(),
-		Optional:   fieldDescriptor.HasPresence(),
+		IgnoreEmpty: fieldDescriptor.HasPresence() ||
+			bldr.shouldIgnoreEmpty(fieldConstraints),
+		IgnoreDefault: fieldDescriptor.HasPresence() &&
+			bldr.shouldIgnoreDefault(fieldConstraints),
 	}
-	err := bldr.buildValue(fieldDescriptor, fieldConstraints, false, &fld.Value)
+	if fld.IgnoreDefault {
+		fld.Zero = bldr.zeroValue(fieldDescriptor, false)
+	}
+	err := bldr.buildValue(fieldDescriptor, fieldConstraints, false, &fld.Value, cache)
 	return fld, err
 }
 
@@ -198,15 +230,16 @@ func (bldr *Builder) buildValue(
 	constraints *validate.FieldConstraints,
 	forItems bool,
 	valEval *value,
+	cache MessageCache,
 ) (err error) {
-	valEval.IgnoreEmpty = constraints.GetIgnoreEmpty()
 	steps := []func(
 		fdesc protoreflect.FieldDescriptor,
 		fieldConstraints *validate.FieldConstraints,
 		forItems bool,
 		valEval *value,
+		cache MessageCache,
 	) error{
-		bldr.processZeroValue,
+		bldr.processIgnoreEmpty,
 		bldr.processFieldExpressions,
 		bldr.processEmbeddedMessage,
 		bldr.processWrapperConstraints,
@@ -218,23 +251,25 @@ func (bldr *Builder) buildValue(
 	}
 
 	for _, step := range steps {
-		if err = step(fdesc, constraints, forItems, valEval); err != nil {
+		if err = step(fdesc, constraints, forItems, valEval, cache); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (bldr *Builder) processZeroValue(
+func (bldr *Builder) processIgnoreEmpty(
 	fdesc protoreflect.FieldDescriptor,
-	_ *validate.FieldConstraints,
+	constraints *validate.FieldConstraints,
 	forItems bool,
 	val *value,
+	_ MessageCache,
 ) error {
-	val.Zero = fdesc.Default()
-	if forItems && fdesc.IsList() {
-		msg := dynamicpb.NewMessage(fdesc.ContainingMessage())
-		val.Zero = msg.Get(fdesc).List().NewElement()
+	// the only time we need to ignore empty on a value is if it's evaluating a
+	// field item (repeated element or map key/value).
+	val.IgnoreEmpty = forItems && bldr.shouldIgnoreEmpty(constraints)
+	if val.IgnoreEmpty {
+		val.Zero = bldr.zeroValue(fdesc, forItems)
 	}
 	return nil
 }
@@ -242,24 +277,20 @@ func (bldr *Builder) processZeroValue(
 func (bldr *Builder) processFieldExpressions(
 	fieldDesc protoreflect.FieldDescriptor,
 	fieldConstraints *validate.FieldConstraints,
-	_ bool,
+	forItems bool,
 	eval *value,
+	_ MessageCache,
 ) error {
 	exprs := fieldConstraints.GetCel()
 	if len(exprs) == 0 {
 		return nil
 	}
-	var opts []cel.EnvOption
-	if fieldDesc.Kind() == protoreflect.MessageKind {
-		opts = []cel.EnvOption{
-			cel.TypeDescs(fieldDesc.ParentFile()),
-			cel.Variable("this", cel.ObjectType(string(fieldDesc.Message().FullName()))),
-		}
-	} else {
-		opts = []cel.EnvOption{
-			cel.Variable("this", constraints.ProtoKindToCELType(fieldDesc.Kind())),
-		}
-	}
+
+	celTyp := celext.ProtoFieldToCELType(fieldDesc, false, forItems)
+	opts := append(
+		celext.RequiredCELEnvOptions(fieldDesc),
+		cel.Variable("this", celTyp),
+	)
 	compiledExpressions, err := expression.Compile(exprs, bldr.env, opts...)
 	if err != nil {
 		return err
@@ -275,14 +306,16 @@ func (bldr *Builder) processEmbeddedMessage(
 	rules *validate.FieldConstraints,
 	forItems bool,
 	valEval *value,
+	cache MessageCache,
 ) error {
-	if fdesc.Kind() != protoreflect.MessageKind ||
-		rules.GetSkipped() ||
-		fdesc.IsMap() || (fdesc.IsList() && !forItems) {
+	if !isMessageField(fdesc) ||
+		bldr.shouldSkip(rules) ||
+		fdesc.IsMap() ||
+		(fdesc.IsList() && !forItems) {
 		return nil
 	}
 
-	embedEval := bldr.build(fdesc.Message())
+	embedEval := bldr.build(fdesc.Message(), cache)
 	if err := embedEval.Err; err != nil {
 		return errors.NewCompilationErrorf(
 			"failed to compile embedded type %s for %s: %w",
@@ -298,10 +331,12 @@ func (bldr *Builder) processWrapperConstraints(
 	rules *validate.FieldConstraints,
 	forItems bool,
 	valEval *value,
+	cache MessageCache,
 ) error {
-	if fdesc.Kind() != protoreflect.MessageKind ||
-		rules.GetSkipped() ||
-		fdesc.IsMap() || (fdesc.IsList() && !forItems) {
+	if !isMessageField(fdesc) ||
+		bldr.shouldSkip(rules) ||
+		fdesc.IsMap() ||
+		(fdesc.IsList() && !forItems) {
 		return nil
 	}
 
@@ -310,7 +345,7 @@ func (bldr *Builder) processWrapperConstraints(
 		return nil
 	}
 	var unwrapped value
-	err := bldr.buildValue(fdesc.Message().Fields().ByName("value"), rules, true, &unwrapped)
+	err := bldr.buildValue(fdesc.Message().Fields().ByName("value"), rules, true, &unwrapped, cache)
 	if err != nil {
 		return err
 	}
@@ -323,11 +358,14 @@ func (bldr *Builder) processStandardConstraints(
 	constraints *validate.FieldConstraints,
 	forItems bool,
 	valEval *value,
+	_ MessageCache,
 ) error {
 	stdConstraints, err := bldr.constraints.Build(
 		bldr.env,
 		fdesc,
 		constraints,
+		bldr.extensionTypeResolver,
+		bldr.allowUnknownFields,
 		forItems,
 	)
 	if err != nil {
@@ -342,9 +380,10 @@ func (bldr *Builder) processAnyConstraints(
 	fieldConstraints *validate.FieldConstraints,
 	forItems bool,
 	valEval *value,
+	_ MessageCache,
 ) error {
 	if (fdesc.IsList() && !forItems) ||
-		fdesc.Kind() != protoreflect.MessageKind ||
+		!isMessageField(fdesc) ||
 		fdesc.Message().FullName() != "google.protobuf.Any" {
 		return nil
 	}
@@ -364,6 +403,7 @@ func (bldr *Builder) processEnumConstraints(
 	fieldConstraints *validate.FieldConstraints,
 	_ bool,
 	valEval *value,
+	_ MessageCache,
 ) error {
 	if fdesc.Kind() != protoreflect.EnumKind {
 		return nil
@@ -379,6 +419,7 @@ func (bldr *Builder) processMapConstraints(
 	constraints *validate.FieldConstraints,
 	_ bool,
 	valEval *value,
+	cache MessageCache,
 ) error {
 	if !fieldDesc.IsMap() {
 		return nil
@@ -390,7 +431,8 @@ func (bldr *Builder) processMapConstraints(
 		fieldDesc.MapKey(),
 		constraints.GetMap().GetKeys(),
 		true,
-		&mapEval.KeyConstraints)
+		&mapEval.KeyConstraints,
+		cache)
 	if err != nil {
 		return errors.NewCompilationErrorf(
 			"failed to compile key constraints for map %s: %w",
@@ -401,7 +443,8 @@ func (bldr *Builder) processMapConstraints(
 		fieldDesc.MapValue(),
 		constraints.GetMap().GetValues(),
 		true,
-		&mapEval.ValueConstraints)
+		&mapEval.ValueConstraints,
+		cache)
 	if err != nil {
 		return errors.NewCompilationErrorf(
 			"failed to compile value constraints for map %s: %w",
@@ -417,13 +460,14 @@ func (bldr *Builder) processRepeatedConstraints(
 	fieldConstraints *validate.FieldConstraints,
 	forItems bool,
 	valEval *value,
+	cache MessageCache,
 ) error {
 	if !fdesc.IsList() || forItems {
 		return nil
 	}
 
 	var listEval listItems
-	err := bldr.buildValue(fdesc, fieldConstraints.GetRepeated().GetItems(), true, &listEval.ItemConstraints)
+	err := bldr.buildValue(fdesc, fieldConstraints.GetRepeated().GetItems(), true, &listEval.ItemConstraints, cache)
 	if err != nil {
 		return errors.NewCompilationErrorf(
 			"failed to compile items constraints for repeated %v: %w", fdesc.FullName(), err)
@@ -431,4 +475,57 @@ func (bldr *Builder) processRepeatedConstraints(
 
 	valEval.Append(listEval)
 	return nil
+}
+
+func (bldr *Builder) shouldSkip(constraints *validate.FieldConstraints) bool {
+	return constraints.GetSkipped() ||
+		constraints.GetIgnore() == validate.Ignore_IGNORE_ALWAYS
+}
+
+func (bldr *Builder) shouldIgnoreEmpty(constraints *validate.FieldConstraints) bool {
+	return constraints.GetIgnoreEmpty() ||
+		constraints.GetIgnore() == validate.Ignore_IGNORE_IF_UNPOPULATED ||
+		constraints.GetIgnore() == validate.Ignore_IGNORE_IF_DEFAULT_VALUE
+}
+
+func (bldr *Builder) shouldIgnoreDefault(constraints *validate.FieldConstraints) bool {
+	return constraints.GetIgnore() == validate.Ignore_IGNORE_IF_DEFAULT_VALUE
+}
+
+func (bldr *Builder) zeroValue(fdesc protoreflect.FieldDescriptor, forItems bool) protoreflect.Value {
+	switch {
+	case forItems && fdesc.IsList():
+		msg := dynamicpb.NewMessage(fdesc.ContainingMessage())
+		return msg.Get(fdesc).List().NewElement()
+	case isMessageField(fdesc) &&
+		fdesc.Cardinality() != protoreflect.Repeated:
+		msg := dynamicpb.NewMessage(fdesc.Message())
+		return protoreflect.ValueOfMessage(msg)
+	default:
+		return fdesc.Default()
+	}
+}
+
+type MessageCache map[protoreflect.MessageDescriptor]*message
+
+func (c MessageCache) Clone() MessageCache {
+	newCache := make(MessageCache, len(c)+1)
+	c.SyncTo(newCache)
+	return newCache
+}
+func (c MessageCache) SyncTo(other MessageCache) {
+	for k, v := range c {
+		other[k] = v
+	}
+}
+
+// isMessageField returns true if the field descriptor fdesc describes a field
+// containing a submessage. Although they are represented differently on the
+// wire, group fields are treated like message fields in protoreflect and have
+// similar properties. In the 2023 edition of protobuf, message fields with the
+// delimited encoding feature will be detected as groups, but should otherwise
+// be treated the same.
+func isMessageField(fdesc protoreflect.FieldDescriptor) bool {
+	return fdesc.Kind() == protoreflect.MessageKind ||
+		fdesc.Kind() == protoreflect.GroupKind
 }

@@ -1,4 +1,4 @@
-// Copyright 2023 Buf Technologies, Inc.
+// Copyright 2023-2024 Buf Technologies, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@ package errors
 
 import (
 	"errors"
+
+	"google.golang.org/protobuf/proto"
 )
 
 // Merge is a utility to resolve and combine errors resulting from
@@ -60,7 +62,7 @@ func MarkForKey(err error) {
 	var valErr *ValidationError
 	if errors.As(err, &valErr) {
 		for _, violation := range valErr.Violations {
-			violation.ForKey = true
+			violation.ForKey = proto.Bool(true)
 		}
 	}
 }

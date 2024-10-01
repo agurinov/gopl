@@ -1,4 +1,4 @@
-// Copyright 2023 Buf Technologies, Inc.
+// Copyright 2023-2024 Buf Technologies, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	"google.golang.org/protobuf/proto"
 )
 
 // A ValidationError is returned if one or more constraint violations were
@@ -30,13 +31,13 @@ func (err *ValidationError) Error() string {
 	bldr.WriteString("validation error:")
 	for _, violation := range err.Violations {
 		bldr.WriteString("\n - ")
-		if violation.FieldPath != "" {
-			bldr.WriteString(violation.FieldPath)
+		if fieldPath := violation.GetFieldPath(); fieldPath != "" {
+			bldr.WriteString(fieldPath)
 			bldr.WriteString(": ")
 		}
 		_, _ = fmt.Fprintf(bldr, "%s [%s]",
-			violation.Message,
-			violation.ConstraintId)
+			violation.GetMessage(),
+			violation.GetConstraintId())
 	}
 	return bldr.String()
 }
@@ -52,12 +53,12 @@ func PrefixFieldPaths(err *ValidationError, format string, args ...any) {
 	prefix := fmt.Sprintf(format, args...)
 	for _, violation := range err.Violations {
 		switch {
-		case violation.FieldPath == "": // no existing field path
-			violation.FieldPath = prefix
-		case violation.FieldPath[0] == '[': // field is a map/list
-			violation.FieldPath = prefix + violation.FieldPath
+		case violation.GetFieldPath() == "": // no existing field path
+			violation.FieldPath = proto.String(prefix)
+		case violation.GetFieldPath()[0] == '[': // field is a map/list
+			violation.FieldPath = proto.String(prefix + violation.GetFieldPath())
 		default: // any other field
-			violation.FieldPath = fmt.Sprintf("%s.%s", prefix, violation.FieldPath)
+			violation.FieldPath = proto.String(fmt.Sprintf("%s.%s", prefix, violation.GetFieldPath()))
 		}
 	}
 }
