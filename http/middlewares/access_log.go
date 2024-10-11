@@ -28,13 +28,20 @@ func AccessLog(logger *zap.Logger) Middleware {
 				logLvl = zapcore.ErrorLevel
 			}
 
+			reqContentLen := "unknown"
+			if r.ContentLength >= 0 {
+				// skip integer overflow conversion int64 -> uint64
+				//nolint:gosec
+				reqContentLen = humanize.Bytes(uint64(r.ContentLength))
+			}
+
 			logger.Log(logLvl,
 				"http served request",
 				zap.Int("status_code", recorder.Status),
 				zap.String("remote_addr", r.RemoteAddr),
 				zap.String("http_method", r.Method),
 				zap.String("request_uri", r.RequestURI),
-				zap.String("request_content_length", humanize.Bytes(uint64(r.ContentLength))),
+				zap.String("request_content_length", reqContentLen),
 				zap.Stringer("elapsed_time", elapsedTime),
 			)
 		})

@@ -244,6 +244,28 @@ func TestStatic(t *testing.T) {
 				},
 			},
 		},
+		"case12: middleware: use custom mw": {
+			args: args{
+				staticHandlerOptions: []handlers.StaticOption{
+					handlers.WithStaticBundle(bundle, "testdata"),
+					handlers.WithStaticKnownFile("/config.json", []byte(`{"foo":"bar"}`)),
+					handlers.WithStaticSPA(true),
+					handlers.WithStaticNoCachePaths("/config.json"),
+					handlers.WithCustomMiddlewares(func(h http.Handler) http.Handler {
+						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+							w.Header().Set("Custom-Header", "Value")
+						})
+					}),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/", nil),
+			},
+			results: results{
+				statusCode: http.StatusOK,
+				headers: http.Header{
+					"Custom-Header": []string{"Value"},
+				},
+			},
+		},
 	}
 
 	for name := range cases {

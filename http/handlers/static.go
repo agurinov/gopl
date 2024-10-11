@@ -18,11 +18,12 @@ import (
 
 type (
 	static struct {
-		logger       *zap.Logger
-		fs           fs.FS
-		knownPaths   map[string][]byte
-		noCachePaths []string
-		spaEnabled   bool
+		fs                fs.FS
+		logger            *zap.Logger
+		knownPaths        map[string][]byte
+		noCachePaths      []string
+		customMiddlewares []middlewares.Middleware
+		spaEnabled        bool
 	}
 	StaticOption c.Option[static]
 )
@@ -39,8 +40,10 @@ func (h static) Handler() http.Handler {
 		),
 		middlewares.AccessLog(h.logger),
 		chimw.GetHead,
-		// middlewares.Panic(obj.logger),
 	)
+
+	r.Use(h.customMiddlewares...)
+	// r.Use(middlewares.Panic(obj.logger))
 
 	fsHandler := http.FileServer(http.FS(h.fs))
 
