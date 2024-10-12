@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 
 	"go.uber.org/zap"
+
+	"github.com/agurinov/gopl/http/middlewares"
 )
 
 func WithStaticLogger(logger *zap.Logger) StaticOption {
@@ -61,6 +63,14 @@ func WithStaticSPA(spaEnabled bool) StaticOption {
 func WithStaticNoCachePaths(paths ...string) StaticOption {
 	return func(h *static) error {
 		h.noCachePaths = paths
+
+		return nil
+	}
+}
+
+func WithCustomMiddlewares(mw ...middlewares.Middleware) StaticOption {
+	return func(s *static) error {
+		s.customMiddlewares = mw
 
 		return nil
 	}
