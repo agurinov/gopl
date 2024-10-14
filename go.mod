@@ -3,7 +3,7 @@ module github.com/agurinov/gopl
 go 1.21
 
 require (
-	github.com/bufbuild/protovalidate-go v0.7.0
+	github.com/bufbuild/protovalidate-go v0.7.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-co-op/gocron/v2 v2.12.1
