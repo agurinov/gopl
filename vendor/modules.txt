@@ -25,7 +25,7 @@ github.com/antlr4-go/antlr/v4
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
-# github.com/bufbuild/protovalidate-go v0.7.0
+# github.com/bufbuild/protovalidate-go v0.7.2
 ## explicit; go 1.21
 github.com/bufbuild/protovalidate-go
 github.com/bufbuild/protovalidate-go/celext
