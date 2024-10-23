@@ -3,6 +3,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"go.uber.org/zap"
@@ -10,9 +12,11 @@ import (
 
 func (obj basic) Validate() error {
 	s := struct {
-		Logger *zap.Logger `validate:"required"`
+		Logger  *zap.Logger  `validate:"required"`
+		Handler http.Handler `validate:"required"`
 	}{
-		Logger: obj.logger,
+		Logger:  obj.logger,
+		Handler: obj.handler,
 	}
 
 	v := validator.New()

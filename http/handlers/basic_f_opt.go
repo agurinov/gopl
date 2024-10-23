@@ -28,7 +28,7 @@ func WithBasicCustomMiddlewares(mw ...middlewares.Middleware) BasicOption {
 	}
 }
 
-func WithHandler(h http.Handler) BasicOption {
+func WithBasicHandler(h http.Handler) BasicOption {
 	return func(b *basic) error {
 		b.handler = h
 

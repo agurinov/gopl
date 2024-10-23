@@ -32,7 +32,7 @@ func TestBasic(t *testing.T) {
 		"case00: check get": {
 			args: args{
 				basicHandlerOptions: []handlers.BasicOption{
-					handlers.WithHandler(http.HandlerFunc(
+					handlers.WithBasicHandler(http.HandlerFunc(
 						func(w http.ResponseWriter, r *http.Request) {
 							http.Redirect(w, r, "/foobar", http.StatusPermanentRedirect)
 						}),
@@ -51,7 +51,7 @@ func TestBasic(t *testing.T) {
 		"case01: check post": {
 			args: args{
 				basicHandlerOptions: []handlers.BasicOption{
-					handlers.WithHandler(http.HandlerFunc(
+					handlers.WithBasicHandler(http.HandlerFunc(
 						func(w http.ResponseWriter, r *http.Request) {
 							http.Redirect(w, r, "/foobar", http.StatusPermanentRedirect)
 						}),
@@ -63,6 +63,24 @@ func TestBasic(t *testing.T) {
 				statusCode: http.StatusPermanentRedirect,
 				headers: http.Header{
 					"Location": []string{"/foobar"},
+				},
+			},
+		},
+		"case03: check put foobar": {
+			args: args{
+				basicHandlerOptions: []handlers.BasicOption{
+					handlers.WithBasicHandler(http.HandlerFunc(
+						func(w http.ResponseWriter, r *http.Request) {
+							http.Redirect(w, r, "/foobar/baz", http.StatusPermanentRedirect)
+						}),
+					),
+				},
+				request: httptest.NewRequest(http.MethodPut, "/foobar", nil),
+			},
+			results: results{
+				statusCode: http.StatusPermanentRedirect,
+				headers: http.Header{
+					"Location": []string{"/foobar/baz"},
 				},
 			},
 		},
