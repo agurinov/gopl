@@ -251,7 +251,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticKnownFile("/config.json", []byte(`{"foo":"bar"}`)),
 					handlers.WithStaticSPA(true),
 					handlers.WithStaticNoCachePaths("/config.json"),
-					handlers.WithCustomMiddlewares(func(h http.Handler) http.Handler {
+					handlers.WithStaticCustomMiddlewares(func(h http.Handler) http.Handler {
 						return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 							w.Header().Set("Custom-Header", "Value")
 						})

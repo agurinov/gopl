@@ -68,9 +68,9 @@ func WithStaticNoCachePaths(paths ...string) StaticOption {
 	}
 }
 
-func WithCustomMiddlewares(mw ...middlewares.Middleware) StaticOption {
+func WithStaticCustomMiddlewares(mw ...middlewares.Middleware) StaticOption {
 	return func(s *static) error {
-		s.customMiddlewares = mw
+		s.customMiddlewares = append(s.customMiddlewares, mw...)
 
 		return nil
 	}
