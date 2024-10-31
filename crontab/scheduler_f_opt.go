@@ -96,13 +96,13 @@ func withScheduler(opts ...gocron.SchedulerOption) SchedulerOption {
 	}
 }
 
-func WithJob(cfg JobConfig) SchedulerOption {
+func WithJob(jobName string, cfg JobConfig) SchedulerOption {
 	return func(ctx context.Context, s *Scheduler) error {
 		if len(s.jobs) == 0 {
 			return errors.New("crontab: no job registry provided")
 		}
 
-		job, exists := s.jobs[cfg.Name]
+		job, exists := s.jobs[jobName]
 		if !exists {
 			return errors.New("crontab: no job found in registry")
 		}
@@ -113,16 +113,32 @@ func WithJob(cfg JobConfig) SchedulerOption {
 			}
 		}
 
+		if !cfg.Enabled {
+			s.logger.Info(
+				"crontab: skipped job: disabled",
+				zap.String("job_name", jobName),
+			)
+
+			return nil
+		}
+
 		if _, jobErr := s.scheduler.NewJob(
 			gocron.CronJob(cfg.Schedule, false),
 			taskAdapter(ctx, job, cfg.Timeout),
-			gocron.WithName(cfg.Name),
+			gocron.WithName(jobName),
 			gocron.WithIdentifier(
-				uuid.NewMD5(uuid.Nil, []byte(cfg.Name)),
+				uuid.NewMD5(uuid.Nil, []byte(jobName)),
 			),
 		); jobErr != nil {
 			return jobErr
 		}
+
+		s.logger.Info(
+			"crontab: registered job",
+			zap.String("job_name", jobName),
+			zap.String("schedule", cfg.Schedule),
+			zap.Stringer("timeout", cfg.Timeout),
+		)
 
 		return nil
 	}
