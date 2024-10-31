@@ -1,7 +1,6 @@
 package probes
 
 import (
-	"errors"
 	"time"
 
 	"go.uber.org/zap"
@@ -38,19 +37,21 @@ func WithCheckTimeout(d time.Duration) Option {
 	}
 }
 
-func WithProbe(t ProbeType, probe Probe) Option {
+func WithReadinessProbe(probes ...Probe) Option {
 	return func(p **Prober) error {
 		pr := *p
 
-		switch t {
-		case ProbeTypeReadiness:
-			pr.readinessProbes = append(pr.readinessProbes, probe)
-		case ProbeTypeLiveness:
-			pr.livenessProbes = append(pr.livenessProbes, probe)
-		case ProbeTypeStartup:
-		default:
-			return errors.New("unknown probe type")
-		}
+		pr.readinessProbes = append(pr.readinessProbes, probes...)
+
+		return nil
+	}
+}
+
+func WithLivenessProbe(probes ...Probe) Option {
+	return func(p **Prober) error {
+		pr := *p
+
+		pr.livenessProbes = append(pr.livenessProbes, probes...)
 
 		return nil
 	}

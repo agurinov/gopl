@@ -37,7 +37,7 @@ func TestProber_New(t *testing.T) {
 					probes.WithLogger(nil),
 					probes.WithCheckInterval(time.Millisecond),
 					probes.WithCheckTimeout(time.Millisecond),
-					probes.WithProbe(probes.ProbeTypeReadiness, nil),
+					probes.WithReadinessProbe(nil),
 				},
 			},
 			TestCase: pl_testing.TestCase{
@@ -51,8 +51,7 @@ func TestProber_New(t *testing.T) {
 					probes.WithLogger(log.NewZapTest(t)),
 					probes.WithCheckInterval(time.Second),
 					probes.WithCheckTimeout(time.Second),
-					probes.WithProbe(
-						probes.ProbeTypeReadiness,
+					probes.WithReadinessProbe(
 						func(context.Context) error { return nil },
 					),
 				},

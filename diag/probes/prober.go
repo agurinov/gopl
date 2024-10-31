@@ -47,6 +47,8 @@ func (p *Prober) Run(ctx context.Context) error {
 	ticker := time.NewTicker(p.checkInterval)
 	defer ticker.Stop()
 
+	p.runAllProbes(ctx)
+
 	p.logger.Info(
 		"starting probes poller",
 		zap.Stringer("check_inverval", p.checkInterval),
@@ -55,22 +57,7 @@ func (p *Prober) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ticker.C:
-			readinessErr := p.runProbes(ctx, p.readinessProbes)
-			p.readiness.Store(readinessErr == nil)
-
-			livenessErr := p.runProbes(ctx, p.livenessProbes)
-			p.liveness.Store(livenessErr == nil)
-
-			lvl := zapcore.DebugLevel
-			if readinessErr != nil || livenessErr != nil {
-				lvl = zapcore.ErrorLevel
-			}
-
-			p.logger.Log(lvl,
-				"finished probes polling iteration",
-				zap.NamedError("readiness_error", readinessErr),
-				zap.NamedError("liveness_error", livenessErr),
-			)
+			p.runAllProbes(ctx)
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -101,4 +88,23 @@ func (p *Prober) runProbes(
 	}
 
 	return g.Wait()
+}
+
+func (p *Prober) runAllProbes(ctx context.Context) {
+	readinessErr := p.runProbes(ctx, p.readinessProbes)
+	p.readiness.Store(readinessErr == nil)
+
+	livenessErr := p.runProbes(ctx, p.livenessProbes)
+	p.liveness.Store(livenessErr == nil)
+
+	lvl := zapcore.DebugLevel
+	if readinessErr != nil || livenessErr != nil {
+		lvl = zapcore.ErrorLevel
+	}
+
+	p.logger.Log(lvl,
+		"finished probes polling iteration",
+		zap.NamedError("readiness_error", readinessErr),
+		zap.NamedError("liveness_error", livenessErr),
+	)
 }
