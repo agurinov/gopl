@@ -4,11 +4,11 @@ import "time"
 
 type (
 	Config struct {
-		Jobs []JobConfig `validate:"gt=0,dive"`
+		Jobs map[string]JobConfig `validate:"gt=0,dive,keys,required,endkeys,required"`
 	}
 	JobConfig struct {
-		Name     string        `validate:"required"`
 		Schedule string        `validate:"cron"`
 		Timeout  time.Duration `validate:"min=200ms"`
+		Enabled  bool
 	}
 )
