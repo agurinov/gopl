@@ -15,7 +15,7 @@ import (
 )
 
 type (
-	cfg struct {
+	yamlCfg struct {
 		Logger    config.Logger
 		Probes    config.Probes
 		Graceful  config.Graceful
@@ -25,13 +25,8 @@ type (
 	}
 )
 
-var (
-	//go:embed testdata/config2.yaml
-	sourceBytesYAML []byte
-
-	//go:embed testdata/config2.json
-	sourceBytesJSON []byte
-)
+//go:embed testdata/config2.yaml
+var sourceBytesYAML []byte
 
 func TestParse_YAML(t *testing.T) {
 	pl_testing.Init(t)
@@ -41,7 +36,7 @@ func TestParse_YAML(t *testing.T) {
 			sources []config.Source
 		}
 		results struct {
-			cfg cfg
+			cfg yamlCfg
 		}
 	)
 
@@ -96,116 +91,7 @@ func TestParse_YAML(t *testing.T) {
 				},
 			},
 			results: results{
-				cfg: cfg{
-					Logger: config.Logger{
-						Format: "json",
-						Level:  "info",
-					},
-					Probes: config.Probes{
-						CheckInterval: 3 * time.Second,
-						CheckTimeout:  5 * time.Second,
-					},
-					Graceful: config.Graceful{
-						ShutdownTimeout: 2 * time.Second,
-						CloseTimeout:    time.Second,
-					},
-					GRPC: config.GRPC{
-						Port:             9090,
-						MaxRequestBytes:  100,
-						MaxResponseBytes: 100,
-					},
-					DebugHTTP: config.HTTP{
-						Port: 8081,
-					},
-					MergedMap: map[string]string{
-						"foo": "bar2",
-						"bar": "baz",
-					},
-				},
-			},
-		},
-	}
-
-	for name := range cases {
-		name, tc := name, cases[name]
-
-		t.Run(name, func(t *testing.T) {
-			tc.Init(t)
-
-			cfg, err := config.Parse[cfg](ctx,
-				config.YAML,
-				tc.args.sources...,
-			)
-			tc.CheckError(t, err)
-			require.Equal(t, tc.results.cfg, cfg)
-		})
-	}
-}
-
-func TestParse_JSON(t *testing.T) {
-	pl_testing.Init(t)
-
-	type (
-		args struct {
-			sources []config.Source
-		}
-		results struct {
-			cfg cfg
-		}
-	)
-
-	ctx := context.TODO()
-
-	cases := map[string]struct {
-		args    args
-		results results
-		pl_testing.TestCase
-	}{
-		"case00: no sources": {
-			args: args{
-				sources: []config.Source{nil, nil, nil},
-			},
-			results: results{},
-			TestCase: pl_testing.TestCase{
-				MustFail:      true,
-				MustFailAsErr: new(validator.ValidationErrors),
-			},
-		},
-		"case01: file": {
-			args: args{
-				sources: []config.Source{
-					config.FromFile("testdata/config1.json"),
-				},
-			},
-			results: results{},
-			TestCase: pl_testing.TestCase{
-				MustFail:      true,
-				MustFailAsErr: new(validator.ValidationErrors),
-			},
-		},
-		"case02: file doesnt exists strict": {
-			args: args{
-				sources: []config.Source{
-					config.FromFile("testdata/foobar.json"),
-				},
-			},
-			results: results{},
-			TestCase: pl_testing.TestCase{
-				MustFail:      true,
-				MustFailIsErr: os.ErrNotExist,
-			},
-		},
-		"case03: file + bytes = ok": {
-			args: args{
-				sources: []config.Source{
-					config.FromFile("testdata/foobar.json", config.Silent),
-					config.FromFile("testdata/config1.json"),
-					config.FromFile("testdata/lolkek.json", config.Silent),
-					config.FromBytes(sourceBytesJSON),
-				},
-			},
-			results: results{
-				cfg: cfg{
+				cfg: yamlCfg{
 					Logger: config.Logger{
 						Format: "json",
 						Level:  "info",
@@ -242,8 +128,8 @@ func TestParse_JSON(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
 
-			cfg, err := config.Parse[cfg](ctx,
-				config.JSON,
+			cfg, err := config.Parse[yamlCfg](ctx,
+				config.YAML,
 				tc.args.sources...,
 			)
 			tc.CheckError(t, err)

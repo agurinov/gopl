@@ -1,19 +1,23 @@
 package config
 
 import (
+	"bytes"
 	"context"
 
-	"github.com/goccy/go-yaml"
+	"gopkg.in/yaml.v3"
 )
 
 func parseYAML(
-	ctx context.Context,
+	_ context.Context,
 	data []byte,
 	obj any,
 ) error {
-	return yaml.UnmarshalContext(
-		ctx, data, obj,
-		yaml.DisallowDuplicateKey(),
-		yaml.DisallowUnknownField(),
+	var (
+		r       = bytes.NewBuffer(data)
+		decoder = yaml.NewDecoder(r)
 	)
+
+	decoder.KnownFields(true)
+
+	return decoder.Decode(obj)
 }
