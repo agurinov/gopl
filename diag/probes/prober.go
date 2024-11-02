@@ -43,6 +43,14 @@ func (p *Prober) Startup() bool           { return p.startup.Load() }
 func (p *Prober) Readiness() bool         { return p.readiness.Load() }
 func (p *Prober) Liveness() bool          { return p.liveness.Load() }
 
+func (p *Prober) WithReadinessProbe(probes ...Probe) {
+	p.readinessProbes = append(p.readinessProbes, probes...)
+}
+
+func (p *Prober) WithLivenessProbe(probes ...Probe) {
+	p.livenessProbes = append(p.livenessProbes, probes...)
+}
+
 func (p *Prober) Run(ctx context.Context) error {
 	ticker := time.NewTicker(p.checkInterval)
 	defer ticker.Stop()

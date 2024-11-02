@@ -40,8 +40,7 @@ func WithCheckTimeout(d time.Duration) Option {
 func WithReadinessProbe(probes ...Probe) Option {
 	return func(p **Prober) error {
 		pr := *p
-
-		pr.readinessProbes = append(pr.readinessProbes, probes...)
+		pr.WithReadinessProbe(probes...)
 
 		return nil
 	}
@@ -50,8 +49,7 @@ func WithReadinessProbe(probes ...Probe) Option {
 func WithLivenessProbe(probes ...Probe) Option {
 	return func(p **Prober) error {
 		pr := *p
-
-		pr.livenessProbes = append(pr.livenessProbes, probes...)
+		pr.WithLivenessProbe(probes...)
 
 		return nil
 	}
