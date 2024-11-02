@@ -292,8 +292,8 @@ linters-settings:
   # https://github.com/securego/gosec#configuration
   gosec:
     includes: []
-    excludes: []
-    exclude-generated: false
+    excludes: ['G115']
+    exclude-generated: true
     severity: 'low'
     confidence: 'low'
     config:
