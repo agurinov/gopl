@@ -15,6 +15,28 @@ type (
 	}
 )
 
+func (db DB) Ping(ctx context.Context) error {
+	ctx, span := trace.StartSpan(ctx, "db.Ping")
+	defer span.End()
+
+	if err := db.sqlxClient.PingContext(ctx); err != nil {
+		return trace.CatchError(span, err)
+	}
+
+	return nil
+}
+
+func (db DB) Close(ctx context.Context) error {
+	_, span := trace.StartSpan(ctx, "db.Close")
+	defer span.End()
+
+	if err := db.sqlxClient.Close(); err != nil {
+		return trace.CatchError(span, err)
+	}
+
+	return nil
+}
+
 func (db DB) NamedQueryContext(
 	ctx context.Context,
 	query Query,
