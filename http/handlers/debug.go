@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/diag/probes"
@@ -32,7 +33,10 @@ func (h debug) Handler() http.Handler {
 		middlewares.Metrics(
 			metrics.WithBuckets(metrics.BucketFast),
 		),
-		middlewares.AccessLog(h.logger),
+		middlewares.AccessLog(
+			h.logger,
+			zapcore.DebugLevel,
+		),
 		// middlewares.Panic(obj.logger),
 	)
 
