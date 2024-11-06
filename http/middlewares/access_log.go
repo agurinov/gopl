@@ -9,7 +9,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func AccessLog(logger *zap.Logger) Middleware {
+func AccessLog(
+	logger *zap.Logger,
+	defaultLevel zapcore.Level,
+) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			recorder := &statusRecorder{
@@ -23,7 +26,7 @@ func AccessLog(logger *zap.Logger) Middleware {
 
 			elapsedTime := time.Since(startTime)
 
-			logLvl := zapcore.InfoLevel
+			logLvl := defaultLevel
 			if recorder.Status >= 500 && recorder.Status <= 599 {
 				logLvl = zapcore.ErrorLevel
 			}

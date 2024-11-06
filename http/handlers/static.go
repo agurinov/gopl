@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"golang.org/x/exp/slices"
 
 	"github.com/agurinov/gopl/diag/metrics"
@@ -38,7 +39,10 @@ func (h static) Handler() http.Handler {
 		middlewares.Metrics(
 			metrics.WithBuckets(metrics.BucketFast),
 		),
-		middlewares.AccessLog(h.logger),
+		middlewares.AccessLog(
+			h.logger,
+			zapcore.InfoLevel,
+		),
 		chimw.GetHead,
 	)
 

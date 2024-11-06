@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/http/middlewares"
@@ -22,7 +23,7 @@ type (
 
 var NewBasic = c.NewWithValidate[basic, BasicOption]
 
-func (b basic) Handler() http.Handler {
+func (h basic) Handler() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(
@@ -30,13 +31,16 @@ func (b basic) Handler() http.Handler {
 		middlewares.Metrics(
 			metrics.WithBuckets(metrics.BucketFast),
 		),
-		middlewares.AccessLog(b.logger),
+		middlewares.AccessLog(
+			h.logger,
+			zapcore.InfoLevel,
+		),
 	)
 
-	r.Use(b.customMiddlewares...)
+	r.Use(h.customMiddlewares...)
 	// r.Use(middlewares.Panic(obj.logger))
 
-	r.Handle("/*", b.handler)
+	r.Handle("/*", h.handler)
 
 	return r
 }
