@@ -123,7 +123,7 @@ func WithJob(jobName string, cfg JobConfig) SchedulerOption {
 		}
 
 		if _, jobErr := s.scheduler.NewJob(
-			gocron.CronJob(cfg.Schedule, false),
+			gocron.CronJob(cfg.Schedule, true),
 			taskAdapter(ctx, job, cfg.Timeout),
 			gocron.WithName(jobName),
 			gocron.WithIdentifier(
