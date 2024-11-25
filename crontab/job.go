@@ -14,13 +14,15 @@ func taskAdapter(
 	job Job,
 	timeout time.Duration,
 ) gocron.Task {
-	return gocron.NewTask(
-		func(ctx context.Context) error {
-			ctx, cancel := context.WithTimeout(ctx, timeout)
-			defer cancel()
+	jobFunc := func(ctx context.Context) error {
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
 
-			return job(ctx)
-		},
+		return job(ctx)
+	}
+
+	return gocron.NewTask(
+		jobFunc,
 		ctx,
 	)
 }

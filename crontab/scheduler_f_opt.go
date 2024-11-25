@@ -81,6 +81,14 @@ func withScheduler(opts ...gocron.SchedulerOption) SchedulerOption {
 							zap.Stack("stack"),
 						)
 					}),
+					gocron.AfterLockError(func(jobUUID uuid.UUID, jobName string, err error) {
+						s.logger.Info(
+							"can't acquire job lock",
+							zap.String("job_name", jobName),
+							zap.String("job_uuid", jobUUID.String()),
+							zap.Error(err),
+						)
+					}),
 				),
 			),
 		)
