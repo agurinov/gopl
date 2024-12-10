@@ -31,7 +31,7 @@ require (
 	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
-	golang.org/x/sync v0.9.0
+	golang.org/x/sync v0.10.0
 	golang.org/x/tools v0.24.0
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.2
