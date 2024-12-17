@@ -49,6 +49,8 @@ type executor struct {
 	locker Locker
 	// monitor for reporting metrics
 	monitor Monitor
+	// monitorStatus for reporting metrics
+	monitorStatus MonitorStatus
 }
 
 type jobIn struct {
@@ -406,9 +408,11 @@ func (e *executor) runJob(j internalJob, jIn jobIn) {
 	if err != nil {
 		_ = callJobFuncWithParams(j.afterJobRunsWithError, j.id, j.name, err)
 		e.incrementJobCounter(j, Fail)
+		e.recordJobTimingWithStatus(startTime, time.Now(), j, Fail, err)
 	} else {
 		_ = callJobFuncWithParams(j.afterJobRuns, j.id, j.name)
 		e.incrementJobCounter(j, Success)
+		e.recordJobTimingWithStatus(startTime, time.Now(), j, Success, nil)
 	}
 }
 
@@ -428,6 +432,12 @@ func (e *executor) callJobWithRecover(j internalJob) (err error) {
 func (e *executor) recordJobTiming(start time.Time, end time.Time, j internalJob) {
 	if e.monitor != nil {
 		e.monitor.RecordJobTiming(start, end, j.id, j.name, j.tags)
+	}
+}
+
+func (e *executor) recordJobTimingWithStatus(start time.Time, end time.Time, j internalJob, status JobStatus, err error) {
+	if e.monitorStatus != nil {
+		e.monitorStatus.RecordJobTimingWithStatus(start, end, j.id, j.name, j.tags, status, err)
 	}
 }
 
