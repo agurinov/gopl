@@ -18,6 +18,7 @@ func WithLogger(logger *zap.Logger) Option {
 	}
 }
 
+//nolint:revive
 func WithMetrics(enabled bool) Option {
 	if !enabled {
 		return nil

@@ -53,12 +53,14 @@ func (e exponential) Duration(retries uint32) time.Duration {
 	}
 
 	// Check global boundaries
-	min := float64(e.minDelay)
-	max := float64(e.maxDelay)
+	var (
+		minF = float64(e.minDelay)
+		maxF = float64(e.maxDelay)
+	)
 
 	backoff = math.Max(
-		min,
-		math.Min(max, backoff),
+		minF,
+		math.Min(maxF, backoff),
 	)
 
 	return time.Duration(backoff)
