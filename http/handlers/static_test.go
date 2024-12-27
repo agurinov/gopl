@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/agurinov/gopl/http/handlers"
+	"github.com/agurinov/gopl/nopanic"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
@@ -20,8 +21,8 @@ var bundle embed.FS
 func TestStatic(t *testing.T) {
 	type (
 		args struct {
-			staticHandlerOptions []handlers.StaticOption
 			request              *http.Request
+			staticHandlerOptions []handlers.StaticOption
 		}
 		results struct {
 			statusCode int
@@ -29,6 +30,12 @@ func TestStatic(t *testing.T) {
 			headers    http.Header
 		}
 	)
+
+	nopanicHandler, err := nopanic.NewHandler(
+		nopanic.WithLogger(zaptest.NewLogger(t)),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, nopanicHandler)
 
 	cases := map[string]struct {
 		args    args
@@ -278,6 +285,9 @@ func TestStatic(t *testing.T) {
 
 			tc.args.staticHandlerOptions = append(tc.args.staticHandlerOptions,
 				handlers.WithStaticLogger(zaptest.NewLogger(t)),
+				handlers.WithStaticCustomMiddlewares(
+					nopanicHandler.Middleware(),
+				),
 			)
 
 			static, err := handlers.NewStatic(tc.args.staticHandlerOptions...)

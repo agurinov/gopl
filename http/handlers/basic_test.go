@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/agurinov/gopl/http/handlers"
+	"github.com/agurinov/gopl/nopanic"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
@@ -23,6 +24,12 @@ func TestBasic(t *testing.T) {
 			statusCode int
 		}
 	)
+
+	nopanicHandler, err := nopanic.NewHandler(
+		nopanic.WithLogger(zaptest.NewLogger(t)),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, nopanicHandler)
 
 	cases := map[string]struct {
 		pl_testing.TestCase
@@ -84,6 +91,22 @@ func TestBasic(t *testing.T) {
 				},
 			},
 		},
+		"case04: panic in handler": {
+			args: args{
+				basicHandlerOptions: []handlers.BasicOption{
+					handlers.WithBasicHandler(http.HandlerFunc(
+						func(_ http.ResponseWriter, _ *http.Request) {
+							panic("OOPS")
+						}),
+					),
+				},
+				request: httptest.NewRequest(http.MethodPut, "/foobar", nil),
+			},
+			results: results{
+				statusCode: http.StatusInternalServerError,
+				headers:    http.Header{},
+			},
+		},
 	}
 
 	for name := range cases {
@@ -96,6 +119,9 @@ func TestBasic(t *testing.T) {
 
 			tc.args.basicHandlerOptions = append(tc.args.basicHandlerOptions,
 				handlers.WithBasicLogger(zaptest.NewLogger(t)),
+				handlers.WithBasicCustomMiddlewares(
+					nopanicHandler.Middleware(),
+				),
 			)
 
 			basic, err := handlers.NewBasic(tc.args.basicHandlerOptions...)
@@ -109,6 +135,8 @@ func TestBasic(t *testing.T) {
 
 			require.Equal(t, tc.results.statusCode, recorder.Code)
 			require.Equal(t, tc.results.headers, recorder.Header())
+
+			require.Nil(t, recover())
 		})
 	}
 }
