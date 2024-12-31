@@ -38,7 +38,6 @@ func (h basic) Handler() http.Handler {
 	)
 
 	r.Use(h.customMiddlewares...)
-	// r.Use(middlewares.Panic(obj.logger))
 
 	r.Handle("/*", h.handler)
 

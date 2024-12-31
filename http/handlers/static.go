@@ -47,7 +47,6 @@ func (h static) Handler() http.Handler {
 	)
 
 	r.Use(h.customMiddlewares...)
-	// r.Use(middlewares.Panic(obj.logger))
 
 	fsHandler := http.FileServer(http.FS(h.fs))
 
