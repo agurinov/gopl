@@ -16,9 +16,10 @@ import (
 
 type (
 	debug struct {
-		atomicLogLevel *zap.AtomicLevel
-		logger         *zap.Logger
-		prober         *probes.Prober
+		atomicLogLevel    *zap.AtomicLevel
+		logger            *zap.Logger
+		prober            *probes.Prober
+		customMiddlewares []middlewares.Middleware
 	}
 	DebugOption c.Option[debug]
 )
@@ -37,8 +38,9 @@ func (h debug) Handler() http.Handler {
 			h.logger,
 			zapcore.DebugLevel,
 		),
-		// middlewares.Panic(obj.logger),
 	)
+
+	r.Use(h.customMiddlewares...)
 
 	if h.atomicLogLevel != nil {
 		r.Mount("/logger", *h.atomicLogLevel)
