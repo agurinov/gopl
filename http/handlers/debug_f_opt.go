@@ -4,6 +4,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/agurinov/gopl/diag/probes"
+	"github.com/agurinov/gopl/http/middlewares"
 )
 
 func WithDebugAtomicLevel(lvl *zap.AtomicLevel) DebugOption {
@@ -29,6 +30,14 @@ func WithDebugLogger(logger *zap.Logger) DebugOption {
 func WithDebugProber(prober *probes.Prober) DebugOption {
 	return func(h *debug) error {
 		h.prober = prober
+
+		return nil
+	}
+}
+
+func WithDebugCustomMiddlewares(mw ...middlewares.Middleware) DebugOption {
+	return func(h *debug) error {
+		h.customMiddlewares = append(h.customMiddlewares, mw...)
 
 		return nil
 	}

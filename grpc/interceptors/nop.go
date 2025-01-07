@@ -11,6 +11,9 @@ func NopUnaryServerInterceptor(
 	in any,
 	_ *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler,
-) (any, error) {
+) (
+	any,
+	error,
+) {
 	return handler(ctx, in)
 }
