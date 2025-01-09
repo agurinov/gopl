@@ -29,6 +29,10 @@ func (u User) String() string {
 	return strconv.FormatInt(u.ID, 10)
 }
 
+func (u User) FullName() string {
+	return u.FirstName + " " + u.LastName
+}
+
 func Username(username string) string {
 	switch {
 	case username == "":
