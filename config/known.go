@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/agurinov/gopl/crontab"
 	"github.com/agurinov/gopl/diag/log"
+	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/diag/probes"
 	"github.com/agurinov/gopl/diag/trace"
 	"github.com/agurinov/gopl/graceful"
@@ -14,9 +15,10 @@ import (
 )
 
 type (
-	Logger = log.Config
-	Probes = probes.Config
-	Trace  = trace.Config
+	Logger  = log.Config
+	Probes  = probes.Config
+	Trace   = trace.Config
+	Metrics = metrics.Config
 )
 
 type (
