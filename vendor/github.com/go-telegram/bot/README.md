@@ -6,7 +6,7 @@
 
 > [Telegram Group](https://t.me/gotelegrambotui)
 
-> Supports Bot API version: [8.1](https://core.telegram.org/bots/api#december-4-2024) from December 4, 2024
+> Supports Bot API version: [8.2](https://core.telegram.org/bots/api#january-1-2025) from January 1, 2025
 
 It's a Go zero-dependencies telegram bot framework
 
@@ -187,6 +187,7 @@ b, err := bot.New("YOUR_BOT_TOKEN_FROM_BOTFATHER", opts...)
 - `WithWorkers` - set the number of workers that are processing the Updates channel, by default 1
 - `UseTestEnvironment()` - use test environment
 - `WithNotAsyncHandlers()` - allows to run handlers in the main goroutine
+- `WithInitialOffset(offset int64)` - allows to set initial offset for getUpdates method
 
 ## Message.Text and CallbackQuery.Data handlers
 
@@ -344,7 +345,7 @@ p := &bot.SendPollParams{
 b.SendPoll(ctx, p)
 ```
 
-### `ValidateWebappRequest(values url.Values, token string) (user *models.User, ok bool)`
+### `ValidateWebappRequest(values url.Values, token string) (user *WebAppUser, ok bool)`
 
 Validate request from Telegram Webapp
 
@@ -407,6 +408,18 @@ if errors.Is(err, mybot.ErrorConflict) {
     // Handle the ErrorConflict (409) case here
 }
 ```
+
+## Other
+
+- `bot.ID() int64` - returns bot ID. Bot ID is a unique identifier for the bot, obtained from the token as first part before `:`. Example: `110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw` - bot ID is `110201543`. If the bot token is invalid, the bot ID will be 0.
+- `bot.Token() string` - returns bot token
+- `bot.SetToken()` - set new bot token
+
+## MiniApp misc
+
+Check the repo [go-telegram/miniapp](https://github.com/go-telegram/miniapp) for Telegram MiniApp example.
+
+Repo [go-telegram/miniapp-types](https://github.com/go-telegram/miniapp-types) contains TypeScript types definitions for Telegram MiniApp object.
 
 ## UI Components
 
