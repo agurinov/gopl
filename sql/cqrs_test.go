@@ -27,8 +27,8 @@ func TestCQRS_Connect(t *testing.T) {
 	ctx := context.TODO()
 
 	cases := map[string]struct {
-		args args
 		pl_testing.TestCase
+		args args
 	}{
 		"case00: wrong database": {
 			args: args{

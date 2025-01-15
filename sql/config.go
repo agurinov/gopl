@@ -9,13 +9,13 @@ import (
 )
 
 type Config struct {
-	Enabled  bool
 	Driver   string `validate:"oneof=noop mysql pgx"`
 	Host     string `validate:"required"`
 	Database string `validate:"required"`
 	User     string `validate:"required"`
 	Password string `validate:"required"`
 	Port     int64  `validate:"gt=1000,lt=65536"`
+	Enabled  bool
 }
 
 func (c Config) DSN() string {

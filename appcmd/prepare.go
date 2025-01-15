@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/agurinov/gopl/diag/log"
-	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/env/envvars"
 )
 
@@ -45,10 +44,6 @@ func Prepare(cmdName string) ( //nolint:revive
 	}
 
 	// TODO(a.gurinov): k8s memlimit
-
-	if err := metrics.Init(cmdName); err != nil {
-		return ctx, stop, logger, err
-	}
 
 	return ctx, stop, logger, nil
 }
