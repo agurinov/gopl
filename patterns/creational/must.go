@@ -9,3 +9,9 @@ func Must[T any](t T, err error) T {
 
 	return t
 }
+
+func MustInit(err error) {
+	if err != nil {
+		panic(fmt.Errorf("can't init object\n%w", err))
+	}
+}

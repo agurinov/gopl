@@ -9,6 +9,7 @@ import (
 )
 
 type Config struct {
+	Enabled  bool
 	Driver   string `validate:"oneof=noop mysql pgx"`
 	Host     string `validate:"required"`
 	Database string `validate:"required"`
