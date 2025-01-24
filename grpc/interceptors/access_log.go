@@ -12,6 +12,9 @@ import (
 func LoggerUnaryServer(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return logging.UnaryServerInterceptor(
 		log.GRPC(logger),
+		logging.WithDurationField(
+			logging.DurationToDurationField,
+		),
 		logging.WithLogOnEvents(
 			logging.StartCall,
 			logging.FinishCall,
