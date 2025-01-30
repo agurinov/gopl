@@ -25,7 +25,7 @@ type (
 	Vault    = vault.Config
 	SQL      = sql.Config
 	Graceful = graceful.Config
-	GRPC     = grpc.Config
+	GRPC     = grpc.ServerConfig
 	HTTP     = http.Config
 )
 

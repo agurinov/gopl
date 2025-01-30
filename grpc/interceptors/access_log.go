@@ -9,20 +9,35 @@ import (
 	"github.com/agurinov/gopl/diag/log"
 )
 
-func LoggerUnaryServer(logger *zap.Logger) grpc.UnaryServerInterceptor {
+//nolint:revive
+func LoggerUnaryServer(
+	logger *zap.Logger,
+	debugPayload bool,
+) grpc.UnaryServerInterceptor {
+	loggableEvents := []logging.LoggableEvent{
+		logging.StartCall,
+		logging.FinishCall,
+	}
+
+	if debugPayload {
+		loggableEvents = append(loggableEvents,
+			logging.PayloadReceived,
+			logging.PayloadSent,
+		)
+	}
+
 	return logging.UnaryServerInterceptor(
 		log.GRPC(logger),
 		logging.WithDurationField(
 			logging.DurationToDurationField,
 		),
-		logging.WithLogOnEvents(
-			logging.StartCall,
-			logging.FinishCall,
-		),
+		logging.WithLogOnEvents(loggableEvents...),
 		logging.WithDisableLoggingFields(
 			"protocol",
+			"peer.address",
 			"grpc.component",
 			"grpc.start_time",
+			"grpc.method_type",
 		),
 		logging.WithLevels(serverCodeToLevel),
 	)
