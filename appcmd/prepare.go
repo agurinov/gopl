@@ -2,6 +2,7 @@ package appcmd
 
 import (
 	"context"
+	"fmt"
 	"os/signal"
 	"syscall"
 
@@ -28,10 +29,23 @@ func Prepare(cmdName string) ( //nolint:revive
 		zap.String("cmd_name", cmdName),
 	)
 
-	var (
-		goMaxProcs, _ = envvars.GoMaxProcs.Value() //nolint:errcheck
-		goMemLimit, _ = envvars.GoMemLimit.Value() //nolint:errcheck
-	)
+	goMemLimit, err := envvars.GoMemLimit.Value()
+	if err != nil {
+		return ctx, stop, logger, fmt.Errorf(
+			"can't parse %s: %w",
+			envvars.GoMemLimit.String(),
+			err,
+		)
+	}
+
+	goMaxProcs, err := envvars.GoMaxProcs.Value()
+	if err != nil {
+		return ctx, stop, logger, fmt.Errorf(
+			"can't parse %s: %w",
+			envvars.GoMaxProcs.String(),
+			err,
+		)
+	}
 
 	logger.Info(
 		"resources from env",
@@ -39,8 +53,8 @@ func Prepare(cmdName string) ( //nolint:revive
 		zap.String(envvars.GoMemLimit.String(), goMemLimit),
 	)
 
-	if _, err := maxprocs.Set(maxprocs.Logger(logger.Sugar().Infof)); err != nil {
-		return ctx, stop, logger, err
+	if _, maxprocsErr := maxprocs.Set(maxprocs.Logger(logger.Sugar().Infof)); maxprocsErr != nil {
+		return ctx, stop, logger, maxprocsErr
 	}
 
 	// TODO(a.gurinov): k8s memlimit
