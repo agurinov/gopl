@@ -17,7 +17,6 @@ type (
 		handlers          map[string]http.Handler
 		logger            *zap.Logger
 		customMiddlewares []middlewares.Middleware
-		handlersAutomount bool
 		accessLogLevel    zapcore.Level
 	}
 	BasicOption c.Option[Basic]
@@ -25,8 +24,7 @@ type (
 
 func NewBasic(opts ...BasicOption) (Basic, error) {
 	h := Basic{
-		accessLogLevel:    zapcore.InfoLevel,
-		handlersAutomount: true,
+		accessLogLevel: zapcore.InfoLevel,
 	}
 
 	return c.ConstructWithValidate(h, opts...)
@@ -51,10 +49,6 @@ func (h Basic) Router() chi.Router {
 	r.Use(h.customMiddlewares...)
 
 	for path, handler := range h.handlers {
-		if !h.handlersAutomount {
-			continue
-		}
-
 		r.Handle(path, handler)
 
 		h.logger.Info(
