@@ -32,7 +32,9 @@ func NewBasic(opts ...BasicOption) (Basic, error) {
 	return c.ConstructWithValidate(h, opts...)
 }
 
-func (h Basic) Handler() http.Handler {
+func (h Basic) Handler() http.Handler { return h.Router() }
+
+func (h Basic) Router() chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(
