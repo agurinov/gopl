@@ -25,9 +25,9 @@ func TestStatic(t *testing.T) {
 			staticHandlerOptions []handlers.StaticOption
 		}
 		results struct {
-			statusCode int
-			content    string
 			headers    http.Header
+			content    string
+			statusCode int
 		}
 	)
 
@@ -38,9 +38,9 @@ func TestStatic(t *testing.T) {
 	require.NotNil(t, nopanicHandler)
 
 	cases := map[string]struct {
-		args    args
 		results results
 		pl_testing.TestCase
+		args args
 	}{
 		"case00: embed: index on slash": {
 			args: args{

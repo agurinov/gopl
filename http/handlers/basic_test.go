@@ -39,11 +39,13 @@ func TestBasic(t *testing.T) {
 		"case00: check get": {
 			args: args{
 				basicHandlerOptions: []handlers.BasicOption{
-					handlers.WithBasicHandler(http.HandlerFunc(
-						func(w http.ResponseWriter, r *http.Request) {
-							http.Redirect(w, r, "/foobar", http.StatusPermanentRedirect)
-						}),
-					),
+					handlers.WithBasicHandlers(map[string]http.Handler{
+						"/*": http.HandlerFunc(
+							func(w http.ResponseWriter, r *http.Request) {
+								http.Redirect(w, r, "/foobar", http.StatusPermanentRedirect)
+							},
+						),
+					}),
 				},
 				request: httptest.NewRequest(http.MethodGet, "/", nil),
 			},
@@ -58,11 +60,13 @@ func TestBasic(t *testing.T) {
 		"case01: check post": {
 			args: args{
 				basicHandlerOptions: []handlers.BasicOption{
-					handlers.WithBasicHandler(http.HandlerFunc(
-						func(w http.ResponseWriter, r *http.Request) {
-							http.Redirect(w, r, "/foobar", http.StatusPermanentRedirect)
-						}),
-					),
+					handlers.WithBasicHandlers(map[string]http.Handler{
+						"/*": http.HandlerFunc(
+							func(w http.ResponseWriter, r *http.Request) {
+								http.Redirect(w, r, "/foobar", http.StatusPermanentRedirect)
+							},
+						),
+					}),
 				},
 				request: httptest.NewRequest(http.MethodPost, "/", nil),
 			},
@@ -76,11 +80,13 @@ func TestBasic(t *testing.T) {
 		"case03: check put foobar": {
 			args: args{
 				basicHandlerOptions: []handlers.BasicOption{
-					handlers.WithBasicHandler(http.HandlerFunc(
-						func(w http.ResponseWriter, r *http.Request) {
-							http.Redirect(w, r, "/foobar/baz", http.StatusPermanentRedirect)
-						}),
-					),
+					handlers.WithBasicHandlers(map[string]http.Handler{
+						"/*": http.HandlerFunc(
+							func(w http.ResponseWriter, r *http.Request) {
+								http.Redirect(w, r, "/foobar/baz", http.StatusPermanentRedirect)
+							},
+						),
+					}),
 				},
 				request: httptest.NewRequest(http.MethodPut, "/foobar", nil),
 			},
@@ -94,11 +100,13 @@ func TestBasic(t *testing.T) {
 		"case04: panic in handler": {
 			args: args{
 				basicHandlerOptions: []handlers.BasicOption{
-					handlers.WithBasicHandler(http.HandlerFunc(
-						func(_ http.ResponseWriter, _ *http.Request) {
-							panic("OOPS")
-						}),
-					),
+					handlers.WithBasicHandlers(map[string]http.Handler{
+						"/*": http.HandlerFunc(
+							func(_ http.ResponseWriter, _ *http.Request) {
+								panic("OOPS")
+							},
+						),
+					}),
 				},
 				request: httptest.NewRequest(http.MethodPut, "/foobar", nil),
 			},

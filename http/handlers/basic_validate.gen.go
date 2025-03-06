@@ -10,13 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func (obj basic) Validate() error {
+func (obj Basic) Validate() error {
 	s := struct {
-		Logger  *zap.Logger  `validate:"required"`
-		Handler http.Handler `validate:"required"`
+		Logger   *zap.Logger             `validate:"required"`
+		Handlers map[string]http.Handler `validate:"required,dive,keys,required,endkeys,required"`
 	}{
-		Logger:  obj.logger,
-		Handler: obj.handler,
+		Logger:   obj.logger,
+		Handlers: obj.handlers,
 	}
 
 	v := validator.New()

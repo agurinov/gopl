@@ -9,7 +9,7 @@ import (
 )
 
 func WithBasicLogger(logger *zap.Logger) BasicOption {
-	return func(b *basic) error {
+	return func(b *Basic) error {
 		if logger == nil {
 			return nil
 		}
@@ -21,16 +21,16 @@ func WithBasicLogger(logger *zap.Logger) BasicOption {
 }
 
 func WithBasicCustomMiddlewares(mw ...middlewares.Middleware) BasicOption {
-	return func(b *basic) error {
+	return func(b *Basic) error {
 		b.customMiddlewares = append(b.customMiddlewares, mw...)
 
 		return nil
 	}
 }
 
-func WithBasicHandler(h http.Handler) BasicOption {
-	return func(b *basic) error {
-		b.handler = h
+func WithBasicHandlers(h map[string]http.Handler) BasicOption {
+	return func(b *Basic) error {
+		b.handlers = h
 
 		return nil
 	}

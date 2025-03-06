@@ -13,17 +13,26 @@ import (
 )
 
 type (
-	basic struct {
-		handler           http.Handler
+	Basic struct {
+		handlers          map[string]http.Handler
 		logger            *zap.Logger
 		customMiddlewares []middlewares.Middleware
+		handlersAutomount bool
+		accessLogLevel    zapcore.Level
 	}
-	BasicOption c.Option[basic]
+	BasicOption c.Option[Basic]
 )
 
-var NewBasic = c.NewWithValidate[basic, BasicOption]
+func NewBasic(opts ...BasicOption) (Basic, error) {
+	h := Basic{
+		accessLogLevel:    zapcore.InfoLevel,
+		handlersAutomount: true,
+	}
 
-func (h basic) Handler() http.Handler {
+	return c.ConstructWithValidate(h, opts...)
+}
+
+func (h Basic) Handler() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(
@@ -33,13 +42,24 @@ func (h basic) Handler() http.Handler {
 		),
 		middlewares.AccessLog(
 			h.logger,
-			zapcore.InfoLevel,
+			h.accessLogLevel,
 		),
 	)
 
 	r.Use(h.customMiddlewares...)
 
-	r.Handle("/*", h.handler)
+	for path, handler := range h.handlers {
+		if !h.handlersAutomount {
+			continue
+		}
+
+		r.Handle(path, handler)
+
+		h.logger.Info(
+			"handler mounted",
+			zap.String("path", path),
+		)
+	}
 
 	return r
 }
