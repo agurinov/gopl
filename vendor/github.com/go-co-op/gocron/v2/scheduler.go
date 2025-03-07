@@ -5,11 +5,12 @@ import (
 	"context"
 	"reflect"
 	"runtime"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
-	"golang.org/x/exp/slices"
 )
 
 var _ Scheduler = (*scheduler)(nil)
@@ -137,6 +138,7 @@ func NewScheduler(options ...SchedulerOption) (Scheduler, error) {
 
 		jobsIn:                 make(chan jobIn),
 		jobsOutForRescheduling: make(chan uuid.UUID),
+		jobUpdateNextRuns:      make(chan uuid.UUID),
 		jobsOutCompleted:       make(chan uuid.UUID),
 		jobOutRequest:          make(chan jobOutRequest, 1000),
 		done:                   make(chan error),
@@ -175,7 +177,8 @@ func NewScheduler(options ...SchedulerOption) (Scheduler, error) {
 			select {
 			case id := <-s.exec.jobsOutForRescheduling:
 				s.selectExecJobsOutForRescheduling(id)
-
+			case id := <-s.exec.jobUpdateNextRuns:
+				s.updateNextScheduled(id)
 			case id := <-s.exec.jobsOutCompleted:
 				s.selectExecJobsOutCompleted(id)
 
@@ -237,11 +240,8 @@ func (s *scheduler) stopScheduler() {
 	for _, j := range s.jobs {
 		j.stop()
 	}
-	for id, j := range s.jobs {
+	for _, j := range s.jobs {
 		<-j.ctx.Done()
-
-		j.ctx, j.cancel = context.WithCancel(s.shutdownCtx)
-		s.jobs[id] = j
 	}
 	var err error
 	if s.started {
@@ -253,6 +253,21 @@ func (s *scheduler) stopScheduler() {
 			err = ErrStopExecutorTimedOut
 		}
 	}
+	for id, j := range s.jobs {
+		oldCtx := j.ctx
+		if j.parentCtx == nil {
+			j.parentCtx = s.shutdownCtx
+		}
+		j.ctx, j.cancel = context.WithCancel(j.parentCtx)
+
+		// also replace the old context with the new one in the parameters
+		if len(j.parameters) > 0 && j.parameters[0] == oldCtx {
+			j.parameters[0] = j.ctx
+		}
+
+		s.jobs[id] = j
+	}
+
 	s.stopErrCh <- err
 	s.started = false
 	s.logger.Debug("gocron: scheduler stopped")
@@ -267,14 +282,7 @@ func (s *scheduler) selectAllJobsOutRequest(out allJobsOutRequest) {
 	}
 	slices.SortFunc(outJobs, func(a, b Job) int {
 		aID, bID := a.ID().String(), b.ID().String()
-		switch {
-		case aID < bID:
-			return -1
-		case aID > bID:
-			return 1
-		default:
-			return 0
-		}
+		return strings.Compare(aID, bID)
 	})
 	select {
 	case <-s.shutdownCtx.Done():
@@ -335,7 +343,7 @@ func (s *scheduler) selectExecJobsOutForRescheduling(id uuid.UUID) {
 		return
 	}
 
-	scheduleFrom := j.lastRun
+	var scheduleFrom time.Time
 	if len(j.nextScheduled) > 0 {
 		// always grab the last element in the slice as that is the furthest
 		// out in the future and the time from which we want to calculate
@@ -366,6 +374,15 @@ func (s *scheduler) selectExecJobsOutForRescheduling(id uuid.UUID) {
 		}
 	}
 
+	if slices.Contains(j.nextScheduled, next) {
+		// if the next value is a duplicate of what's already in the nextScheduled slice, for example:
+		// - the job is being rescheduled off the same next run value as before
+		// increment to the next, next value
+		for slices.Contains(j.nextScheduled, next) {
+			next = j.next(next)
+		}
+	}
+
 	// Clean up any existing timer to prevent leaks
 	if j.timer != nil {
 		j.timer.Stop()
@@ -387,6 +404,22 @@ func (s *scheduler) selectExecJobsOutForRescheduling(id uuid.UUID) {
 		}
 	})
 	// update the job with its new next and last run times and timer.
+	s.jobs[id] = j
+}
+
+func (s *scheduler) updateNextScheduled(id uuid.UUID) {
+	j, ok := s.jobs[id]
+	if !ok {
+		return
+	}
+	var newNextScheduled []time.Time
+	for _, t := range j.nextScheduled {
+		if t.Before(s.now()) {
+			continue
+		}
+		newNextScheduled = append(newNextScheduled, t)
+	}
+	j.nextScheduled = newNextScheduled
 	s.jobs[id] = j
 }
 
