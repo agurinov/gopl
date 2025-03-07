@@ -170,10 +170,19 @@ We appreciate the support for free and open source software!
 This project is supported by:
 
 [Jetbrains](https://www.jetbrains.com/?from=gocron)
+
 ![JetBrains logo](https://resources.jetbrains.com/storage/products/company/brand/logos/jetbrains.png)
 
 
 [Sentry](https://sentry.io/welcome/)
+
+<p align="left">
+  <p align="left">
+    <a href="https://sentry.io/?utm_source=github&utm_medium=logo" target="_blank">
+      <img src="https://sentry-brand.storage.googleapis.com/sentry-wordmark-dark-280x84.png" alt="Sentry" width="280" height="84" />
+    </a>
+  </p>
+</p>
 
 ## Star History
 
