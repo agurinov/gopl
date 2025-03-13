@@ -371,7 +371,7 @@ github.com/stoewer/go-strcase
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/require
-# github.com/telegram-mini-apps/init-data-golang v1.3.0
+# github.com/telegram-mini-apps/init-data-golang v1.5.0
 ## explicit; go 1.18
 github.com/telegram-mini-apps/init-data-golang
 # github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f
