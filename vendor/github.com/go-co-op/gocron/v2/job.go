@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jonboulle/clockwork"
 	"github.com/robfig/cron/v3"
-	"golang.org/x/exp/slices"
 )
 
 // internalJob stores the information needed by the scheduler
@@ -24,6 +24,7 @@ type internalJob struct {
 	id        uuid.UUID
 	name      string
 	tags      []string
+	cron      Cron
 	jobSchedule
 
 	// as some jobs may queue up, it's possible to
@@ -106,6 +107,20 @@ type limitRunsTo struct {
 
 // -----------------------------------------------
 // -----------------------------------------------
+// --------------- Custom Cron -------------------
+// -----------------------------------------------
+// -----------------------------------------------
+
+// Cron defines the interface that must be
+// implemented to provide a custom cron implementation for
+// the job. Pass in the implementation using the JobOption WithCronImplementation.
+type Cron interface {
+	IsValid(crontab string, location *time.Location, now time.Time) error
+	Next(lastRun time.Time) time.Time
+}
+
+// -----------------------------------------------
+// -----------------------------------------------
 // --------------- Job Variants ------------------
 // -----------------------------------------------
 // -----------------------------------------------
@@ -116,21 +131,29 @@ type JobDefinition interface {
 	setup(j *internalJob, l *time.Location, now time.Time) error
 }
 
-var _ JobDefinition = (*cronJobDefinition)(nil)
+// Default cron implementation
 
-type cronJobDefinition struct {
-	crontab     string
-	withSeconds bool
+func newDefaultCronImplementation(withSeconds bool) Cron {
+	return &defaultCron{
+		withSeconds: withSeconds,
+	}
 }
 
-func (c cronJobDefinition) setup(j *internalJob, location *time.Location, now time.Time) error {
+var _ Cron = (*defaultCron)(nil)
+
+type defaultCron struct {
+	cronSchedule cron.Schedule
+	withSeconds  bool
+}
+
+func (c *defaultCron) IsValid(crontab string, location *time.Location, now time.Time) error {
 	var withLocation string
-	if strings.HasPrefix(c.crontab, "TZ=") || strings.HasPrefix(c.crontab, "CRON_TZ=") {
-		withLocation = c.crontab
+	if strings.HasPrefix(crontab, "TZ=") || strings.HasPrefix(crontab, "CRON_TZ=") {
+		withLocation = crontab
 	} else {
 		// since the user didn't provide a timezone default to the location
 		// passed in by the scheduler. Default: time.Local
-		withLocation = fmt.Sprintf("CRON_TZ=%s %s", location.String(), c.crontab)
+		withLocation = fmt.Sprintf("CRON_TZ=%s %s", location.String(), crontab)
 	}
 
 	var (
@@ -150,8 +173,32 @@ func (c cronJobDefinition) setup(j *internalJob, location *time.Location, now ti
 	if cronSchedule.Next(now).IsZero() {
 		return ErrCronJobInvalid
 	}
+	c.cronSchedule = cronSchedule
+	return nil
+}
 
-	j.jobSchedule = &cronJob{cronSchedule: cronSchedule}
+func (c *defaultCron) Next(lastRun time.Time) time.Time {
+	return c.cronSchedule.Next(lastRun)
+}
+
+// default cron job implementation
+var _ JobDefinition = (*cronJobDefinition)(nil)
+
+type cronJobDefinition struct {
+	crontab string
+	cron    Cron
+}
+
+func (c cronJobDefinition) setup(j *internalJob, location *time.Location, now time.Time) error {
+	if j.cron != nil {
+		c.cron = j.cron
+	}
+
+	if err := c.cron.IsValid(c.crontab, location, now); err != nil {
+		return err
+	}
+
+	j.jobSchedule = &cronJob{crontab: c.crontab, cronSchedule: c.cron}
 	return nil
 }
 
@@ -163,8 +210,8 @@ func (c cronJobDefinition) setup(j *internalJob, location *time.Location, now ti
 // `CRON_TZ=America/Chicago * * * * *`
 func CronJob(crontab string, withSeconds bool) JobDefinition {
 	return cronJobDefinition{
-		crontab:     crontab,
-		withSeconds: withSeconds,
+		crontab: crontab,
+		cron:    newDefaultCronImplementation(withSeconds),
 	}
 }
 
@@ -369,11 +416,9 @@ func (m monthlyJobDefinition) setup(j *internalJob, location *time.Location, _ t
 		}
 	}
 	daysStart = removeSliceDuplicatesInt(daysStart)
-	slices.Sort(daysStart)
 	ms.days = daysStart
 
 	daysEnd = removeSliceDuplicatesInt(daysEnd)
-	slices.Sort(daysEnd)
 	ms.daysFromEnd = daysEnd
 
 	atTimesDate, err := convertAtTimesToDateTime(m.atTimes, location)
@@ -610,6 +655,15 @@ func WithName(name string) JobOption {
 	}
 }
 
+// WithCronImplementation sets the custom Cron implementation for the job.
+// This is only utilized for the CronJob type.
+func WithCronImplementation(c Cron) JobOption {
+	return func(j *internalJob, _ time.Time) error {
+		j.cron = c
+		return nil
+	}
+}
+
 // WithSingletonMode keeps the job from running again if it is already running.
 // This is useful for jobs that should not overlap, and that occasionally
 // (but not consistently) run longer than the interval between job runs.
@@ -820,7 +874,8 @@ type jobSchedule interface {
 var _ jobSchedule = (*cronJob)(nil)
 
 type cronJob struct {
-	cronSchedule cron.Schedule
+	crontab      string
+	cronSchedule Cron
 }
 
 func (j *cronJob) next(lastRun time.Time) time.Time {
@@ -864,7 +919,7 @@ func (d dailyJob) next(lastRun time.Time) time.Time {
 	}
 	firstPass = false
 
-	startNextDay := time.Date(lastRun.Year(), lastRun.Month(), lastRun.Day()+int(d.interval), 0, 0, 0, lastRun.Nanosecond(), lastRun.Location())
+	startNextDay := time.Date(lastRun.Year(), lastRun.Month(), lastRun.Day()+int(d.interval), 0, 0, 0, 0, lastRun.Location())
 	return d.nextDay(startNextDay, firstPass)
 }
 
@@ -872,7 +927,7 @@ func (d dailyJob) nextDay(lastRun time.Time, firstPass bool) time.Time {
 	for _, at := range d.atTimes {
 		// sub the at time hour/min/sec onto the lastScheduledRun's values
 		// to use in checks to see if we've got our next run time
-		atDate := time.Date(lastRun.Year(), lastRun.Month(), lastRun.Day(), at.Hour(), at.Minute(), at.Second(), lastRun.Nanosecond(), lastRun.Location())
+		atDate := time.Date(lastRun.Year(), lastRun.Month(), lastRun.Day(), at.Hour(), at.Minute(), at.Second(), 0, lastRun.Location())
 
 		if firstPass && atDate.After(lastRun) {
 			// checking to see if it is after i.e. greater than,
@@ -918,7 +973,7 @@ func (w weeklyJob) nextWeekDayAtTime(lastRun time.Time, firstPass bool) time.Tim
 			for _, at := range w.atTimes {
 				// sub the at time hour/min/sec onto the lastScheduledRun's values
 				// to use in checks to see if we've got our next run time
-				atDate := time.Date(lastRun.Year(), lastRun.Month(), lastRun.Day()+int(weekDayDiff), at.Hour(), at.Minute(), at.Second(), lastRun.Nanosecond(), lastRun.Location())
+				atDate := time.Date(lastRun.Year(), lastRun.Month(), lastRun.Day()+int(weekDayDiff), at.Hour(), at.Minute(), at.Second(), 0, lastRun.Location())
 
 				if firstPass && atDate.After(lastRun) {
 					// checking to see if it is after i.e. greater than,
@@ -986,7 +1041,7 @@ func (m monthlyJob) nextMonthDayAtTime(lastRun time.Time, days []int, firstPass 
 			for _, at := range m.atTimes {
 				// sub the day, and the at time hour/min/sec onto the lastScheduledRun's values
 				// to use in checks to see if we've got our next run time
-				atDate := time.Date(lastRun.Year(), lastRun.Month(), day, at.Hour(), at.Minute(), at.Second(), lastRun.Nanosecond(), lastRun.Location())
+				atDate := time.Date(lastRun.Year(), lastRun.Month(), day, at.Hour(), at.Minute(), at.Second(), 0, lastRun.Location())
 
 				if atDate.Month() != lastRun.Month() {
 					// this check handles if we're setting a day not in the current month
