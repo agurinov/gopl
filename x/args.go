@@ -17,3 +17,15 @@ func ValueOrNil[T comparable](in T) any {
 
 	return in
 }
+
+func EmptyIf[T comparable](in T, empty ...T) T {
+	var zero T
+
+	for i := range empty {
+		if in == empty[i] {
+			return zero
+		}
+	}
+
+	return in
+}
