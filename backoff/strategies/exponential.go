@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"time"
 
-	validator "github.com/go-playground/validator/v10"
-
 	c "github.com/agurinov/gopl/patterns/creational"
 )
 
@@ -64,26 +62,6 @@ func (e exponential) Duration(retries uint32) time.Duration {
 	)
 
 	return time.Duration(backoff)
-}
-
-func (e exponential) Validate() error {
-	s := struct {
-		MinDelay   time.Duration `validate:"min=0s"`
-		MaxDelay   time.Duration `validate:"min=1s"`
-		Multiplier float64       `validate:"gte=1.0"`
-		Jitter     float64       `validate:"gte=0.00,lte=1.0"`
-	}{
-		MinDelay:   e.minDelay,
-		MaxDelay:   e.maxDelay,
-		Multiplier: e.multiplier,
-		Jitter:     e.jitter,
-	}
-
-	if err := validator.New().Struct(s); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func NewExponential(opts ...ExponentialOption) (Interface, error) {
