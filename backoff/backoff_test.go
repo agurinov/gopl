@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/agurinov/gopl/backoff"
@@ -30,6 +31,7 @@ func TestBackoff_Concurrency(t *testing.T) {
 				strategies.WithMaxDelay(time.Second),
 				strategies.WithJitter(0.0),
 			),
+			backoff.WithLogger(zaptest.NewLogger(t)),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, b)
@@ -75,6 +77,7 @@ func TestBackoff_Concurrency(t *testing.T) {
 				strategies.WithMinDelay(1*time.Hour),
 				strategies.WithMaxDelay(10*time.Hour),
 			),
+			backoff.WithLogger(zaptest.NewLogger(t)),
 		)
 		require.NoError(t, err)
 		require.NotNil(t, b)

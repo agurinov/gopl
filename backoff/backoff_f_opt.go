@@ -1,6 +1,22 @@
 package backoff
 
-import "github.com/agurinov/gopl/backoff/strategies"
+import (
+	"go.uber.org/zap"
+
+	"github.com/agurinov/gopl/backoff/strategies"
+)
+
+func WithLogger(logger *zap.Logger) Option {
+	return func(b *Backoff) error {
+		if logger == nil {
+			return nil
+		}
+
+		b.logger = logger.Named("backoff")
+
+		return nil
+	}
+}
 
 func WithExponentialStrategy(opts ...strategies.ExponentialOption) Option {
 	return func(b *Backoff) error {

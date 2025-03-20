@@ -22,9 +22,9 @@ func TestExponential_WithoutJitter(t *testing.T) {
 	require.NoError(t, err)
 
 	cases := map[string]struct {
-		inputRetries     uint32
-		expectedDuration time.Duration
 		pl_testing.TestCase
+		expectedDuration time.Duration
+		inputRetries     uint32
 	}{
 		"0 - MinDelay":   {inputRetries: 0, expectedDuration: 1 * time.Second},
 		"1":              {inputRetries: 1, expectedDuration: 1 * time.Second},
@@ -61,10 +61,10 @@ func TestExponential_WithJitter(t *testing.T) {
 	require.NoError(t, err)
 
 	cases := map[string]struct {
-		inputRetries       uint32
+		pl_testing.TestCase
 		expectedLowerBound float64
 		expectedUpperBound float64
-		pl_testing.TestCase
+		inputRetries       uint32
 	}{
 		"0 - MinDelay": {
 			inputRetries:       0,

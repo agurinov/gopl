@@ -6,6 +6,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	"github.com/agurinov/gopl/backoff/strategies"
 	c "github.com/agurinov/gopl/patterns/creational"
 	pl_strings "github.com/agurinov/gopl/strings"
@@ -14,9 +17,11 @@ import (
 type (
 	Backoff struct {
 		strategy   strategies.Interface
+		logger     *zap.Logger
 		name       string
 		retries    uint32
 		maxRetries uint32
+		logLevel   zapcore.Level
 	}
 	Option = c.Option[Backoff]
 )
@@ -35,6 +40,13 @@ func (b *Backoff) Wait(ctx context.Context) (Stat, error) {
 
 	delay := b.strategy.Duration(retries)
 
+	b.logger.Named(b.name).Log(
+		b.logLevel,
+		"backoff occurred",
+		zap.Uint32("retries", retries),
+		zap.Stringer("delay", delay),
+	)
+
 	select {
 	case <-ctx.Done():
 		return EmptyStat, ctx.Err()
@@ -52,12 +64,13 @@ func (b *Backoff) Reset() {
 }
 
 func New(opts ...Option) (*Backoff, error) {
-	defaultObj := Backoff{
+	b := Backoff{
 		name:       pl_strings.UnspecifiedPlaceholder,
 		maxRetries: math.MaxUint32,
+		logLevel:   zapcore.InfoLevel,
 	}
 
-	obj, err := c.ConstructWithValidate(defaultObj, opts...)
+	obj, err := c.ConstructWithValidate(b, opts...)
 	if err != nil {
 		return nil, err
 	}
