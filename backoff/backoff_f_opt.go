@@ -2,6 +2,7 @@ package backoff
 
 import (
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/agurinov/gopl/backoff/strategies"
 )
@@ -13,6 +14,14 @@ func WithLogger(logger *zap.Logger) Option {
 		}
 
 		b.logger = logger.Named("backoff")
+
+		return nil
+	}
+}
+
+func WithLogLevel(logLevel zapcore.Level) Option {
+	return func(b *Backoff) error {
+		b.logLevel = logLevel
 
 		return nil
 	}
