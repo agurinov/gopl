@@ -39,6 +39,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 )
 
+replace nhooyr.io/websocket => github.com/coder/websocket v1.8.7
+
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.34.2-20240920164238-5a7b106cbb87.2 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect

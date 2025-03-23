@@ -661,10 +661,11 @@ gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3
-# nhooyr.io/websocket v1.8.6
+# nhooyr.io/websocket v1.8.6 => github.com/coder/websocket v1.8.7
 ## explicit; go 1.13
 nhooyr.io/websocket
 nhooyr.io/websocket/internal/bpool
 nhooyr.io/websocket/internal/errd
 nhooyr.io/websocket/internal/wsjs
 nhooyr.io/websocket/internal/xsync
+# nhooyr.io/websocket => github.com/coder/websocket v1.8.7
