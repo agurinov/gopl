@@ -1,6 +1,7 @@
 module github.com/agurinov/gopl
 
 go 1.21
+toolchain go1.24.1
 
 require (
 	github.com/bufbuild/protovalidate-go v0.7.2
@@ -35,7 +36,7 @@ require (
 	golang.org/x/sync v0.11.0
 	golang.org/x/tools v0.24.0
 	google.golang.org/grpc v1.67.2
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
 )
 
