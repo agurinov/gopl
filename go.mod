@@ -1,6 +1,7 @@
 module github.com/agurinov/gopl
 
 go 1.21
+toolchain go1.24.1
 
 require (
 	github.com/bufbuild/protovalidate-go v0.7.2
@@ -8,7 +9,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-co-op/gocron/v2 v2.15.0
 	github.com/go-playground/validator/v10 v10.25.0
-	github.com/go-sql-driver/mysql v1.9.0
+	github.com/go-sql-driver/mysql v1.9.1
 	github.com/go-telegram/bot v1.14.1
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.2.0
