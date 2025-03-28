@@ -1,15 +1,5 @@
 package x
 
-func SliceMap[T1, T2 any](in []T1, mapF func(T1) T2) []T2 {
-	out := make([]T2, 0, len(in))
-
-	for i := range in {
-		out = append(out, mapF(in[i]))
-	}
-
-	return out
-}
-
 func Unique[T comparable](in []T) []T {
 	var (
 		set = make(map[T]struct{}, len(in))
