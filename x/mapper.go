@@ -37,3 +37,21 @@ func SliceMapError[T1, T2 any](
 
 	return out, nil
 }
+
+func SliceMapWithSkip[T1, T2 any](
+	in []T1,
+	mapF func(T1) T2,
+	skipF func(T1) bool,
+) []T2 {
+	out := make([]T2, 0, len(in))
+
+	for i := range in {
+		if skipF(in[i]) {
+			continue
+		}
+
+		out = append(out, mapF(in[i]))
+	}
+
+	return out
+}
