@@ -1,17 +1,5 @@
 package x
 
-func Coalesce[T comparable](in ...T) T {
-	var zero T
-
-	for i := range in {
-		if in[i] != zero {
-			return in[i]
-		}
-	}
-
-	return zero
-}
-
 func Unique[T comparable](in []T) []T {
 	var (
 		set = make(map[T]struct{}, len(in))
