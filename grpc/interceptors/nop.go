@@ -17,3 +17,15 @@ func NopUnaryServerInterceptor(
 ) {
 	return handler(ctx, in)
 }
+
+func NopUnaryClientInterceptor(
+	ctx context.Context,
+	method string,
+	in any,
+	reply any,
+	cc *grpc.ClientConn,
+	invoker grpc.UnaryInvoker,
+	opts ...grpc.CallOption,
+) error {
+	return invoker(ctx, method, in, reply, cc, opts...)
+}
