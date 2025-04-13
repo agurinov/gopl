@@ -29,3 +29,26 @@ func ValidatorUnaryServer(v *protovalidate.Validator) grpc.UnaryServerIntercepto
 		return handler(ctx, in)
 	}
 }
+
+func ValidatorUnaryClient(v *protovalidate.Validator) grpc.UnaryClientInterceptor {
+	return func(
+		ctx context.Context,
+		method string,
+		in any,
+		reply any,
+		cc *grpc.ClientConn,
+		invoker grpc.UnaryInvoker,
+		opts ...grpc.CallOption,
+	) error {
+		if protoMessage, ok := in.(proto.Message); ok {
+			if err := v.Validate(protoMessage); err != nil {
+				return status.Error(
+					codes.InvalidArgument,
+					err.Error(),
+				)
+			}
+		}
+
+		return invoker(ctx, method, in, reply, cc, opts...)
+	}
+}
