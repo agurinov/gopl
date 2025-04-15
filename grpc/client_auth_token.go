@@ -25,7 +25,7 @@ func (t tokenAuth) GetRequestMetadata(
 
 func (tokenAuth) RequireTransportSecurity() bool { return false }
 
-func AuthToken(token string) grpc.DialOption {
+func AuthTokenDialOption(token string) grpc.DialOption {
 	return grpc.WithPerRPCCredentials(tokenAuth{
 		authorizationHeader: bearerAuthSchema + " " + token,
 	})
