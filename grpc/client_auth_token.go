@@ -8,7 +8,10 @@ import (
 
 type tokenAuth map[string]string
 
-const bearerAuthSchema = "Bearer" //nolint:gosec
+const (
+	authorizationHeader = "authorization"
+	bearerAuthSchema    = "Bearer" //nolint:gosec
+)
 
 func (t tokenAuth) GetRequestMetadata(
 	context.Context,
@@ -24,6 +27,6 @@ func (tokenAuth) RequireTransportSecurity() bool { return false }
 
 func AuthToken(token string) grpc.DialOption {
 	return grpc.WithPerRPCCredentials(tokenAuth{
-		bearerAuthSchema: token,
+		authorizationHeader: bearerAuthSchema + " " + token,
 	})
 }
