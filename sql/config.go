@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/go-sql-driver/mysql"
+
+	"github.com/agurinov/gopl/x"
 )
 
 type Config struct {
@@ -16,6 +18,18 @@ type Config struct {
 	Password string `validate:"required"`
 	Port     int64  `validate:"gt=1000,lt=65536"`
 	Enabled  bool
+}
+
+func (c Config) MergeWith(other Config) Config {
+	return Config{
+		Driver:   x.Coalesce(other.Driver, c.Driver),
+		Host:     x.Coalesce(other.Host, c.Host),
+		Database: x.Coalesce(other.Database, c.Database),
+		User:     x.Coalesce(other.User, c.User),
+		Password: x.Coalesce(other.Password, c.Password),
+		Port:     x.Coalesce(other.Port, c.Port),
+		Enabled:  x.Coalesce(other.Enabled, c.Enabled),
+	}
 }
 
 func (c Config) DSN() string {

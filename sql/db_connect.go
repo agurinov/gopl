@@ -12,7 +12,10 @@ func Connect(
 	ctx context.Context,
 	driver string,
 	dsn string,
-) (DB, error) {
+) (
+	DB,
+	error,
+) {
 	var sqlxClient *sqlx.DB
 
 	switch driver {

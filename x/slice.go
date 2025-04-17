@@ -21,6 +21,18 @@ func Unique[T comparable](in []T) []T {
 	return out
 }
 
+func Coalesce[T comparable](in ...T) T {
+	var zero T
+
+	for i := range in {
+		if in[i] != zero {
+			return in[i]
+		}
+	}
+
+	return zero
+}
+
 func FilterOutEmpty[T comparable](in []T) []T {
 	var (
 		zero     T
