@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"io/fs"
 	"path/filepath"
 
@@ -38,15 +39,24 @@ func WithStaticBundle(staticFS fs.FS, dirname string) StaticOption {
 	}
 }
 
-func WithStaticKnownFile(path string, f []byte) StaticOption {
+func WithStaticKnownBuffer(path string, buf []byte) StaticOption {
+	return WithStaticKnownBufferFunc(
+		path,
+		func(context.Context) ([]byte, error) {
+			return buf, nil
+		},
+	)
+}
+
+func WithStaticKnownBufferFunc(path string, f bufferFunc) StaticOption {
 	return func(h *static) error {
 		path = filepath.Clean(path)
 
-		if h.knownPaths == nil {
-			h.knownPaths = make(map[string][]byte)
+		if h.knownBufFunc == nil {
+			h.knownBufFunc = make(map[string]bufferFunc)
 		}
 
-		h.knownPaths[path] = f
+		h.knownBufFunc[path] = f
 
 		return nil
 	}
