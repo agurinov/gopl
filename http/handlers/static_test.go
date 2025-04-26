@@ -1,7 +1,9 @@
 package handlers_test
 
 import (
+	"context"
 	"embed"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -234,7 +236,7 @@ func TestStatic(t *testing.T) {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticBundle(bundle, "testdata"),
-					handlers.WithStaticKnownFile("/config.json", []byte(`{"foo":"bar"}`)),
+					handlers.WithStaticKnownBuffer("/config.json", []byte(`{"foo":"bar"}`)),
 					handlers.WithStaticSPA(true),
 					handlers.WithStaticNoCachePaths("/config.json"),
 				},
@@ -251,11 +253,89 @@ func TestStatic(t *testing.T) {
 				},
 			},
 		},
-		"case12: middleware: use custom mw": {
+		"case12: embed: SPA: known file func 200": {
 			args: args{
 				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticBundle(bundle, "testdata"),
-					handlers.WithStaticKnownFile("/config.json", []byte(`{"foo":"bar"}`)),
+					handlers.WithStaticKnownBuffer(
+						"/config.json",
+						[]byte(`{"foo":"bar"}`),
+					),
+					handlers.WithStaticKnownBufferFunc(
+						"/settings.json",
+						func(context.Context) ([]byte, error) {
+							return []byte(`{"settings":"another"}`), nil
+						},
+					),
+					handlers.WithStaticKnownBufferFunc(
+						"/error.json",
+						func(context.Context) ([]byte, error) {
+							return nil, errors.New("foobar")
+						},
+					),
+					handlers.WithStaticSPA(true),
+					handlers.WithStaticNoCachePaths(
+						"/config.json",
+						"/settings.json",
+						"/error.json",
+					),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/settings.json", nil),
+			},
+			results: results{
+				statusCode: http.StatusOK,
+				content:    `{"settings":"another"}`,
+				headers: http.Header{
+					"Content-Type":  []string{"application/json"},
+					"Cache-Control": []string{"no-cache, no-store, must-revalidate"},
+					"Pragma":        []string{"no-cache"},
+					"Expires":       []string{"0"},
+				},
+			},
+		},
+		"case13: embed: SPA: known file func 500": {
+			args: args{
+				staticHandlerOptions: []handlers.StaticOption{
+					handlers.WithStaticBundle(bundle, "testdata"),
+					handlers.WithStaticKnownBuffer(
+						"/config.json",
+						[]byte(`{"foo":"bar"}`),
+					),
+					handlers.WithStaticKnownBufferFunc(
+						"/settings.json",
+						func(context.Context) ([]byte, error) {
+							return []byte(`{"settings":"another"}`), nil
+						},
+					),
+					handlers.WithStaticKnownBufferFunc(
+						"/error.json",
+						func(context.Context) ([]byte, error) {
+							return nil, errors.New("foobar")
+						},
+					),
+					handlers.WithStaticSPA(true),
+					handlers.WithStaticNoCachePaths(
+						"/config.json",
+						"/settings.json",
+						"/error.json",
+					),
+				},
+				request: httptest.NewRequest(http.MethodGet, "/error.json", nil),
+			},
+			results: results{
+				statusCode: http.StatusInternalServerError,
+				headers: http.Header{
+					"Cache-Control": []string{"no-cache, no-store, must-revalidate"},
+					"Pragma":        []string{"no-cache"},
+					"Expires":       []string{"0"},
+				},
+			},
+		},
+		"case14: middleware: use custom mw": {
+			args: args{
+				staticHandlerOptions: []handlers.StaticOption{
+					handlers.WithStaticBundle(bundle, "testdata"),
+					handlers.WithStaticKnownBuffer("/config.json", []byte(`{"foo":"bar"}`)),
 					handlers.WithStaticSPA(true),
 					handlers.WithStaticNoCachePaths("/config.json"),
 					handlers.WithStaticCustomMiddlewares(func(h http.Handler) http.Handler {

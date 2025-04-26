@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"io/fs"
 	"mime"
 	"net/http"
@@ -18,10 +19,11 @@ import (
 )
 
 type (
-	static struct {
+	bufferFunc func(context.Context) ([]byte, error)
+	static     struct {
 		fs                fs.FS
 		logger            *zap.Logger
-		knownPaths        map[string][]byte
+		knownBufFunc      map[string]bufferFunc
 		noCachePaths      []string
 		customMiddlewares []middlewares.Middleware
 		spaEnabled        bool
@@ -48,7 +50,7 @@ func (h static) Handler() http.Handler {
 
 	r.Use(h.customMiddlewares...)
 
-	fsHandler := http.FileServer(http.FS(h.fs))
+	bundle := http.FileServer(http.FS(h.fs))
 
 	r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
 		var (
@@ -69,17 +71,30 @@ func (h static) Handler() http.Handler {
 
 		r.URL.Path = path
 
-		switch f, isKnownPath := h.knownPaths[path]; isKnownPath {
-		case true:
+		bufGetter, isKnownPath := h.knownBufFunc[path]
+
+		switch {
+		case isKnownPath:
+			var (
+				ctx      = r.Context()
+				buf, err = bufGetter(ctx)
+			)
+
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+
+				break
+			}
+
 			mimeType := mime.TypeByExtension(ext)
 			if mimeType == "" {
-				mimeType = http.DetectContentType(f)
+				mimeType = http.DetectContentType(buf)
 			}
 
 			w.Header().Set("Content-Type", mimeType)
-			w.Write(f) //nolint:errcheck
+			w.Write(buf) //nolint:errcheck
 		default:
-			fsHandler.ServeHTTP(w, r)
+			bundle.ServeHTTP(w, r)
 		}
 	})
 
