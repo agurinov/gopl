@@ -81,6 +81,12 @@ func (h static) Handler() http.Handler {
 			)
 
 			if err != nil {
+				h.logger.Error(
+					"can't get buffer for known path",
+					zap.String("path", path),
+					zap.Error(err),
+				)
+
 				w.WriteHeader(http.StatusInternalServerError)
 
 				break

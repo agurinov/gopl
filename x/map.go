@@ -1,6 +1,6 @@
 package x
 
-func Keys[K comparable, V any](
+func MapKeys[K comparable, V any](
 	in map[K]V,
 ) []K {
 	keys := make([]K, 0, len(in))
@@ -10,4 +10,16 @@ func Keys[K comparable, V any](
 	}
 
 	return keys
+}
+
+func MapClone[K comparable, V any](
+	in map[K]V,
+) map[K]V {
+	out := make(map[K]V, len(in))
+
+	for k := range in {
+		out[k] = in[k]
+	}
+
+	return out
 }
