@@ -53,3 +53,13 @@ func FilterOutEmpty[T comparable](in []T) []T {
 
 	return filtered
 }
+
+func Last[E any](s []E) E {
+	var zero E
+
+	if len(s) == 0 {
+		return zero
+	}
+
+	return s[len(s)-1]
+}
