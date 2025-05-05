@@ -110,3 +110,113 @@ func TestFilterOutEmpty(t *testing.T) {
 		})
 	}
 }
+
+func TestLast(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in []string
+		}
+		results struct {
+			last string
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: nil": {
+			args: args{
+				in: nil,
+			},
+			results: results{
+				last: "",
+			},
+		},
+		"case01: empty": {
+			args: args{
+				in: []string{},
+			},
+			results: results{
+				last: "",
+			},
+		},
+		"case02: mixed": {
+			args: args{
+				in: []string{"a", "b", "c"},
+			},
+			results: results{
+				last: "c",
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			last := x.Last(tc.args.in)
+			require.Equal(t, tc.results.last, last)
+		})
+	}
+}
+
+func TestCoalesce(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in []string
+		}
+		results struct {
+			coalesce string
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: nil": {
+			args: args{
+				in: nil,
+			},
+			results: results{
+				coalesce: "",
+			},
+		},
+		"case01: empty": {
+			args: args{
+				in: []string{},
+			},
+			results: results{
+				coalesce: "",
+			},
+		},
+		"case02: mixed": {
+			args: args{
+				in: []string{"", "a", "b"},
+			},
+			results: results{
+				coalesce: "a",
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			coalesce := x.Coalesce(tc.args.in...)
+			require.Equal(t, tc.results.coalesce, coalesce)
+		})
+	}
+}
