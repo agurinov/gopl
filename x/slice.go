@@ -63,3 +63,70 @@ func Last[E any](s []E) E {
 
 	return s[len(s)-1]
 }
+
+func SliceFilter[T any](
+	in []T,
+	useF func(T) bool,
+) []T {
+	out := make([]T, 0, len(in))
+
+	for i := range in {
+		if useF(in[i]) {
+			out = append(out, in[i])
+		}
+	}
+
+	return out
+}
+
+func SliceToMap[K comparable, V any, E any](
+	in []E,
+	mapF func(E) (K, V),
+) map[K]V {
+	out := make(map[K]V, len(in))
+
+	for i := range in {
+		k, v := mapF(in[i])
+		out[k] = v
+	}
+
+	return out
+}
+
+func SliceConvert[T1, T2 any](
+	in []T1,
+	mapF func(T1) T2,
+) []T2 {
+	out := make([]T2, 0, len(in))
+
+	for i := range in {
+		out = append(out, mapF(in[i]))
+	}
+
+	return out
+}
+
+func SliceConvertError[T1, T2 any](
+	in []T1,
+	mapF func(T1) (T2, error),
+) (
+	[]T2,
+	error,
+) {
+	if len(in) == 0 {
+		return nil, nil
+	}
+
+	out := make([]T2, 0, len(in))
+
+	for i := range in {
+		m, err := mapF(in[i])
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, m)
+	}
+
+	return out, nil
+}
