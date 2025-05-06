@@ -92,6 +92,7 @@ type Message struct {
 	IsFromOffline                 bool                           `json:"is_from_offline,omitempty"`
 	MediaGroupID                  string                         `json:"media_group_id,omitempty"`
 	AuthorSignature               string                         `json:"author_signature,omitempty"`
+	PaidStarCount                 int                            `json:"paid_star_count,omitempty"`
 	Text                          string                         `json:"text,omitempty"`
 	Entities                      []MessageEntity                `json:"entities,omitempty"`
 	LinkPreviewOptions            *LinkPreviewOptions            `json:"link_preview_options,omitempty"`
@@ -127,12 +128,14 @@ type Message struct {
 	MessageAutoDeleteTimerChanged *MessageAutoDeleteTimerChanged `json:"message_auto_delete_timer_changed,omitempty"`
 	MigrateToChatID               int64                          `json:"migrate_to_chat_id,omitempty"`
 	MigrateFromChatID             int64                          `json:"migrate_from_chat_id,omitempty"`
-	PinnedMessage                 MaybeInaccessibleMessage       `json:"pinned_message,omitempty"`
+	PinnedMessage                 *MaybeInaccessibleMessage      `json:"pinned_message,omitempty"`
 	Invoice                       *Invoice                       `json:"invoice,omitempty"`
 	SuccessfulPayment             *SuccessfulPayment             `json:"successful_payment,omitempty"`
 	RefundedPayment               *RefundedPayment               `json:"refunded_payment,omitempty"`
 	UsersShared                   *UsersShared                   `json:"users_shared,omitempty"`
 	ChatShared                    *ChatShared                    `json:"chat_shared,omitempty"`
+	Gift                          *GiftInfo                      `json:"gift,omitempty"`
+	UniqueGift                    *UniqueGiftInfo                `json:"unique_gift,omitempty"`
 	ConnectedWebsite              string                         `json:"connected_website,omitempty"`
 	WriteAccessAllowed            *WriteAccessAllowed            `json:"write_access_allowed,omitempty"`
 	PassportData                  *PassportData                  `json:"passport_data,omitempty"`
@@ -149,12 +152,13 @@ type Message struct {
 	Giveaway                      *Giveaway                      `json:"giveaway,omitempty"`
 	GiveawayWinners               *GiveawayWinners               `json:"giveaway_winners,omitempty"`
 	GiveawayCompleted             *GiveawayCompleted             `json:"giveaway_completed,omitempty"`
+	PaidMessagePriceChanged       *PaidMessagePriceChanged       `json:"paid_message_price_changed,omitempty"`
 	VoiceChatScheduled            *VoiceChatScheduled            `json:"voice_chat_scheduled,omitempty"`
 	VoiceChatStarted              *VoiceChatStarted              `json:"voice_chat_started,omitempty"`
 	VoiceChatEnded                *VoiceChatEnded                `json:"voice_chat_ended,omitempty"`
 	VoiceChatParticipantsInvited  *VoiceChatParticipantsInvited  `json:"voice_chat_participants_invited,omitempty"`
 	WebAppData                    *WebAppData                    `json:"web_app_data,omitempty"`
-	ReplyMarkup                   InlineKeyboardMarkup           `json:"reply_markup,omitempty"`
+	ReplyMarkup                   *InlineKeyboardMarkup          `json:"reply_markup,omitempty"`
 }
 
 // PreparedInlineMessage https://core.telegram.org/bots/api#preparedinlinemessage
