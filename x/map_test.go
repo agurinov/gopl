@@ -68,7 +68,7 @@ func TestMapToSlice(t *testing.T) {
 					}
 				},
 			)
-			require.Equal(t, tc.results.out, out)
+			require.EqualValues(t, tc.results.out, out)
 		})
 	}
 }
