@@ -1,6 +1,7 @@
 package x_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -277,7 +278,7 @@ func TestSliceToMap(t *testing.T) {
 					return in.UUID, in.S
 				},
 			)
-			require.EqualValues(t, tc.results.out, out)
+			require.True(t, reflect.DeepEqual(tc.results.out, out))
 		})
 	}
 }
