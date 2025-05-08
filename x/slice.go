@@ -130,3 +130,26 @@ func SliceConvertError[T1, T2 any](
 
 	return out, nil
 }
+
+func Paginate[T any](
+	in []T,
+	limit uint,
+	offset uint,
+) []T {
+	if limit == 0 {
+		return nil
+	}
+
+	sliceLen := uint(len(in))
+
+	if offset >= sliceLen {
+		return nil
+	}
+
+	end := offset + limit
+	if end > sliceLen {
+		end = sliceLen
+	}
+
+	return in[offset:end]
+}

@@ -361,3 +361,87 @@ func TestSliceMapError_UUID(t *testing.T) {
 		})
 	}
 }
+
+func TestPaginate(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in     []string
+			limit  uint
+			offset uint
+		}
+		results struct {
+			out []string
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: zero limit": {
+			args: args{
+				in:    []string{"a", "b", "c"},
+				limit: 0,
+			},
+			results: results{
+				out: nil,
+			},
+		},
+		"case01: limit over len": {
+			args: args{
+				in:    []string{"a", "b", "c"},
+				limit: 100,
+			},
+			results: results{
+				out: []string{"a", "b", "c"},
+			},
+		},
+		"case02: limit less len": {
+			args: args{
+				in:    []string{"a", "b", "c"},
+				limit: 2,
+			},
+			results: results{
+				out: []string{"a", "b"},
+			},
+		},
+		"case03: offset overflow": {
+			args: args{
+				in:     []string{"a", "b", "c"},
+				offset: 10,
+				limit:  10,
+			},
+			results: results{
+				out: nil,
+			},
+		},
+		"case04: mixed": {
+			args: args{
+				in:     []string{"a", "b", "c"},
+				offset: 1,
+				limit:  1,
+			},
+			results: results{
+				out: []string{"b"},
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.Paginate(
+				tc.args.in,
+				tc.args.limit,
+				tc.args.offset,
+			)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
