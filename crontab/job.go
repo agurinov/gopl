@@ -5,24 +5,36 @@ import (
 	"time"
 
 	gocron "github.com/go-co-op/gocron/v2"
+	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/agurinov/gopl/diag/trace"
 )
 
 type Job func(context.Context) error
 
 func taskAdapter(
 	ctx context.Context,
+	jobName string,
 	job Job,
 	timeout time.Duration,
 ) gocron.Task {
-	jobFunc := func(ctx context.Context) error {
+	jobF := func(ctx context.Context) error {
+		ctx, span := trace.StartSpan(ctx, "crontab.job")
+		defer span.End()
+
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
-		return job(ctx)
+		span.SetAttributes(
+			attribute.String("crontab.job", jobName),
+		)
+
+		if err := job(ctx); err != nil {
+			return trace.CatchError(span, err)
+		}
+
+		return nil
 	}
 
-	return gocron.NewTask(
-		jobFunc,
-		ctx,
-	)
+	return gocron.NewTask(jobF, ctx)
 }
