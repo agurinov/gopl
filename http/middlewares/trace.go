@@ -21,6 +21,7 @@ func Trace(next http.Handler) http.Handler {
 		}
 
 		ctx, span := trace.StartSpan(ctx, "http.Router")
+
 		defer func() {
 			switch recorder.Status {
 			case http.StatusInternalServerError:
