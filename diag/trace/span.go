@@ -37,5 +37,9 @@ func StartNamedSpan(
 	context.Context,
 	trace.Span,
 ) {
-	return StartSpan(ctx, diag.CallerName(), opts...)
+	return StartSpan(
+		ctx,
+		diag.CallerName(2), //nolint:gomnd,mnd
+		opts...,
+	)
 }

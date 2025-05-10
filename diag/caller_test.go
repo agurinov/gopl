@@ -12,11 +12,11 @@ import (
 type a struct{}
 
 func (a) Foo() string {
-	return diag.CallerName()
+	return diag.CallerName(0)
 }
 
 func Foo() string {
-	return diag.CallerName()
+	return diag.CallerName(0)
 }
 
 func TestCallerName(t *testing.T) {
@@ -38,7 +38,7 @@ func TestCallerName(t *testing.T) {
 	}{
 		"case00: lambda": {
 			args: args{
-				f: diag.CallerName,
+				f: func() string { return diag.CallerName(0) },
 			},
 			results: results{
 				caller: "diag_test.TestCallerName.func1",

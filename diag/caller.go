@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+
+	"github.com/agurinov/gopl/x"
 )
 
 //nolint:gomnd,mnd
-func CallerName() string {
-	pc, _, _, _ := runtime.Caller(1) //nolint:dogsled
+func CallerName(skip int) string {
+	skip = x.Coalesce(skip, 1)
+
+	pc, _, _, _ := runtime.Caller(skip) //nolint:dogsled
 
 	fn := runtime.FuncForPC(pc)
 	if fn == nil {
