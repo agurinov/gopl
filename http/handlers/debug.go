@@ -30,7 +30,6 @@ func (h debug) Handler() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(
-		middlewares.Trace,
 		middlewares.Metrics(
 			metrics.WithBuckets(metrics.BucketFast),
 		),
