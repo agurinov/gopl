@@ -20,7 +20,7 @@ func Trace(next http.Handler) http.Handler {
 			Status:         http.StatusOK,
 		}
 
-		ctx, span := trace.StartSpan(ctx, "http.Router")
+		ctx, span := trace.StartSpan(ctx, "http.router")
 
 		defer func() {
 			switch recorder.Status {

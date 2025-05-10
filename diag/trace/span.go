@@ -5,13 +5,9 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
-)
 
-func SpanName() string {
-	// fnName := GetCallerName(3)
-	// return getSpanNameFromCallerName(fnName)
-	return "implement me"
-}
+	"github.com/agurinov/gopl/diag"
+)
 
 func StartSpan(
 	ctx context.Context,
@@ -41,5 +37,5 @@ func StartNamedSpan(
 	context.Context,
 	trace.Span,
 ) {
-	return StartSpan(ctx, SpanName(), opts...)
+	return StartSpan(ctx, diag.CallerName(), opts...)
 }
