@@ -26,7 +26,7 @@ func taskAdapter(
 		defer cancel()
 
 		span.SetAttributes(
-			attribute.String("crontab.job", jobName),
+			attribute.String("cronjob.name", jobName),
 		)
 
 		if err := job(ctx); err != nil {
