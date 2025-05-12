@@ -21,6 +21,10 @@ func (q Query) WithSpan(span trace.Span) string {
 		traceid = ctx.TraceID().String()
 	)
 
+	if true {
+		return q.String()
+	}
+
 	return fmt.Sprintf(
 		sqlQueryWrapper,
 		q.String(),

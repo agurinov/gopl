@@ -45,10 +45,7 @@ func TestQuery_WithSpan(t *testing.T) {
 			},
 			results: results{
 				stmt: `select true;
-
-/*
-traceparent='00000000000000000000000000000000'
-*/`,
+`,
 			},
 		},
 		"case01: multiline": {
@@ -60,10 +57,7 @@ traceparent='00000000000000000000000000000000'
 	true as one
 	false as two
 ;
-
-/*
-traceparent='00000000000000000000000000000000'
-*/`,
+`,
 			},
 		},
 	}
