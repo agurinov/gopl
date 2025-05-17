@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 
 	"github.com/agurinov/gopl/diag/trace"
@@ -39,7 +40,7 @@ func Trace(next http.Handler) http.Handler {
 
 		span.SetAttributes(
 			semconv.HTTPRequestMethodKey.String(r.Method),
-			semconv.HTTPRoute("templated"),
+			semconv.HTTPRoute(chi.RouteContext(ctx).RoutePattern()),
 			semconv.HTTPResponseStatusCode(recorder.Status),
 			semconv.URLPath(r.RequestURI),
 		)
