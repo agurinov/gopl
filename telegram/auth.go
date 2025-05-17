@@ -54,7 +54,10 @@ func (a Auth) parseInitData(
 		Username:     id.User.Username,
 		FirstName:    id.User.FirstName,
 		LastName:     id.User.LastName,
+		Photo:        id.User.PhotoURL,
+		Language:     id.User.LanguageCode,
 		IsBot:        id.User.IsBot,
+		IsPremium:    id.User.IsPremium,
 		AuthorityBot: authorityBot,
 		PrivateChat: PrivateChat{
 			ID:      privateChatID,

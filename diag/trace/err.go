@@ -7,7 +7,10 @@ import (
 
 func RegisterError(span trace.Span, err error) {
 	if err != nil {
-		span.RecordError(err)
+		span.RecordError(
+			err,
+			trace.WithStackTrace(true),
+		)
 		span.SetStatus(codes.Error, err.Error())
 	}
 }

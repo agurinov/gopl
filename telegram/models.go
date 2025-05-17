@@ -10,9 +10,12 @@ type (
 		Username     string
 		FirstName    string
 		LastName     string
+		Language     string
+		Photo        string
 		AuthorityBot string `validate:"required"`
 		ID           int64  `validate:"required"`
 		IsBot        bool
+		IsPremium    bool
 		PrivateChat  PrivateChat
 	}
 	PrivateChat struct {
