@@ -19,9 +19,7 @@ type (
 	SamplerOption = c.Option[sampler]
 )
 
-func NewSampler(opts ...SamplerOption) (trace.Sampler, error) {
-	return c.NewWithValidate[sampler, SamplerOption](opts...)
-}
+var NewSampler = c.NewWithValidate[sampler, SamplerOption]
 
 func (s sampler) Description() string {
 	return fmt.Sprintf(

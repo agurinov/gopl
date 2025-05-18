@@ -51,9 +51,16 @@ func Init(ctx context.Context, opts ...IniterOption) error {
 		return err
 	}
 
+	spanProcessor := spanProcessor{
+		next:        trace.NewBatchSpanProcessor(exporter),
+		ratio:       sampler.sampleRatio,
+		minDuration: sampler.sampleDuration,
+		errors:      sampler.sampleErrors,
+	}
+
 	provider := trace.NewTracerProvider(
 		trace.WithBatcher(exporter, i.batcherOptions...),
-		trace.WithSampler(sampler),
+		trace.WithSpanProcessor(spanProcessor),
 		trace.WithResource(
 			resource.NewWithAttributes(
 				semconv.SchemaURL,
