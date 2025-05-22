@@ -64,6 +64,16 @@ func Last[E any](s []E) E {
 	return s[len(s)-1]
 }
 
+func First[E any](s []E) E {
+	var zero E
+
+	if len(s) == 0 {
+		return zero
+	}
+
+	return s[0]
+}
+
 func SliceFilter[T any](
 	in []T,
 	useF func(T) bool,
