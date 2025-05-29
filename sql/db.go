@@ -106,3 +106,7 @@ func (db DB) MultiNamedExecContext(
 
 	return result, nil
 }
+
+func (db DB) SQLDB() *sql.DB {
+	return db.sqlxClient.DB
+}
