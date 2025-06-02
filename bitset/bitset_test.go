@@ -12,55 +12,75 @@ import (
 const (
 	bit1 = 1 << iota
 	bit2
+	bit3
+	bit4
 )
 
-func TestBitSet_Set(t *testing.T) {
+func TestBitSet(t *testing.T) {
 	pl_testing.Init(t)
 
-	bitset := bitset.BitSet[uint8]{}
+	type (
+		args struct {
+			initial []uint8
+			set     []uint8
+			toClear []uint8
+			toggle  []uint8
+		}
+		results struct {
+			expectedSet map[uint8]bool
+		}
+	)
 
-	require.False(t, bitset.Has(bit1))
-	require.False(t, bitset.Has(bit2))
+	cases := map[string]struct {
+		args    args
+		results results
+		pl_testing.TestCase
+	}{
+		"case00: set, clear, toggle, has": {
+			args: args{
+				initial: []uint8{bit1, bit3},
+				set:     []uint8{bit2},
+				toClear: []uint8{bit1},
+				toggle:  []uint8{bit3, bit4},
+			},
+			results: results{
+				expectedSet: map[uint8]bool{
+					bit1: false,
+					bit2: true,
+					bit3: false,
+					bit4: true,
+				},
+			},
+		},
+	}
 
-	bitset.Set(bit2)
+	for name := range cases {
+		name, tc := name, cases[name]
 
-	require.False(t, bitset.Has(bit1))
-	require.True(t, bitset.Has(bit2))
-}
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
 
-func TestBitSet_Clear(t *testing.T) {
-	pl_testing.Init(t)
+			var bs bitset.BitSet[uint8]
 
-	bitset := bitset.BitSet[uint32]{}
+			for _, i := range tc.args.initial {
+				bs.Set(i)
+			}
 
-	require.False(t, bitset.Has(bit1))
-	require.False(t, bitset.Has(bit2))
+			for _, i := range tc.args.set {
+				bs.Set(i)
+			}
 
-	bitset.Set(bit1)
-	bitset.Set(bit2)
-	bitset.Clear(bit2)
+			for _, i := range tc.args.toClear {
+				bs.Clear(i)
+			}
 
-	require.True(t, bitset.Has(bit1))
-	require.False(t, bitset.Has(bit2))
-}
+			for _, i := range tc.args.toggle {
+				bs.Toggle(i)
+			}
 
-func TestBitSet_Toggle(t *testing.T) {
-	pl_testing.Init(t)
-
-	bitset := bitset.BitSet[uint]{}
-
-	require.False(t, bitset.Has(bit1))
-	require.False(t, bitset.Has(bit2))
-
-	bitset.Toggle(bit1)
-	bitset.Toggle(bit2)
-
-	require.True(t, bitset.Has(bit1))
-	require.True(t, bitset.Has(bit2))
-
-	bitset.Toggle(bit1)
-	bitset.Toggle(bit2)
-
-	require.False(t, bitset.Has(bit1))
-	require.False(t, bitset.Has(bit2))
+			for k, v := range tc.results.expectedSet {
+				require.Equal(t, v, bs.Has(k))
+			}
+		})
+	}
 }
