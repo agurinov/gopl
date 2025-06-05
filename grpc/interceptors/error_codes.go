@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/agurinov/gopl/ddd"
 	"github.com/agurinov/gopl/strings"
 )
 
@@ -39,6 +40,8 @@ func ErrorConverterUnaryServer(
 
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
+		grpcCode = codes.NotFound
+	case ddd.IsNotFound(err):
 		grpcCode = codes.NotFound
 	case errors.As(err, validateErr):
 		grpcCode = codes.InvalidArgument
