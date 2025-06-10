@@ -21,19 +21,23 @@ func TestIsNotFound(t *testing.T) {
 			isStd      bool
 			isNotFound bool
 		}
-		MyInstance struct{}
+		Foo struct{ Foo string }
+		Bar struct{ Bar string }
 	)
 
-	myErr := ddd.NotFoundError[MyInstance]{}
+	var (
+		fooErr ddd.NotFoundError[Foo]
+		barErr ddd.NotFoundError[Bar]
+	)
 
 	cases := map[string]struct {
 		args    args
 		results results
 		pl_testing.TestCase
 	}{
-		"case00: is not found (generic)": {
+		"case00: generic is not found same constant": {
 			args: args{
-				err: myErr,
+				err: fooErr,
 			},
 			results: results{
 				isStd:      true,
@@ -58,6 +62,24 @@ func TestIsNotFound(t *testing.T) {
 				isNotFound: false,
 			},
 		},
+		"case03: generic is not found same type": {
+			args: args{
+				err: ddd.NotFoundError[Foo]{},
+			},
+			results: results{
+				isStd:      true,
+				isNotFound: true,
+			},
+		},
+		"case04: generic is not found another type": {
+			args: args{
+				err: barErr,
+			},
+			results: results{
+				isStd:      false,
+				isNotFound: true,
+			},
+		},
 	}
 
 	for name := range cases {
@@ -66,7 +88,7 @@ func TestIsNotFound(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
 
-			require.Equal(t, tc.results.isStd, errors.Is(tc.args.err, myErr))
+			require.Equal(t, tc.results.isStd, errors.Is(tc.args.err, fooErr))
 			require.Equal(t, tc.results.isNotFound, ddd.IsNotFound(tc.args.err))
 		})
 	}
