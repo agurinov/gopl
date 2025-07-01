@@ -167,6 +167,10 @@ func Paginate[T any](
 func Flatten[T any](
 	in [][]T,
 ) []T {
+	if in == nil {
+		return nil
+	}
+
 	flattened := make([]T, 0, len(in))
 
 	for _, subSlice := range in {
