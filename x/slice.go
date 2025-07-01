@@ -163,3 +163,15 @@ func Paginate[T any](
 
 	return in[offset:end]
 }
+
+func Flatten[T any](
+	in [][]T,
+) []T {
+	flattened := make([]T, 0, len(in))
+
+	for _, subSlice := range in {
+		flattened = append(flattened, subSlice...)
+	}
+
+	return flattened
+}
