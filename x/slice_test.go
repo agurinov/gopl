@@ -445,3 +445,61 @@ func TestPaginate(t *testing.T) {
 		})
 	}
 }
+
+func TestFlatten(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in [][]string
+		}
+		results struct {
+			out []string
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: mixed": {
+			args: args{
+				in: [][]string{
+					{"a", "b"},
+					{"c", "d"},
+				},
+			},
+			results: results{
+				out: []string{"a", "b", "c", "d"},
+			},
+		},
+		"case01: empty": {
+			args: args{
+				in: [][]string{},
+			},
+			results: results{
+				out: []string{},
+			},
+		},
+		"case02: nil": {
+			args: args{
+				in: nil,
+			},
+			results: results{
+				out: nil,
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.Flatten(tc.args.in)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
