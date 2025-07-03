@@ -15,7 +15,11 @@ grpc:
 debug_http:
   port: 8081
 
-merged_map:
+merged_map_scalar:
   foo: bar
   lol: kek
+
+merged_map_struct:
+  foo:
+    key: 'key1'
 ...

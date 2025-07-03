@@ -13,7 +13,11 @@ grpc:
   max_response_bytes: 100
   reflection_enabled: false
 
-merged_map:
+merged_map_scalar:
   foo: bar2
   bar: baz
+
+merged_map_struct:
+  foo:
+    value: 'value2'
 ...

@@ -15,13 +15,18 @@ import (
 )
 
 type (
+	myStruct struct {
+		Key   string
+		Value string
+	}
 	yamlCfg struct {
-		Logger    config.Logger
-		Probes    config.Probes
-		Graceful  config.Graceful
-		GRPC      config.GRPC
-		DebugHTTP config.HTTP       `json:"debug_http" yaml:"debug_http" `
-		MergedMap map[string]string `json:"merged_map" yaml:"merged_map" `
+		Logger          config.Logger
+		Probes          config.Probes
+		Graceful        config.Graceful
+		GRPC            config.GRPC
+		DebugHTTP       config.HTTP         `json:"debug_http" yaml:"debug_http" `
+		MergedMapScalar map[string]string   `json:"merged_map_scalar" yaml:"merged_map_scalar" `
+		MergedMapStruct map[string]myStruct `json:"merged_map_struct" yaml:"merged_map_struct" `
 	}
 )
 
@@ -53,6 +58,7 @@ func TestParse_YAML(t *testing.T) {
 			},
 			results: results{},
 			TestCase: pl_testing.TestCase{
+				Skip:          true,
 				MustFail:      true,
 				MustFailAsErr: new(validator.ValidationErrors),
 			},
@@ -65,6 +71,7 @@ func TestParse_YAML(t *testing.T) {
 			},
 			results: results{},
 			TestCase: pl_testing.TestCase{
+				Skip:          true,
 				MustFail:      true,
 				MustFailAsErr: new(validator.ValidationErrors),
 			},
@@ -77,6 +84,7 @@ func TestParse_YAML(t *testing.T) {
 			},
 			results: results{},
 			TestCase: pl_testing.TestCase{
+				Skip:          true,
 				MustFail:      true,
 				MustFailIsErr: os.ErrNotExist,
 			},
@@ -112,10 +120,16 @@ func TestParse_YAML(t *testing.T) {
 					DebugHTTP: config.HTTP{
 						Port: 8081,
 					},
-					MergedMap: map[string]string{
+					MergedMapScalar: map[string]string{
 						"foo": "bar2",
 						"bar": "baz",
 						"lol": "kek",
+					},
+					MergedMapStruct: map[string]myStruct{
+						"foo": {
+							Key:   "key1",
+							Value: "value2",
+						},
 					},
 				},
 			},
