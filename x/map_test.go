@@ -1,6 +1,7 @@
 package x_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -69,6 +70,142 @@ func TestMapToSlice(t *testing.T) {
 				},
 			)
 			require.ElementsMatch(t, tc.results.out, out)
+		})
+	}
+}
+
+func TestMapConvert(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in   map[string]int
+			mapF func(string, int) (int, string)
+		}
+		results struct {
+			out map[int]string
+		}
+	)
+
+	cases := map[string]struct {
+		args    args
+		results results
+		pl_testing.TestCase
+	}{
+		"case00: typical": {
+			args: args{
+				in: map[string]int{
+					"a":   10,
+					"bb":  20,
+					"ccc": 30,
+				},
+				mapF: func(k string, v int) (int, string) {
+					return len(k), strconv.Itoa(v)
+				},
+			},
+			results: results{
+				out: map[int]string{
+					1: "10",
+					2: "20",
+					3: "30",
+				},
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.MapConvert(
+				tc.args.in,
+				tc.args.mapF,
+			)
+
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
+
+func TestMapFilter(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in   map[string]int
+			useF func(string, int) bool
+		}
+		results struct {
+			out map[string]int
+		}
+	)
+
+	cases := map[string]struct {
+		args    args
+		results results
+		pl_testing.TestCase
+	}{
+		"case00: filter values greater than 1": {
+			args: args{
+				in: map[string]int{
+					"foo": 1,
+					"bar": 2,
+					"baz": 3,
+				},
+				useF: func(_ string, v int) bool { return v > 1 },
+			},
+			results: results{
+				out: map[string]int{
+					"bar": 2,
+					"baz": 3,
+				},
+			},
+		},
+		"case01: filter by key length": {
+			args: args{
+				in: map[string]int{
+					"a":    1,
+					"ab":   2,
+					"abc":  3,
+					"abcd": 4,
+				},
+				useF: func(k string, _ int) bool { return len(k) > 2 },
+			},
+			results: results{
+				out: map[string]int{
+					"abc":  3,
+					"abcd": 4,
+				},
+			},
+		},
+		"case02: no elements satisfy predicate": {
+			args: args{
+				in: map[string]int{
+					"x": 0,
+					"y": 0,
+				},
+				useF: func(_ string, v int) bool { return v > 1 },
+			},
+			results: results{
+				out: map[string]int{},
+			},
+		},
+	}
+
+	for name := range cases {
+		name, tc := name, cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.MapFilter(
+				tc.args.in,
+				tc.args.useF,
+			)
+
+			require.Equal(t, tc.results.out, out)
 		})
 	}
 }
