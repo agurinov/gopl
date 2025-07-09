@@ -78,7 +78,7 @@ func TestHandler_UnaryServerInterceptor(t *testing.T) {
 				grpcHandler: panicHandler,
 			},
 			results: results{
-				grpcStatusCode: codes.Unknown,
+				grpcStatusCode: codes.Internal,
 			},
 		},
 	}

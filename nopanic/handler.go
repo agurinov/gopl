@@ -86,7 +86,7 @@ func (h Handler) UnaryServerInterceptor() grpc.UnaryServerInterceptor {
 				out, err = handler(ctx, in)
 			},
 			func() {
-				out, err = nil, status.Error(codes.Unknown, "")
+				out, err = nil, status.Error(codes.Internal, "panic recovered")
 			},
 		)
 
