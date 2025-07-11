@@ -3,7 +3,9 @@ package config
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"dario.cat/mergo"
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 
@@ -58,9 +60,20 @@ func Parse[T any](
 			continue
 		}
 
-		if parseErr := parser(ctx, data, &cfg); parseErr != nil {
+		var intermediate T
+
+		if parseErr := parser(ctx, data, &intermediate); parseErr != nil {
 			return cfg, parseErr
 		}
+
+		if mergeErr := mergo.Merge(
+			&cfg,
+			intermediate,
+		); mergeErr != nil {
+			return cfg, mergeErr
+		}
+
+		fmt.Println("DMKLDMKDLMDKL", cfg)
 	}
 
 	v := validator.New()

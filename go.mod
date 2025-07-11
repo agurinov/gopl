@@ -3,6 +3,7 @@ module github.com/agurinov/gopl
 go 1.21
 
 require (
+	dario.cat/mergo v1.0.2
 	github.com/bufbuild/protovalidate-go v0.7.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.2.1
