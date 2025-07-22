@@ -47,7 +47,7 @@ func TestBasic(t *testing.T) {
 						),
 					}),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/", nil),
+				request: httptest.NewRequest(http.MethodGet, "/", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusPermanentRedirect,
@@ -68,7 +68,7 @@ func TestBasic(t *testing.T) {
 						),
 					}),
 				},
-				request: httptest.NewRequest(http.MethodPost, "/", nil),
+				request: httptest.NewRequest(http.MethodPost, "/", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusPermanentRedirect,
@@ -88,7 +88,7 @@ func TestBasic(t *testing.T) {
 						),
 					}),
 				},
-				request: httptest.NewRequest(http.MethodPut, "/foobar", nil),
+				request: httptest.NewRequest(http.MethodPut, "/foobar", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusPermanentRedirect,
@@ -108,7 +108,7 @@ func TestBasic(t *testing.T) {
 						),
 					}),
 				},
-				request: httptest.NewRequest(http.MethodPut, "/foobar", nil),
+				request: httptest.NewRequest(http.MethodPut, "/foobar", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusInternalServerError,

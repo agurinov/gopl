@@ -49,7 +49,7 @@ func TestStatic(t *testing.T) {
 				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticBundle(bundle, "testdata"),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/", nil),
+				request: httptest.NewRequest(http.MethodGet, "/", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -66,7 +66,7 @@ func TestStatic(t *testing.T) {
 				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticBundle(bundle, "testdata"),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/robots.txt", nil),
+				request: httptest.NewRequest(http.MethodGet, "/robots.txt", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -83,7 +83,7 @@ func TestStatic(t *testing.T) {
 				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticBundle(bundle, "testdata"),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/js/foo.txt", nil),
+				request: httptest.NewRequest(http.MethodGet, "/js/foo.txt", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusNotFound,
@@ -100,7 +100,7 @@ func TestStatic(t *testing.T) {
 				staticHandlerOptions: []handlers.StaticOption{
 					handlers.WithStaticBundle(bundle, "testdata"),
 				},
-				request: httptest.NewRequest(http.MethodPost, "/js/foo.txt", nil),
+				request: httptest.NewRequest(http.MethodPost, "/js/foo.txt", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusMethodNotAllowed,
@@ -115,7 +115,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticSPA(true),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/js/main.js", nil),
+				request: httptest.NewRequest(http.MethodGet, "/js/main.js", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -133,7 +133,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticSPA(true),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/js/foo.js/", nil),
+				request: httptest.NewRequest(http.MethodGet, "/js/foo.js/", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusNotFound,
@@ -146,7 +146,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticSPA(true),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/js", nil),
+				request: httptest.NewRequest(http.MethodGet, "/js", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -164,7 +164,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticBundle(os.DirFS("testdata"), ""),
 					handlers.WithStaticSPA(true),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/js", nil),
+				request: httptest.NewRequest(http.MethodGet, "/js", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -182,7 +182,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticBundle(os.DirFS("testdata"), ""),
 					handlers.WithStaticSPA(true),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/js/foo.js/", nil),
+				request: httptest.NewRequest(http.MethodGet, "/js/foo.js/", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusNotFound,
@@ -195,7 +195,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticBundle(bundle, "testdata"),
 					handlers.WithStaticNoCachePaths("/", "/index.html", "/robots.txt"),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/robots.txt", nil),
+				request: httptest.NewRequest(http.MethodGet, "/robots.txt", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -217,7 +217,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticSPA(true),
 					handlers.WithStaticNoCachePaths("/", "/index.html"),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/foo/bar", nil),
+				request: httptest.NewRequest(http.MethodGet, "/foo/bar", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -240,7 +240,7 @@ func TestStatic(t *testing.T) {
 					handlers.WithStaticSPA(true),
 					handlers.WithStaticNoCachePaths("/config.json"),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/config.json", nil),
+				request: httptest.NewRequest(http.MethodGet, "/config.json", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -280,7 +280,7 @@ func TestStatic(t *testing.T) {
 						"/error.json",
 					),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/settings.json", nil),
+				request: httptest.NewRequest(http.MethodGet, "/settings.json", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,
@@ -320,7 +320,7 @@ func TestStatic(t *testing.T) {
 						"/error.json",
 					),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/error.json", nil),
+				request: httptest.NewRequest(http.MethodGet, "/error.json", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusInternalServerError,
@@ -344,7 +344,7 @@ func TestStatic(t *testing.T) {
 						})
 					}),
 				},
-				request: httptest.NewRequest(http.MethodGet, "/", nil),
+				request: httptest.NewRequest(http.MethodGet, "/", http.NoBody),
 			},
 			results: results{
 				statusCode: http.StatusOK,

@@ -90,7 +90,7 @@ func TestAuth_authFunc(t *testing.T) {
 	fooBotToken := "foobot_token"
 
 	newRequest := func(authHeader string) *http.Request {
-		request := httptest.NewRequest(http.MethodGet, "/", nil)
+		request := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		request.Header.Set("Authorization", authHeader)
 
 		return request
@@ -100,6 +100,8 @@ func TestAuth_authFunc(t *testing.T) {
 		user, err := telegram.GetUser(r.Context())
 		if err != nil {
 			http.Error(w, "oops", http.StatusInternalServerError)
+
+			return
 		}
 
 		io.WriteString(w, user.Username) //nolint:errcheck
