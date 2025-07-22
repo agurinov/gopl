@@ -155,7 +155,8 @@ endif
 $(GO_CMD_FILES): FORCE $(FHS_BINDIR)
 	$(eval GO_CMD_PKG  := $(realpath $(dir $@)))
 	$(eval GO_CMD_NAME := $(basename $(notdir $(GO_CMD_PKG))))
-	$(GO) build $(BUILD_FLAGS) -o $(FHS_BINDIR)/$(GO_CMD_NAME) $(GO_CMD_PKG)
+	$(eval GO_CMD_BIN  := $(FHS_BINDIR)/$(GO_CMD_NAME))
+	$(GO) build $(BUILD_FLAGS) -o $(GO_CMD_BIN) $(GO_CMD_PKG)
 
 go_build: FORCE vendor go_build_no_cache $(GO_CMD_FILES)
 
@@ -164,7 +165,8 @@ go_shared: BUILD_FLAGS += -buildmode=c-shared
 go_shared: FORCE vendor go_build_no_cache $(FHS_LIBDIR) $(GO_CMD_FILE)
 	$(eval GO_CMD_PKG  := $(realpath $(dir $@)))
 	$(eval GO_CMD_NAME := $(basename $(notdir $(GO_CMD_PKG))))
-	$(GO) build $(BUILD_FLAGS) -o $(FHS_LIBDIR)/$(GO_CMD_NAME).so $(GO_CMD_FILE)
+	$(eval GO_CMD_LIB  := $(FHS_LIBDIR)/$(GO_CMD_NAME))
+	$(GO) build $(BUILD_FLAGS) -o $(GO_CMD_LIB).so $(GO_CMD_FILE)
 
 go_run: GO_CMD_FILE := $(firstword $(GO_CMD_FILES))
 go_run: FORCE vendor go_build_no_cache
@@ -184,6 +186,7 @@ define COVER_FILES_CMD
 	sed -i '' '/gen.go/d' '$(COVERAGE_OUT_FLAG)'
 	$(GO) tool cover -html='$(COVERAGE_OUT_FLAG)' -o '$(COVERAGE_FILE_BASENAME).html'
 	$(GO) tool cover -func='$(COVERAGE_OUT_FLAG)' -o '$(COVERAGE_FILE_BASENAME).func'
+	tail -n1 '$(COVERAGE_FILE_BASENAME).func'
 	$(GO_COVER_TREEMAP) -coverprofile '$(COVERAGE_OUT_FLAG)' -statements=false -h 1080 -w 1080 > '$(COVERAGE_FILE_BASENAME).svg'
 	test -r '$(COVERAGE_FILE_BASENAME).html'
 	test -r '$(COVERAGE_FILE_BASENAME).func'

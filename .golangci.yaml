@@ -52,6 +52,7 @@ linters:
     - inamedparam
     - intrange
     - copyloopvar
+    - recvcheck
 # linters-settings {{{
 # https://golangci-lint.run/usage/configuration/#linters-settings-configuration
 linters-settings:
@@ -194,18 +195,18 @@ linters-settings:
   # https://golangci-lint.run/usage/linters/#gocritic
   # https://go-critic.com/overview#checks-overview
   gocritic:
+    enable-all: true
     enabled-checks: []
     disabled-checks:
       - regexpMust
       - ifElseChain
       - hugeParam
       - unnamedResult
-    enabled-tags:
-      - style
-      - performance
-    disabled-tags:
-      - opinionated
-      - experimental
+      - whyNoLint
+      - commentedOutCode
+      - paramTypeCombine
+    enabled-tags: []
+    disabled-tags: []
     settings:
       captLocal:
         paramsOnly: true

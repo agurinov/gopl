@@ -110,6 +110,7 @@ func (s Kafka) Up(t *testing.T) bool {
 						fmt.Sprintf("EXTERNAL://:%s", kafkaNode.ExternalPortRaw()),
 					}, ","),
 				),
+				//nolint:gocritic
 				fmt.Sprintf("KAFKA_CFG_ADVERTISED_LISTENERS=%s",
 					strings.Join([]string{
 						fmt.Sprintf("INTERNAL://%s", net.JoinHostPort(

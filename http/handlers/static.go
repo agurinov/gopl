@@ -6,12 +6,12 @@ import (
 	"mime"
 	"net/http"
 	"path/filepath"
+	"slices"
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"golang.org/x/exp/slices"
 
 	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/http/middlewares"
