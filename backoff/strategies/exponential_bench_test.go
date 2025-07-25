@@ -16,7 +16,7 @@ func BenchmarkExponential(b *testing.B) {
 		loopLogic = func(retries uint32) float64 {
 			b := initialBackoff
 
-			for i := 0; i < int(retries); i++ {
+			for range retries {
 				b *= multiplier
 			}
 
@@ -42,13 +42,13 @@ func BenchmarkExponential(b *testing.B) {
 	for name, bc := range cases {
 		b.Run(name, func(b *testing.B) {
 			b.Run("loop logic", func(b *testing.B) {
-				for i := 0; i < b.N; i++ {
+				for range b.N {
 					loopLogic(bc.inputRetries)
 				}
 			})
 
 			b.Run("math logic", func(b *testing.B) {
-				for i := 0; i < b.N; i++ {
+				for range b.N {
 					mathLogic(bc.inputRetries)
 				}
 			})

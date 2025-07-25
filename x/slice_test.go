@@ -46,7 +46,7 @@ func TestUnique(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -101,7 +101,7 @@ func TestFilterOutEmpty(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -156,7 +156,7 @@ func TestLast(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -211,7 +211,7 @@ func TestCoalesce(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -266,7 +266,7 @@ func TestSliceToMap(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -347,7 +347,7 @@ func TestSliceMapError_UUID(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -431,7 +431,7 @@ func TestPaginate(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -493,7 +493,7 @@ func TestFlatten(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)

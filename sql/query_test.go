@@ -63,7 +63,7 @@ func TestQuery_WithSpan(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)

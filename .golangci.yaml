@@ -28,15 +28,11 @@ linters:
   fast: false
   disable:
     - tenv
-    - prealloc
     - dupword
     - importas
-    - varcheck
     - exhaustruct
     - exhaustivestruct
-    - wrapcheck
     - varnamelen
-    - goerr113
     - ireturn
     - interfacer
     - golint
@@ -50,9 +46,9 @@ linters:
     - testableexamples
     - structcheck
     - inamedparam
-    - intrange
-    - copyloopvar
     - recvcheck
+    - err113
+    - wrapcheck
 # linters-settings {{{
 # https://golangci-lint.run/usage/configuration/#linters-settings-configuration
 linters-settings:
@@ -403,7 +399,7 @@ linters-settings:
           maxLitCount: '5'
           allowInts: '0,1,2,100,100500'
           allowStrs: '"","uuid"'
-          ignoreFuncs: 'strconv\.FormatInt'
+          ignoreFuncs: 'strconv\.FormatInt|zap\..+'
   # https://golangci-lint.run/usage/linters/#rowserrcheck
   rowserrcheck:
     packages:

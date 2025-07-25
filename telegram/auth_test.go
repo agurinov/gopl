@@ -284,7 +284,7 @@ func TestAuth_authFunc(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -371,7 +371,7 @@ func TestAuth_Validate(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
