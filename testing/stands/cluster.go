@@ -66,7 +66,7 @@ func (cluster) KafkaClusterID() string {
 func newCluster(domain string, replicas int, ports ports) cluster {
 	c := make(cluster, 0, replicas)
 
-	for i := 0; i < replicas; i++ {
+	for i := range replicas {
 		c = append(c, node{
 			index:  i,
 			domain: domain,

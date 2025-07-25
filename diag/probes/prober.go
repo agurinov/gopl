@@ -90,8 +90,6 @@ func (p *Prober) runProbes(
 			continue
 		}
 
-		f := f
-
 		g.Go(func() error { return f(ctx) })
 	}
 

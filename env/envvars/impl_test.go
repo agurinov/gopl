@@ -36,7 +36,7 @@ func RunCases[T envvars.T](
 	t.Helper()
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)

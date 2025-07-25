@@ -30,7 +30,7 @@ func YAMLEq(t *testing.T, expected string, actual string, msgAndArgs ...any) {
 		"expected and actual number of decoded YAML documents differ",
 	)
 
-	for i := 0; i < len(expectedDocuments); i++ {
+	for i := range expectedDocuments {
 		require.Equal(t, yaml.DocumentNode, expectedDocuments[i])
 		require.Equal(t, yaml.DocumentNode, actualDocuments[i])
 		require.Equal(

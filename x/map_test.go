@@ -55,7 +55,7 @@ func TestMapToSlice(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -114,7 +114,7 @@ func TestMapConvert(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
@@ -195,7 +195,7 @@ func TestMapFilter(t *testing.T) {
 	}
 
 	for name := range cases {
-		name, tc := name, cases[name]
+		tc := cases[name]
 
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
