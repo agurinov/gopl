@@ -256,8 +256,8 @@ github.com/hashicorp/vault/api v1.20.0 h1:KQMHElgudOsr+IbJgmbjHnCTxEpKs9LnozA1D3
 github.com/hashicorp/vault/api v1.20.0/go.mod h1:GZ4pcjfzoOWpkJ3ijHNpEoAxKEsBJnVljyTe3jM2Sms=
 github.com/hashicorp/vault/api/auth/approle v0.9.0 h1:FdpspwGVWnGiWmAxd5L1Yd+T+fX2kYnyAIvI5oGdvNs=
 github.com/hashicorp/vault/api/auth/approle v0.9.0/go.mod h1:fvtJhBs3AYMs2fXk4U5+u+7unhUGuboiKzFpLPpIazw=
-github.com/hashicorp/vault/api/auth/userpass v0.9.0 h1:tdIY+xe9O0SAcNY1CK7Wk0ENWNKmmGzJ9+iqZfFBW4I=
-github.com/hashicorp/vault/api/auth/userpass v0.9.0/go.mod h1:W2Cb0z6MjAHkDjGG95mmRGzCETX5Y+O++UBXX/ZlNGc=
+github.com/hashicorp/vault/api/auth/userpass v0.10.0 h1:m2z4E9snYJwOjpKS7EFa58upRenFkNsKHVsiCnJypSI=
+github.com/hashicorp/vault/api/auth/userpass v0.10.0/go.mod h1:GZOuwT7GFi3z3CLDwm/Xo8Y5i0R7C3UV+5KGqYCMEDU=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/hudl/fargo v1.3.0/go.mod h1:y3CKSmjA+wD2gak7sUSXTAoopbhU08POFhmITJgmKTg=
 github.com/imdario/mergo v0.3.12 h1:b6R2BslTbIEToALKP7LxUvijTsNI9TAe80pLWN2g/HU=
