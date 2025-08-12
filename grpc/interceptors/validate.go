@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func ValidatorUnaryServer(v *protovalidate.Validator) grpc.UnaryServerInterceptor {
+func ValidatorUnaryServer(v protovalidate.Validator) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
 		in any,
@@ -30,7 +30,7 @@ func ValidatorUnaryServer(v *protovalidate.Validator) grpc.UnaryServerIntercepto
 	}
 }
 
-func ValidatorUnaryClient(v *protovalidate.Validator) grpc.UnaryClientInterceptor {
+func ValidatorUnaryClient(v protovalidate.Validator) grpc.UnaryClientInterceptor {
 	return func(
 		ctx context.Context,
 		method string,
