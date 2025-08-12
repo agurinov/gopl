@@ -18,7 +18,7 @@ jobs:
         go-version: ['1.23.11', '1.24.5']
         gomake-target: ['lint', 'go_test']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: agurinov/pipelines/github-actions/actions/setup-dotfiles@main
         with:
           token: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
