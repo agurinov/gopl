@@ -127,7 +127,7 @@ github.com/go-playground/validator/v10/non-standard/validators
 # github.com/go-sql-driver/mysql v1.9.3
 ## explicit; go 1.21.0
 github.com/go-sql-driver/mysql
-# github.com/go-telegram/bot v1.16.0
+# github.com/go-telegram/bot v1.17.0
 ## explicit; go 1.18
 github.com/go-telegram/bot
 github.com/go-telegram/bot/models
