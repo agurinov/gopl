@@ -64,8 +64,8 @@ func (cl *Closer) WaitForShutdown(ctx context.Context) error {
 	<-ctx.Done()
 
 	cl.logger.Info(
-		"shutting down closer functions",
-		zap.Int("count", len(cl.stack)),
+		"closer started; going to run functions",
+		zap.Int("functions", len(cl.stack)),
 		zap.Stringer("timeout", cl.timeout),
 	)
 
@@ -96,11 +96,21 @@ func (cl *Closer) WaitForShutdown(ctx context.Context) error {
 		return waitErr
 	}
 
-	errs := make([]error, 0, len(cl.stack))
+	var joinedErr error
 
-	for err := range errCh {
-		errs = append(errs, err)
+	for range len(cl.stack) {
+		select {
+		case err := <-errCh:
+			joinedErr = errors.Join(joinedErr, err)
+		default:
+		}
 	}
 
-	return errors.Join(errs...)
+	if joinedErr != nil {
+		return joinedErr
+	}
+
+	cl.logger.Info("closer finished")
+
+	return nil
 }
