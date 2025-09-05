@@ -57,9 +57,9 @@ func main() {
 
 	logger.Info("starting application")
 
-	g, ctx := errgroup.WithContext(ctx)
+	g, gCtx := errgroup.WithContext(ctx)
 
-	g.Go(func() error { return di.closer.WaitForShutdown(ctx) })
+	g.Go(func() error { return di.closer.WaitForShutdown(gCtx) })
 
 	cmd.RunWait(g, logger)
 }
