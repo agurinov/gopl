@@ -73,16 +73,21 @@ func (s Server) ListenAndServe(context.Context) error {
 	return nil
 }
 
-func (s Server) WaitForShutdown(ctx context.Context) error {
-	<-ctx.Done()
-
-	s.logger.Debug(
+func (s Server) Stop() {
+	s.logger.Info(
 		"shutting down grpc server",
 		zap.String("server_name", s.name),
 		zap.Stringer("server_address", s.grpcListener.Addr()),
 	)
 
 	s.GRPC().GracefulStop()
+}
+
+// Deprecated: use closer.AddCloser(server.Stop) instead
+func (s Server) WaitForShutdown(ctx context.Context) error {
+	<-ctx.Done()
+
+	s.Stop()
 
 	return nil
 }
