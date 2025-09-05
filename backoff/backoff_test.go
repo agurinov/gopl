@@ -37,11 +37,11 @@ func TestBackoff_Concurrency(t *testing.T) {
 		require.NotNil(t, b)
 
 		doValidRetries := func(ctx context.Context, b *backoff.Backoff) {
-			g, ctx := errgroup.WithContext(ctx)
+			g, gCtx := errgroup.WithContext(ctx)
 
 			for range maxRetries {
 				g.Go(func() error {
-					_, err := b.Wait(ctx)
+					_, err := b.Wait(gCtx)
 
 					return err
 				})

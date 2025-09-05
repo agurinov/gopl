@@ -31,14 +31,19 @@ func (s Scheduler) Run(_ context.Context) error {
 	return nil
 }
 
-func (s Scheduler) WaitForShutdown(ctx context.Context) error {
-	<-ctx.Done()
-
-	s.logger.Debug("shutting down crontab")
+func (s Scheduler) Shutdown() error {
+	s.logger.Info("shutting down crontab")
 
 	if err := s.scheduler.Shutdown(); err != nil {
 		return fmt.Errorf("crontab: can't shutdown: %w", err)
 	}
 
 	return nil
+}
+
+// Deprecated: use closer.AddErrorCloser(scheduler.Shutdown) instead
+func (s Scheduler) WaitForShutdown(ctx context.Context) error {
+	<-ctx.Done()
+
+	return s.Shutdown()
 }

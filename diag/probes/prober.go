@@ -83,14 +83,14 @@ func (p *Prober) runProbes(
 	checkCtx, checkCancel := context.WithTimeout(ctx, p.checkTimeout)
 	defer checkCancel()
 
-	g, ctx := errgroup.WithContext(checkCtx)
+	g, gCtx := errgroup.WithContext(checkCtx)
 
 	for _, f := range probes {
 		if f == nil {
 			continue
 		}
 
-		g.Go(func() error { return f(ctx) })
+		g.Go(func() error { return f(gCtx) })
 	}
 
 	return g.Wait()

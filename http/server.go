@@ -33,6 +33,14 @@ func (s Server) ListenAndServe(_ context.Context) error {
 		zap.Stringer("server_address", s.httpListener.Addr()),
 	)
 
+	s.httpServer.RegisterOnShutdown(func() {
+		s.logger.Info(
+			"shutting down server",
+			zap.String("server_name", s.name),
+			zap.Stringer("server_address", s.httpListener.Addr()),
+		)
+	})
+
 	switch err := s.httpServer.Serve(s.httpListener); {
 	case err == nil:
 	case errors.Is(err, http.ErrServerClosed):
@@ -43,14 +51,17 @@ func (s Server) ListenAndServe(_ context.Context) error {
 	return nil
 }
 
+func (s Server) Shutdown(ctx context.Context) error {
+	if err := s.httpServer.Shutdown(ctx); err != nil {
+		return fmt.Errorf("server %q: can't shutdown: %w", s.name, err)
+	}
+
+	return nil
+}
+
+// Deprecated: use closer.AddContextErrorCloser(server.Shutdown) instead
 func (s Server) WaitForShutdown(ctx context.Context) error {
 	<-ctx.Done()
-
-	s.logger.Debug(
-		"shutting down http server",
-		zap.String("server_name", s.name),
-		zap.Stringer("server_address", s.httpListener.Addr()),
-	)
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(
 		context.Background(),
@@ -58,9 +69,6 @@ func (s Server) WaitForShutdown(ctx context.Context) error {
 	)
 	defer shutdownCancel()
 
-	if err := s.httpServer.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
-		return fmt.Errorf("server %q: can't shutdown: %w", s.name, err)
-	}
-
-	return nil
+	//nolint:contextcheck
+	return s.Shutdown(shutdownCtx)
 }
