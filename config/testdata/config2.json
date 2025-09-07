@@ -1,20 +1,25 @@
 {
-	"logger": {
+	"logger_j": {
 		"level": "info"
 	},
-	"probes": {
+	"probes_j": {
 		"check_timeout": 5000000000
 	},
-	"graceful": {
+	"graceful_j": {
 		"close_timeout": 1000000000
 	},
-	"grpc": {
+	"grpc_j": {
 		"max_request_bytes": 100,
 		"max_response_bytes": 100,
 		"reflection_enabled": false
 	},
-	"merged_map": {
+	"merged_map_scalar_j": {
 		"foo": "bar2",
 		"bar": "baz"
+	},
+	"merged_map_struct_j": {
+		"foo": {
+			"value": "value2"
+		}
 	}
 }

@@ -1,22 +1,27 @@
 {
-	"logger": {
+	"logger_j": {
 		"format": "json"
 	},
-	"probes": {
+	"probes_j": {
 		"check_interval": 3000000000
 	},
-	"graceful": {
+	"graceful_j": {
 		"shutdown_timeout": 2000000000
 	},
-	"grpc": {
+	"grpc_j": {
 		"port": 9090,
 		"reflection_enabled": true
 	},
-	"debug_http": {
+	"debug_http_j": {
 		"port": 8081
 	},
-	"merged_map": {
+	"merged_map_scalar_j": {
 		"foo": "bar",
 		"lol": "kek"
+	},
+	"merged_map_struct_j": {
+		"foo": {
+			"key": "key1"
+		}
 	}
 }

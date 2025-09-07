@@ -1,19 +1,23 @@
 ---
-logger:
+logger_y:
   level: info
 
-probes:
+probes_y:
   check_timeout: 5s
 
-graceful:
+graceful_y:
   close_timeout: 1s
 
-grpc:
+grpc_y:
   max_request_bytes: 100
   max_response_bytes: 100
   reflection_enabled: false
 
-merged_map:
+merged_map_scalar_y:
   foo: bar2
   bar: baz
+
+merged_map_struct_y:
+  foo:
+    value: 'value2'
 ...
