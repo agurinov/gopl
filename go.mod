@@ -6,7 +6,7 @@ require (
 	github.com/bufbuild/protovalidate-go v0.10.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.2.2
-	github.com/go-co-op/gocron/v2 v2.16.3
+	github.com/go-co-op/gocron/v2 v2.16.5
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/go-telegram/bot v1.17.0
@@ -22,7 +22,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/prometheus/client_golang v1.23.0
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	github.com/telegram-mini-apps/init-data-golang v1.5.0
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.27.0
