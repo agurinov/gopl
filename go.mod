@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/vault/api/auth/approle v0.10.0
 	github.com/hashicorp/vault/api/auth/userpass v0.10.0
 	github.com/improbable-eng/grpc-web v0.15.0
-	github.com/jackc/pgx/v5 v5.7.5
+	github.com/jackc/pgx/v5 v5.7.6
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/json-iterator/go v1.1.12
