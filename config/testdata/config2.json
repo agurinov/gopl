@@ -13,13 +13,22 @@
 		"max_response_bytes": 100,
 		"reflection_enabled": false
 	},
-	"merged_map_scalar_j": {
+	"map_scalar_j": {
 		"foo": "bar2",
 		"bar": "baz"
 	},
-	"merged_map_struct_j": {
+	"map_struct_j": {
 		"foo": {
 			"value": "value2"
 		}
-	}
+	},
+	"array_scalar_j": [
+		"bar2",
+		"baz"
+	],
+	"array_struct_j": [
+		{
+			"value": "value1"
+		}
+	]
 }

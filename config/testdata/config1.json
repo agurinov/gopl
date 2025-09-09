@@ -15,13 +15,27 @@
 	"debug_http_j": {
 		"port": 8081
 	},
-	"merged_map_scalar_j": {
+	"map_scalar_j": {
 		"foo": "bar",
 		"lol": "kek"
 	},
-	"merged_map_struct_j": {
+	"map_struct_j": {
 		"foo": {
 			"key": "key1"
 		}
-	}
+	},
+	"array_scalar_j": [
+		"foo",
+		"bar"
+	],
+	"array_struct_j": [
+		{
+			"key": "key1",
+			"value": "value1"
+		},
+		{
+			"key": "key2",
+			"value": "value2"
+		}
+	]
 }

@@ -20,13 +20,15 @@ type (
 		Value string
 	}
 	myCfg struct {
-		Logger          config.Logger       `json:"logger_j" yaml:"logger_y"`
-		Probes          config.Probes       `json:"probes_j" yaml:"probes_y"`
-		Graceful        config.Graceful     `json:"graceful_j" yaml:"graceful_y"`
-		GRPC            config.GRPC         `json:"grpc_j" yaml:"grpc_y"`
-		DebugHTTP       config.HTTP         `json:"debug_http_j" yaml:"debug_http_y"`
-		MergedMapScalar map[string]string   `json:"merged_map_scalar_j" yaml:"merged_map_scalar_y"`
-		MergedMapStruct map[string]myStruct `json:"merged_map_struct_j" yaml:"merged_map_struct_y"`
+		Logger      config.Logger       `json:"logger_j" yaml:"logger_y"`
+		Probes      config.Probes       `json:"probes_j" yaml:"probes_y"`
+		Graceful    config.Graceful     `json:"graceful_j" yaml:"graceful_y"`
+		GRPC        config.GRPC         `json:"grpc_j" yaml:"grpc_y"`
+		DebugHTTP   config.HTTP         `json:"debug_http_j" yaml:"debug_http_y"`
+		MapScalar   map[string]string   `json:"map_scalar_j" yaml:"map_scalar_y"`
+		MapStruct   map[string]myStruct `json:"map_struct_j" yaml:"map_struct_y"`
+		ArrayScalar []string            `json:"array_scalar_j" yaml:"array_scalar_y"`
+		ArrayStruct []myStruct          `json:"array_struct_j" yaml:"array_struct_y"`
 	}
 )
 
@@ -130,17 +132,19 @@ func TestParse(t *testing.T) {
 						DebugHTTP: config.HTTP{
 							Port: 8081,
 						},
-						MergedMapScalar: map[string]string{
+						MapScalar: map[string]string{
 							"foo": "bar2",
 							"bar": "baz",
 							"lol": "kek",
 						},
-						MergedMapStruct: map[string]myStruct{
+						MapStruct: map[string]myStruct{
 							"foo": {
 								Key:   "key1",
 								Value: "value2",
 							},
 						},
+						ArrayScalar: []string{"bar2", "baz"},
+						ArrayStruct: []myStruct{{Value: "value1"}},
 					},
 				},
 			},
@@ -243,17 +247,19 @@ func TestParse(t *testing.T) {
 						DebugHTTP: config.HTTP{
 							Port: 8081,
 						},
-						MergedMapScalar: map[string]string{
+						MapScalar: map[string]string{
 							"foo": "bar2",
 							"bar": "baz",
 							"lol": "kek",
 						},
-						MergedMapStruct: map[string]myStruct{
+						MapStruct: map[string]myStruct{
 							"foo": {
 								Key:   "key1",
 								Value: "value2",
 							},
 						},
+						ArrayScalar: []string{"bar2", "baz"},
+						ArrayStruct: []myStruct{{Value: "value1"}},
 					},
 				},
 			},
