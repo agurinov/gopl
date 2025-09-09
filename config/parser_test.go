@@ -139,12 +139,12 @@ func TestParse(t *testing.T) {
 						},
 						MapStruct: map[string]myStruct{
 							"foo": {
-								Key:   "",
+								Key:   "key1",
 								Value: "value2",
 							},
 						},
 						ArrayScalar: []string{"bar2", "baz"},
-						ArrayStruct: []myStruct{{Key: "key1", Value: "value1"}},
+						ArrayStruct: []myStruct{{Value: "value1"}},
 					},
 				},
 			},
@@ -254,7 +254,7 @@ func TestParse(t *testing.T) {
 						},
 						MapStruct: map[string]myStruct{
 							"foo": {
-								Key:   "",
+								Key:   "key1",
 								Value: "value2",
 							},
 						},
