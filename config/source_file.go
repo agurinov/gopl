@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func FromFile(filepath string, flags ...flag) Source {
+func FromFile(filepath string, flags ...Flags) Source {
 	var bs ParserFlags
 	for i := range flags {
 		bs.Set(flags[i])

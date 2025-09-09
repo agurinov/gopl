@@ -1,22 +1,41 @@
 {
-	"logger": {
+	"logger_j": {
 		"format": "json"
 	},
-	"probes": {
+	"probes_j": {
 		"check_interval": 3000000000
 	},
-	"graceful": {
+	"graceful_j": {
 		"shutdown_timeout": 2000000000
 	},
-	"grpc": {
+	"grpc_j": {
 		"port": 9090,
 		"reflection_enabled": true
 	},
-	"debug_http": {
+	"debug_http_j": {
 		"port": 8081
 	},
-	"merged_map": {
+	"map_scalar_j": {
 		"foo": "bar",
 		"lol": "kek"
-	}
+	},
+	"map_struct_j": {
+		"foo": {
+			"key": "key1"
+		}
+	},
+	"array_scalar_j": [
+		"foo",
+		"bar"
+	],
+	"array_struct_j": [
+		{
+			"key": "key1",
+			"value": "value1"
+		},
+		{
+			"key": "key2",
+			"value": "value2"
+		}
+	]
 }

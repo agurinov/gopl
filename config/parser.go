@@ -13,12 +13,12 @@ import (
 type (
 	Source      func(context.Context) ([]byte, error)
 	Parser      func(context.Context, []byte, any) error
-	flag        = uint8
-	ParserFlags = bitset.BitSet[flag]
+	Flags       = uint8
+	ParserFlags = bitset.BitSet[Flags]
 )
 
 const (
-	YAML uint8 = 1 << iota
+	YAML Flags = 1 << iota
 	JSON
 	TOML
 	XML
@@ -27,9 +27,12 @@ const (
 
 func Parse[T any](
 	ctx context.Context,
-	flags flag,
+	flags Flags,
 	sources ...Source,
-) (T, error) {
+) (
+	T,
+	error,
+) {
 	var (
 		cfg    T
 		parser Parser
@@ -58,8 +61,8 @@ func Parse[T any](
 			continue
 		}
 
-		if parseErr := parser(ctx, data, &cfg); parseErr != nil {
-			return cfg, parseErr
+		if pErr := parser(ctx, data, &cfg); pErr != nil {
+			return cfg, pErr
 		}
 	}
 
