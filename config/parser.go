@@ -4,15 +4,19 @@ import (
 	"context"
 	"errors"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/go-playground/validator/v10/non-standard/validators"
+	jsoniter "github.com/json-iterator/go"
+	"github.com/knadh/koanf/maps"
 
 	"github.com/agurinov/gopl/bitset"
 )
 
 type (
-	Source      func(context.Context) ([]byte, error)
-	Parser      func(context.Context, []byte, any) error
+	Source    func(context.Context) ([]byte, error)
+	Parser    func(context.Context, []byte, any) error
+	Validator func(any) error
+)
+
+type (
 	Flags       = uint8
 	ParserFlags = bitset.BitSet[Flags]
 )
@@ -23,6 +27,7 @@ const (
 	TOML
 	XML
 	Silent
+	NoValidate
 )
 
 func Parse[T any](
@@ -34,11 +39,16 @@ func Parse[T any](
 	error,
 ) {
 	var (
-		cfg    T
-		parser Parser
+		cfg T
+		bs  = bitset.New(flags)
 	)
 
-	switch bs := bitset.New(flags); {
+	var (
+		parser    Parser
+		validator Validator
+	)
+
+	switch {
 	case bs.Has(YAML):
 		parser = parseYAML
 	case bs.Has(JSON):
@@ -47,32 +57,52 @@ func Parse[T any](
 		return cfg, errors.New("unsupported parser")
 	}
 
+	switch {
+	case bs.Has(NoValidate):
+		validator = nil
+	default:
+		validator = validateStruct
+	}
+
+	dataMap := map[string]any{}
+
 	for _, source := range sources {
 		if source == nil {
 			continue
 		}
 
-		data, err := source(ctx)
+		sourceBytes, err := source(ctx)
 
 		switch {
 		case err != nil:
 			return cfg, err
-		case len(data) == 0:
+		case len(sourceBytes) == 0:
 			continue
 		}
 
-		if pErr := parser(ctx, data, &cfg); pErr != nil {
+		var patchMap map[string]any
+
+		if pErr := parser(ctx, sourceBytes, &patchMap); pErr != nil {
 			return cfg, pErr
 		}
+
+		maps.Merge(patchMap, dataMap)
 	}
 
-	v := validator.New()
-	if err := v.RegisterValidation("notblank", validators.NotBlank); err != nil {
+	// NOTE: not an elegant way, but yaml parser can read json input.
+	dataBytes, err := jsoniter.Marshal(dataMap)
+	if err != nil {
 		return cfg, err
 	}
 
-	if err := v.Struct(cfg); err != nil {
-		return cfg, err
+	if pErr := parser(ctx, dataBytes, &cfg); pErr != nil {
+		return cfg, pErr
+	}
+
+	if validator != nil {
+		if vErr := validator(cfg); vErr != nil {
+			return cfg, vErr
+		}
 	}
 
 	return cfg, nil
