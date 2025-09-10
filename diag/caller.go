@@ -1,16 +1,15 @@
 package diag
 
 import (
+	"cmp"
 	"fmt"
 	"runtime"
 	"strings"
-
-	"github.com/agurinov/gopl/x"
 )
 
 //nolint:gomnd,mnd
 func CallerName(skip int) string {
-	skip = x.Coalesce(skip, 1)
+	skip = cmp.Or(skip, 1)
 
 	pc, _, _, _ := runtime.Caller(skip) //nolint:dogsled
 
