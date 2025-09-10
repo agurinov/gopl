@@ -21,18 +21,6 @@ func Unique[T comparable](in []T) []T {
 	return out
 }
 
-func Coalesce[T comparable](in ...T) T {
-	var zero T
-
-	for i := range in {
-		if in[i] != zero {
-			return in[i]
-		}
-	}
-
-	return zero
-}
-
 func FilterOutEmpty[T comparable](in []T) []T {
 	var (
 		zero     T
@@ -156,10 +144,10 @@ func Paginate[T any](
 		return nil
 	}
 
-	end := offset + limit
-	if end > sliceLen {
-		end = sliceLen
-	}
+	end := min(
+		offset+limit,
+		sliceLen,
+	)
 
 	return in[offset:end]
 }

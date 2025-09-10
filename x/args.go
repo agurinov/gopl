@@ -1,5 +1,7 @@
 package x
 
+import "slices"
+
 func SliceOrNil[T any](in []T) any {
 	if len(in) == 0 {
 		return nil
@@ -21,10 +23,8 @@ func ValueOrNil[T comparable](in T) any {
 func EmptyIf[T comparable](in T, empty ...T) T {
 	var zero T
 
-	for i := range empty {
-		if in == empty[i] {
-			return zero
-		}
+	if slices.Contains(empty, in) {
+		return zero
 	}
 
 	return in
@@ -42,4 +42,15 @@ func FromPtr[T any](in *T) T {
 	}
 
 	return *in
+}
+
+func SafeAssert[T any](in any) T {
+	var zero T
+
+	typed, ok := in.(T)
+	if !ok {
+		return zero
+	}
+
+	return typed
 }

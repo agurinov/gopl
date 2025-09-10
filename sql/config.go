@@ -1,13 +1,12 @@
 package sql
 
 import (
+	"cmp"
 	"fmt"
 	"net"
 	"strconv"
 
 	"github.com/go-sql-driver/mysql"
-
-	"github.com/agurinov/gopl/x"
 )
 
 type Config struct {
@@ -22,13 +21,13 @@ type Config struct {
 
 func (c Config) MergeWith(other Config) Config {
 	return Config{
-		Driver:   x.Coalesce(other.Driver, c.Driver),
-		Host:     x.Coalesce(other.Host, c.Host),
-		Database: x.Coalesce(other.Database, c.Database),
-		User:     x.Coalesce(other.User, c.User),
-		Password: x.Coalesce(other.Password, c.Password),
-		Port:     x.Coalesce(other.Port, c.Port),
-		Enabled:  x.Coalesce(other.Enabled, c.Enabled),
+		Driver:   cmp.Or(other.Driver, c.Driver),
+		Host:     cmp.Or(other.Host, c.Host),
+		Database: cmp.Or(other.Database, c.Database),
+		User:     cmp.Or(other.User, c.User),
+		Password: cmp.Or(other.Password, c.Password),
+		Port:     cmp.Or(other.Port, c.Port),
+		Enabled:  cmp.Or(other.Enabled, c.Enabled),
 	}
 }
 

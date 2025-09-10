@@ -61,3 +61,14 @@ func TestEmptyIf(t *testing.T) {
 		})
 	}
 }
+
+func TestSafeAssert(t *testing.T) {
+	pl_testing.Init(t)
+
+	// require.Equal(t, int64(5), x.SafeAssert[int64](uint(5)))
+
+	require.Equal(t, "", x.SafeAssert[string](5))
+	require.Equal(t, "", x.SafeAssert[string](true))
+	require.Equal(t, "", x.SafeAssert[string](nil))
+	require.Equal(t, "foobar", x.SafeAssert[string]("foobar"))
+}
