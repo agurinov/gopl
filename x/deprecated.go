@@ -18,3 +18,16 @@ func SliceMapError[T1, T2 any](
 ) {
 	return SliceConvertError(in, mapF)
 }
+
+// Deprecated: Use cmp.Or instead.
+func Coalesce[T comparable](in ...T) T {
+	var zero T
+
+	for i := range in {
+		if in[i] != zero {
+			return in[i]
+		}
+	}
+
+	return zero
+}
