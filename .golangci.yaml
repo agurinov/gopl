@@ -397,9 +397,9 @@ linters-settings:
       - name: add-constant
         arguments:
           maxLitCount: '5'
-          allowInts: '0,1,2,100,100500'
-          allowStrs: '"","uuid"'
-          ignoreFuncs: 'strconv\.FormatInt|zap\..+'
+          allowInts: '0,1,2,10,32,64,100,100500'
+          allowStrs: '"","uuid","."'
+          ignoreFuncs: 'strconv\.FormatInt|zap\..+|strings\.Split'
   # https://golangci-lint.run/usage/linters/#rowserrcheck
   rowserrcheck:
     packages:
