@@ -5,6 +5,9 @@
 
 gocron is a job scheduling package which lets you run Go functions at pre-determined intervals.
 
+> Looking for a visual interface?  
+> Check out [**gocron-ui**](https://github.com/go-co-op/gocron-ui) — a lightweight web dashboard to monitor, trigger, and manage your `gocron` jobs in real time.
+
 If you want to chat, you can find us on Slack at
 [<img src="https://img.shields.io/badge/gophers-gocron-brightgreen?logo=slack">](https://gophers.slack.com/archives/CQ7T0T1FW)
 
