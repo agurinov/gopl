@@ -72,3 +72,27 @@ func TestSafeAssert(t *testing.T) {
 	require.Equal(t, "", x.SafeAssert[string](nil))
 	require.Equal(t, "foobar", x.SafeAssert[string]("foobar"))
 }
+
+func TestParseNumber(t *testing.T) {
+	pl_testing.Init(t)
+
+	outInt, err := x.ParseNumber[int]("   ")
+	require.NoError(t, err)
+	require.Equal(t, int(0), outInt)
+
+	outInt32, err := x.ParseNumber[int32]("100,500")
+	require.NoError(t, err)
+	require.Equal(t, int32(100500), outInt32)
+
+	outInt64, err := x.ParseNumber[int64]("100,500.50")
+	require.NoError(t, err)
+	require.Equal(t, int64(100500), outInt64)
+
+	outFloat64, err := x.ParseNumber[float64]("100,500.50")
+	require.NoError(t, err)
+	require.InDelta(t, float64(100500.50), outFloat64, 0)
+
+	NaN, err := x.ParseNumber[float32]("lolkek")
+	require.Error(t, err)
+	require.InDelta(t, float32(0), NaN, 0)
+}
