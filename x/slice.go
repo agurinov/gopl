@@ -167,3 +167,35 @@ func Flatten[T any](
 
 	return flattened
 }
+
+func SliceBatch[T any](
+	in []T,
+	batchSize uint,
+) [][]T {
+	switch {
+	case len(in) == 0:
+		return nil
+	case batchSize == 0:
+		return nil
+	}
+
+	var (
+		sliceLen   = uint(len(in))
+		batchCount = (sliceLen + batchSize - 1) / batchSize
+		batches    = make([][]T, 0, batchCount)
+	)
+
+	for start := uint(0); start < sliceLen; start += batchSize {
+		end := min(
+			start+batchSize,
+			sliceLen,
+		)
+
+		batch := make([]T, end-start)
+		copy(batch, in[start:end])
+
+		batches = append(batches, batch)
+	}
+
+	return batches
+}

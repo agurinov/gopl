@@ -503,3 +503,88 @@ func TestFlatten(t *testing.T) {
 		})
 	}
 }
+
+func TestSliceBatch(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in        []int
+			batchSize uint
+		}
+		results struct {
+			out [][]int
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: empty slice": {
+			args: args{
+				in:        []int{},
+				batchSize: 5,
+			},
+			results: results{
+				out: nil,
+			},
+		},
+		"case01: nil slice": {
+			args: args{
+				in:        nil,
+				batchSize: 5,
+			},
+			results: results{
+				out: nil,
+			},
+		},
+		"case02: zero size": {
+			args: args{
+				in:        []int{1, 2, 3},
+				batchSize: 0,
+			},
+			results: results{
+				out: nil,
+			},
+		},
+		"case03: exact division": {
+			args: args{
+				in:        []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+				batchSize: 5,
+			},
+			results: results{
+				out: [][]int{
+					{1, 2, 3, 4, 5},
+					{6, 7, 8, 9, 10},
+				},
+			},
+		},
+		"case04: division with remaining": {
+			args: args{
+				in:        []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+				batchSize: 3,
+			},
+			results: results{
+				out: [][]int{
+					{1, 2, 3},
+					{4, 5, 6},
+					{7, 8, 9},
+					{10},
+				},
+			},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.SliceBatch(tc.args.in, tc.args.batchSize)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
