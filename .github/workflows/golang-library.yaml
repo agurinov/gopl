@@ -20,7 +20,7 @@ jobs:
         include:
           - {go-version: '1.24.10', gomake-target: 'go_sec'}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: agurinov/pipelines/github-actions/actions/setup-dotfiles@main
         with:
           token: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
