@@ -2,7 +2,9 @@ package graceful_test
 
 import (
 	"context"
+	"errors"
 	"io"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -13,11 +15,35 @@ import (
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
+type db struct {
+	closed atomic.Bool
+}
+
+type svc struct {
+	db *db
+}
+
 func simpleCloser()                          {}
 func successCloser() error                   { return nil }
 func errCloser() error                       { return io.EOF }
 func successCtxCloser(context.Context) error { return nil }
 func errCtxCloser(context.Context) error     { return io.ErrNoProgress }
+
+func (d *db) Work() error {
+	if d.closed.Load() {
+		return errors.New("db is closed")
+	}
+
+	return nil
+}
+
+func (d *db) Close() {
+	d.closed.Store(true)
+}
+
+func (s svc) Close() error {
+	return s.db.Work()
+}
 
 func TestCloser_WaitForShutdown(t *testing.T) {
 	pl_testing.Init(t)
@@ -102,4 +128,27 @@ func TestCloser_WaitForShutdown(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCloser_Waves(t *testing.T) {
+	pl_testing.Init(t)
+
+	closer, err := graceful.NewCloser(
+		graceful.WithLogger(zaptest.NewLogger(t)),
+		graceful.WithTimeout(time.Second),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, closer)
+
+	database := new(db)
+	closer.AddCloser(database.Close)
+
+	service := svc{db: database}
+	closer.AddErrorCloser(service.Close, graceful.InFirstWave())
+
+	ctx, cancel := context.WithCancel(context.TODO())
+	cancel()
+
+	joinedErr := closer.WaitForShutdown(ctx)
+	require.NoError(t, joinedErr)
 }

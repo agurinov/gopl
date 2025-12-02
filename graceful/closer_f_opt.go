@@ -25,3 +25,11 @@ func WithTimeout(timeout time.Duration) CloserOption {
 		return nil
 	}
 }
+
+func InFirstWave() AddOption {
+	return func(a *addArgs) error {
+		a.wave = FirstWave
+
+		return nil
+	}
+}

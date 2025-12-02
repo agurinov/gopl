@@ -2,11 +2,10 @@ package graceful
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"time"
 
 	"go.uber.org/zap"
-	"golang.org/x/sync/errgroup"
 
 	c "github.com/agurinov/gopl/patterns/creational"
 )
@@ -15,48 +14,80 @@ type (
 	closeF func(ctx context.Context) error
 	Closer struct {
 		logger  *zap.Logger
-		stack   []closeF
+		stack1  []closeF
+		stack2  []closeF
 		timeout time.Duration
 	}
 	CloserOption c.Option[Closer]
+)
+
+type (
+	Wave    uint8
+	addArgs struct {
+		wave Wave
+	}
+	AddOption c.Option[addArgs]
+)
+
+const (
+	SecondWave Wave = iota
+	FirstWave
 )
 
 var NewCloser = c.NewWithValidate[Closer, CloserOption]
 
 func (cl *Closer) AddCloser(
 	fn func(),
+	opts ...AddOption,
 ) {
 	if fn == nil {
 		return
 	}
 
-	cl.stack = append(cl.stack, func(_ context.Context) error {
+	closure := func(_ context.Context) error {
 		fn()
 
 		return nil
-	})
+	}
+
+	cl.AddContextErrorCloser(closure, opts...)
 }
 
 func (cl *Closer) AddErrorCloser(
 	fn func() error,
+	opts ...AddOption,
 ) {
 	if fn == nil {
 		return
 	}
 
-	cl.stack = append(cl.stack, func(_ context.Context) error {
+	closure := func(_ context.Context) error {
 		return fn()
-	})
+	}
+
+	cl.AddContextErrorCloser(closure, opts...)
 }
 
 func (cl *Closer) AddContextErrorCloser(
 	fn func(context.Context) error,
+	opts ...AddOption,
 ) {
 	if fn == nil {
 		return
 	}
 
-	cl.stack = append(cl.stack, fn)
+	args, err := c.New(opts...)
+	cl.logger.Warn(
+		"can't construct add args",
+		zap.Error(err),
+	)
+
+	switch args.wave {
+	case FirstWave:
+		cl.stack1 = append(cl.stack1, fn)
+	default:
+		cl.stack2 = append(cl.stack2, fn)
+	}
 }
 
 //nolint:contextcheck
@@ -65,11 +96,20 @@ func (cl *Closer) WaitForShutdown(ctx context.Context) error {
 
 	cl.logger.Info(
 		"closer started; going to run functions",
-		zap.Int("functions", len(cl.stack)),
 		zap.Stringer("timeout", cl.timeout),
+		zap.Dict(
+			"1st wave",
+			zap.Int("functions", len(cl.stack1)),
+		),
+		zap.Dict(
+			"2nd wave",
+			zap.Int("functions", len(cl.stack2)),
+		),
 	)
 
-	if len(cl.stack) == 0 {
+	allLen := len(cl.stack1) + len(cl.stack2)
+
+	if allLen == 0 {
 		return nil
 	}
 
@@ -79,35 +119,27 @@ func (cl *Closer) WaitForShutdown(ctx context.Context) error {
 	)
 	defer shutdownCancel()
 
-	errCh := make(chan error, len(cl.stack))
+	errCh := make(chan error, allLen)
 	defer close(errCh)
 
-	g, gCtx := errgroup.WithContext(shutdownCtx)
-
-	for _, f := range cl.stack {
-		g.Go(func() error {
-			errCh <- f(gCtx)
-
-			return nil
-		})
+	if err := runGroup(
+		shutdownCtx,
+		errCh,
+		cl.stack1,
+	); err != nil {
+		return fmt.Errorf("can't close 1st wave: %w", err)
 	}
 
-	if waitErr := g.Wait(); waitErr != nil {
-		return waitErr
+	if err := runGroup(
+		shutdownCtx,
+		errCh,
+		cl.stack2,
+	); err != nil {
+		return fmt.Errorf("can't close 2nd wave: %w", err)
 	}
 
-	var joinedErr error
-
-	for range len(cl.stack) {
-		select {
-		case err := <-errCh:
-			joinedErr = errors.Join(joinedErr, err)
-		default:
-		}
-	}
-
-	if joinedErr != nil {
-		return joinedErr
+	if err := joinErrors(errCh); err != nil {
+		return fmt.Errorf("can't join errors: %w", err)
 	}
 
 	cl.logger.Info("closer finished")
