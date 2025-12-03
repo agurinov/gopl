@@ -29,7 +29,7 @@ func errCloser() error                       { return io.EOF }
 func successCtxCloser(context.Context) error { return nil }
 func errCtxCloser(context.Context) error     { return io.ErrNoProgress }
 
-func (d *db) Work() error {
+func (d *db) CommitAll() error {
 	if d.closed.Load() {
 		return errors.New("db is closed")
 	}
@@ -42,7 +42,7 @@ func (d *db) Close() {
 }
 
 func (s svc) Close() error {
-	return s.db.Work()
+	return s.db.CommitAll()
 }
 
 func TestCloser_WaitForShutdown(t *testing.T) {
