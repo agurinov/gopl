@@ -1,4 +1,4 @@
-//nolint:revive
+//revive:disable:add-constant
 package stands
 
 import (
@@ -41,7 +41,7 @@ var (
 //go:embed etc/vault/dev-admin-policy.hcl
 var vaultDevAdminPolicy string
 
-func (s Vault) Name() string { return VaultStandName }
+func (Vault) Name() string { return VaultStandName }
 
 //nolint:perfsprint
 func (s Vault) Up(t *testing.T) bool {
