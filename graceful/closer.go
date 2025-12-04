@@ -91,8 +91,8 @@ func (cl *Closer) AddContextErrorCloser(
 }
 
 //nolint:contextcheck
-func (cl *Closer) WaitForShutdown(ctx context.Context) error {
-	<-ctx.Done()
+func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
+	<-runCtx.Done()
 
 	cl.logger.Info(
 		"closer started; going to run functions",

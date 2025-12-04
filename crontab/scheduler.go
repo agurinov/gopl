@@ -23,7 +23,7 @@ type (
 
 var New = c.NewWithContextValidate[Scheduler, SchedulerOption]
 
-func (s Scheduler) Run(_ context.Context) error {
+func (s Scheduler) Run(context.Context) error {
 	s.logger.Info("starting crontab")
 
 	s.scheduler.Start()

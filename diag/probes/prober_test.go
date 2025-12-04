@@ -14,6 +14,8 @@ import (
 )
 
 func TestProber_New(t *testing.T) {
+	pl_testing.Init(t)
+
 	type (
 		args struct {
 			opts []probes.Option

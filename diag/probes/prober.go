@@ -21,6 +21,7 @@ type (
 		livenessProbes  []Probe
 		checkInterval   time.Duration
 		checkTimeout    time.Duration
+		closed          atomic.Bool
 		startup         atomic.Bool
 		readiness       atomic.Bool
 		liveness        atomic.Bool
@@ -49,6 +50,10 @@ func (p *Prober) WithReadinessProbe(probes ...Probe) {
 
 func (p *Prober) WithLivenessProbe(probes ...Probe) {
 	p.livenessProbes = append(p.livenessProbes, probes...)
+}
+
+func (p *Prober) Close() {
+	p.closed.Store(true)
 }
 
 func (p *Prober) Run(ctx context.Context) error {
@@ -97,10 +102,13 @@ func (p *Prober) runProbes(
 }
 
 func (p *Prober) runAllProbes(ctx context.Context) {
-	readinessErr := p.runProbes(ctx, p.readinessProbes)
-	p.readiness.Store(readinessErr == nil)
+	var (
+		isClosed     = p.closed.Load()
+		readinessErr = p.runProbes(ctx, p.readinessProbes)
+		livenessErr  = p.runProbes(ctx, p.livenessProbes)
+	)
 
-	livenessErr := p.runProbes(ctx, p.livenessProbes)
+	p.readiness.Store(readinessErr == nil && !isClosed)
 	p.liveness.Store(livenessErr == nil)
 
 	lvl := zapcore.DebugLevel
