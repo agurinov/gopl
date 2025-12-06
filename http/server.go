@@ -26,7 +26,7 @@ type (
 
 var NewServer = c.NewWithValidate[Server, ServerOption]
 
-func (s Server) ListenAndServe(_ context.Context) error {
+func (s Server) ListenAndServe(context.Context) error {
 	s.logger.Info(
 		"starting http server",
 		zap.String("server_name", s.name),

@@ -9,7 +9,7 @@ import (
 	"github.com/agurinov/gopl/diag/log"
 )
 
-//nolint:revive
+//revive:disable:flag-parameter
 func LoggerUnaryServer(
 	logger *zap.Logger,
 	debugPayload bool,

@@ -1,6 +1,7 @@
 package appcmd
 
 import (
+	"cmp"
 	"context"
 	"errors"
 
@@ -9,12 +10,21 @@ import (
 )
 
 func RunWait(g *errgroup.Group, logger *zap.Logger) {
-	switch waitErr := g.Wait(); {
-	case waitErr == nil,
+	waitErr := g.Wait()
+
+	isSuccess := cmp.Or(
+		waitErr == nil,
 		errors.Is(waitErr, context.Canceled),
-		errors.Is(waitErr, context.DeadlineExceeded):
+		errors.Is(waitErr, context.DeadlineExceeded),
+	)
+
+	switch {
+	case isSuccess:
 		logger.Info("application stopped")
 	default:
-		logger.Fatal("application crashed", zap.Error(waitErr))
+		logger.Fatal(
+			"application crashed",
+			zap.Error(waitErr),
+		)
 	}
 }

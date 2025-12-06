@@ -12,7 +12,8 @@ import (
 	"github.com/agurinov/gopl/env/envvars"
 )
 
-func Prepare(cmdName string) ( //nolint:revive
+//revive:disable:function-result-limit
+func Prepare(cmdName string) (
 	context.Context,
 	context.CancelFunc,
 	*zap.Logger,

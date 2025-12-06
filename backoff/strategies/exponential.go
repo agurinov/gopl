@@ -65,7 +65,8 @@ func (e exponential) Duration(retries uint32) time.Duration {
 }
 
 func NewExponential(opts ...ExponentialOption) (Interface, error) {
-	//nolint:revive,gomnd,mnd
+	//nolint:gomnd,mnd
+	//revive:disable:add-constant
 	defaultObj := exponential{
 		minDelay:   1 * time.Second,
 		maxDelay:   2 * time.Minute,
