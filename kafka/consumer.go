@@ -20,7 +20,8 @@ type (
 	}
 	consumer struct {
 		metrics         consumerMetrics
-		discarder       consumerDiscarder
+		recordDiscarder RecordDiscarder[*kgo.Record]
+		recordMapper    RecordMapper[*kgo.Record, Record]
 		logger          *zap.Logger
 		closed          *atomic.Bool
 		partitionHolder *partitionHolder
@@ -96,6 +97,17 @@ func (c *consumer) processPartition(
 			)
 		}
 
+		// catch via channel?
+
+		if err := c.recordDiscarder.Discard(ctx); err != nil {
+			l.Error(
+				"can't discard records",
+				zap.Error(err),
+			)
+
+			return
+		}
+
 		// TODO: commit / dlq - discarder
 		// NOTE: we should develop a decision about batch results. Proposals:
 		// 1) Client handler return `all or nothing`
@@ -105,6 +117,7 @@ func (c *consumer) processPartition(
 	}
 }
 
+// Embed graceful ??
 func (c *consumer) Close() {
 	if !c.closed.CompareAndSwap(false, true) {
 		return
@@ -194,6 +207,8 @@ func NewConsumer(opts ...ConsumerOption) (consumer, error) {
 		partitionHolder: &partitionHolder{
 			assigned: map[int32]partitionContext{},
 		},
+		recordMapper:    kgoRecordMapper{},
+		recordDiscarder: noopRecordDiscarder{},
 	}
 
 	return c.ConstructWithValidate(obj, opts...)

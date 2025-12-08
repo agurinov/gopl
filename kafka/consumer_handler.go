@@ -40,7 +40,7 @@ func (c *consumer) eachRecordFunc(
 			return
 		}
 
-		record := recordFromKgo(r)
+		record := c.recordMapper.FromVendor(r)
 
 		if err := c.handler(ctx, record); err != nil {
 			l.Error(
@@ -78,7 +78,7 @@ func (c *consumer) eachBatchFunc(
 
 		records := x.SliceConvert(
 			tp.Records,
-			recordFromKgo,
+			c.recordMapper.FromVendor,
 		)
 
 		if err := c.handlerBatch(ctx, records); err != nil {

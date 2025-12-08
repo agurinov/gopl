@@ -13,21 +13,23 @@ import (
 
 func (obj consumer) Validate() error {
 	s := struct {
-		Logger          *zap.Logger       `validate:"required"`
-		Closed          *atomic.Bool      `validate:"required"`
-		Client          *kgo.Client       `validate:"required"`
-		Discarder       consumerDiscarder `validate:"required"`
-		PartitionHolder *partitionHolder  `validate:"required"`
-		Handler         Handler           `validate:"required_without=HandlerBatch"`
-		HandlerBatch    HandlerBatch      `validate:"required_without=Handler"`
+		Logger          *zap.Logger                       `validate:"required"`
+		Closed          *atomic.Bool                      `validate:"required"`
+		Client          *kgo.Client                       `validate:"required"`
+		PartitionHolder *partitionHolder                  `validate:"required"`
+		Handler         Handler                           `validate:"required_without=HandlerBatch"`
+		HandlerBatch    HandlerBatch                      `validate:"required_without=Handler"`
+		RecordDiscarder RecordDiscarder[*kgo.Record]      `validate:"required"`
+		RecordMapper    RecordMapper[*kgo.Record, Record] `validate:"required"`
 	}{
 		Logger:          obj.logger,
 		Closed:          obj.closed,
 		Client:          obj.client,
-		Discarder:       obj.discarder,
 		Handler:         obj.handler,
 		HandlerBatch:    obj.handlerBatch,
 		PartitionHolder: obj.partitionHolder,
+		RecordDiscarder: obj.recordDiscarder,
+		RecordMapper:    obj.recordMapper,
 	}
 
 	v := validator.New()
