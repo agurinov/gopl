@@ -12,11 +12,10 @@ import (
 )
 
 type (
-	closeF func(ctx context.Context) error
 	Closer struct {
 		logger  *zap.Logger
-		stack1  []closeF
-		stack2  []closeF
+		stack1  []Closure
+		stack2  []Closure
 		timeout time.Duration
 	}
 	CloserOption c.Option[Closer]
@@ -38,42 +37,10 @@ const (
 var NewCloser = c.NewWithValidate[Closer, CloserOption]
 
 func (cl *Closer) AddCloser(
-	fn func(),
+	closure Closure,
 	opts ...AddOption,
 ) {
-	if fn == nil {
-		return
-	}
-
-	closure := func(_ context.Context) error {
-		fn()
-
-		return nil
-	}
-
-	cl.AddContextErrorCloser(closure, opts...)
-}
-
-func (cl *Closer) AddErrorCloser(
-	fn func() error,
-	opts ...AddOption,
-) {
-	if fn == nil {
-		return
-	}
-
-	closure := func(_ context.Context) error {
-		return fn()
-	}
-
-	cl.AddContextErrorCloser(closure, opts...)
-}
-
-func (cl *Closer) AddContextErrorCloser(
-	fn func(context.Context) error,
-	opts ...AddOption,
-) {
-	if fn == nil {
+	if closure == nil {
 		return
 	}
 
@@ -85,9 +52,9 @@ func (cl *Closer) AddContextErrorCloser(
 
 	switch args.wave {
 	case FirstWave:
-		cl.stack1 = append(cl.stack1, fn)
+		cl.stack1 = append(cl.stack1, closure)
 	default:
-		cl.stack2 = append(cl.stack2, fn)
+		cl.stack2 = append(cl.stack2, closure)
 	}
 }
 

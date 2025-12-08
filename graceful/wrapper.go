@@ -2,8 +2,6 @@ package graceful
 
 import (
 	"context"
-	"fmt"
-	"io"
 	"sync/atomic"
 
 	"go.uber.org/zap"
@@ -12,9 +10,6 @@ import (
 )
 
 type (
-	runnable interface {
-		Run(context.Context) error
-	}
 	Wrapper struct {
 		logger      *zap.Logger
 		ctx         context.Context //nolint:containedctx
@@ -24,25 +19,23 @@ type (
 	WrapperOption c.Option[Wrapper]
 )
 
-func (w Wrapper) WrapClose(inner io.Closer) func(context.Context) error {
+func (w Wrapper) WrapClose(f Closure) Closure {
 	return func(graceCtx context.Context) error {
-		l := w.logger.With(
-			zap.String("inner", fmt.Sprintf("%T", inner)),
-		)
-
 		if !w.closed.CompareAndSwap(false, true) {
-			l.Info("graceful stop already called; skipping")
+			w.logger.Info("graceful stop already called; skipping")
 
 			return nil
 		}
 
 		<-graceCtx.Done()
 
-		w.forceCancel()
+		ctx := w.ctx
 
-		if err := inner.Close(); err != nil {
+		if err := f(ctx); err != nil {
 			return err
 		}
+
+		w.forceCancel()
 
 		return nil
 	}
@@ -70,24 +63,19 @@ func (w Wrapper) IsClosed(ctxs ...context.Context) bool {
 	return false
 }
 
-func (w Wrapper) WrapRun(inner runnable) func(context.Context) error {
+func (w Wrapper) WrapRun(f Closure) Closure {
 	return func(context.Context) error {
-		var (
-			ctx = w.ctx
-			l   = w.logger.With(
-				zap.String("inner", fmt.Sprintf("%T", inner)),
-			)
-		)
+		ctx := w.ctx
 
 		for {
 			if w.IsClosed(ctx) {
-				l.Info("gracefully stop Run")
+				w.logger.Info("gracefully stop Run")
 
 				return nil
 			}
 
 			//nolint:contextcheck
-			if err := inner.Run(ctx); err != nil {
+			if err := f(ctx); err != nil {
 				return err
 			}
 		}

@@ -9,7 +9,7 @@ import (
 func runGroup(
 	ctx context.Context,
 	errCh chan error,
-	stack []closeF,
+	stack []Closure,
 ) error {
 	g, gCtx := errgroup.WithContext(ctx)
 
