@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/x"
 )
 
 type (
@@ -138,7 +139,7 @@ func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
 		return fmt.Errorf("can't close 2nd wave: %w", err)
 	}
 
-	if err := joinErrors(errCh); err != nil {
+	if err := x.FlattenErrors(errCh); err != nil {
 		return fmt.Errorf("can't join errors: %w", err)
 	}
 
