@@ -20,24 +20,62 @@ type (
 )
 
 func (w Wrapper) WrapClose(f Closure) Closure {
-	return func(graceCtx context.Context) error {
-		if !w.closed.CompareAndSwap(false, true) {
-			w.logger.Info("graceful stop already called; skipping")
+	l := w.logger.With(
+		zap.Stringer("closure", f),
+	)
 
-			return nil
+	l.Info("wrapping Close")
+
+	return func(graceCtx context.Context) error {
+		if isFirstClose := w.closed.CompareAndSwap(false, true); isFirstClose {
+			w.logger.Info("grace cordon enabled")
 		}
 
 		<-graceCtx.Done()
 
-		ctx := w.ctx
+		l.Info("grace period passed; force exiting")
 
-		if err := f(ctx); err != nil {
+		//nolint:contextcheck
+		if err := f(w.ctx); err != nil {
 			return err
 		}
 
 		w.forceCancel()
 
 		return nil
+	}
+}
+
+func (w Wrapper) WrapRun(f Closure) Closure {
+	l := w.logger.With(
+		zap.Stringer("closure", f),
+	)
+
+	l.Info("wrapping Run")
+
+	return func(context.Context) error {
+		ctx := w.ctx
+
+		for {
+			if w.closed.Load() {
+				l.Info("gracefully stopped Run")
+
+				return nil
+			}
+
+			select {
+			case <-w.ctx.Done():
+				l.Warn("force stopped Run")
+
+				return nil
+			default:
+			}
+
+			//nolint:contextcheck
+			if err := f(ctx); err != nil {
+				return err
+			}
+		}
 	}
 }
 
@@ -61,25 +99,6 @@ func (w Wrapper) IsClosed(ctxs ...context.Context) bool {
 	}
 
 	return false
-}
-
-func (w Wrapper) WrapRun(f Closure) Closure {
-	return func(context.Context) error {
-		ctx := w.ctx
-
-		for {
-			if w.IsClosed(ctx) {
-				w.logger.Info("gracefully stop Run")
-
-				return nil
-			}
-
-			//nolint:contextcheck
-			if err := f(ctx); err != nil {
-				return err
-			}
-		}
-	}
 }
 
 func NewWrapper(opts ...WrapperOption) (Wrapper, error) {

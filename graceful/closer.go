@@ -45,10 +45,12 @@ func (cl *Closer) AddCloser(
 	}
 
 	args, err := c.New(opts...)
-	cl.logger.Warn(
-		"can't construct add args",
-		zap.Error(err),
-	)
+	if err != nil {
+		cl.logger.Warn(
+			"can't construct add args",
+			zap.Error(err),
+		)
+	}
 
 	switch args.wave {
 	case FirstWave:
@@ -63,15 +65,15 @@ func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
 	<-runCtx.Done()
 
 	cl.logger.Info(
-		"closer started; going to run functions",
+		"closer started; going to run closures",
 		zap.Stringer("timeout", cl.timeout),
 		zap.Dict(
 			"1st wave",
-			zap.Int("functions", len(cl.stack1)),
+			zap.Stringers("closures", cl.stack1),
 		),
 		zap.Dict(
 			"2nd wave",
-			zap.Int("functions", len(cl.stack2)),
+			zap.Stringers("closures", cl.stack2),
 		),
 	)
 

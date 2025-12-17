@@ -1,23 +1,36 @@
 package graceful
 
-import "context"
+import (
+	"context"
 
-type Closure func(ctx context.Context) error
+	"github.com/agurinov/gopl/diag"
+)
 
-func SimpleClosure(
-	fn func(),
-) Closure {
-	return func(_ context.Context) error {
-		fn()
+type (
+	Closure       func(context.Context) error
+	simpleClosure func()
+	errorClosure  func() error
+)
 
-		return nil
-	}
+// TODO: wrapped function name is not visible
+func (c Closure) String() string {
+	return diag.FunctionName(c)
 }
 
-func ErrorClosure(
-	fn func() error,
-) Closure {
-	return func(_ context.Context) error {
-		return fn()
-	}
+func (c simpleClosure) f(context.Context) error {
+	c()
+
+	return nil
+}
+
+func (c errorClosure) f(context.Context) error {
+	return c()
+}
+
+func SimpleClosure(fn func()) Closure {
+	return simpleClosure(fn).f
+}
+
+func ErrorClosure(fn func() error) Closure {
+	return errorClosure(fn).f
 }

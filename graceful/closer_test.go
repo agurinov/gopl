@@ -95,8 +95,8 @@ func TestCloser_WaitForShutdown(t *testing.T) {
 			tc.Init(t)
 
 			closer, err := graceful.NewCloser(
-				graceful.WithLogger(zaptest.NewLogger(t)),
-				graceful.WithTimeout(time.Second),
+				graceful.WithCloserLogger(zaptest.NewLogger(t)),
+				graceful.WithCloserTimeout(time.Second),
 			)
 			require.NoError(t, err)
 			require.NotNil(t, closer)
@@ -134,8 +134,8 @@ func TestCloser_Waves(t *testing.T) {
 	pl_testing.Init(t)
 
 	closer, err := graceful.NewCloser(
-		graceful.WithLogger(zaptest.NewLogger(t)),
-		graceful.WithTimeout(time.Second),
+		graceful.WithCloserLogger(zaptest.NewLogger(t)),
+		graceful.WithCloserTimeout(time.Second),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, closer)

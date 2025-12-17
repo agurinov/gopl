@@ -6,19 +6,19 @@ import (
 	"go.uber.org/zap"
 )
 
-func WithLogger(logger *zap.Logger) CloserOption {
+func WithCloserLogger(logger *zap.Logger) CloserOption {
 	return func(c *Closer) error {
 		if logger == nil {
 			return nil
 		}
 
-		c.logger = logger.Named("closer")
+		c.logger = logger.Named("graceful.closer")
 
 		return nil
 	}
 }
 
-func WithTimeout(timeout time.Duration) CloserOption {
+func WithCloserTimeout(timeout time.Duration) CloserOption {
 	return func(c *Closer) error {
 		c.timeout = timeout
 
