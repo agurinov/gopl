@@ -95,22 +95,22 @@ func TestCloser_WaitForShutdown(t *testing.T) {
 			tc.Init(t)
 
 			closer, err := graceful.NewCloser(
-				graceful.WithLogger(zaptest.NewLogger(t)),
-				graceful.WithTimeout(time.Second),
+				graceful.WithCloserLogger(zaptest.NewLogger(t)),
+				graceful.WithCloserTimeout(time.Second),
 			)
 			require.NoError(t, err)
 			require.NotNil(t, closer)
 
 			for _, fn := range tc.args.closers {
-				closer.AddCloser(fn)
+				closer.AddCloser(graceful.SimpleClosure(fn))
 			}
 
 			for _, fn := range tc.args.errClosers {
-				closer.AddErrorCloser(fn)
+				closer.AddCloser(graceful.ErrorClosure(fn))
 			}
 
 			for _, fn := range tc.args.ctxErrClosers {
-				closer.AddContextErrorCloser(fn)
+				closer.AddCloser(fn)
 			}
 
 			ctx, cancel := context.WithCancel(context.TODO())
@@ -134,17 +134,20 @@ func TestCloser_Waves(t *testing.T) {
 	pl_testing.Init(t)
 
 	closer, err := graceful.NewCloser(
-		graceful.WithLogger(zaptest.NewLogger(t)),
-		graceful.WithTimeout(time.Second),
+		graceful.WithCloserLogger(zaptest.NewLogger(t)),
+		graceful.WithCloserTimeout(time.Second),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, closer)
 
 	database := new(db)
-	closer.AddCloser(database.Close)
+	closer.AddCloser(graceful.SimpleClosure(database.Close))
 
 	service := svc{db: database}
-	closer.AddErrorCloser(service.Close, graceful.InFirstWave())
+	closer.AddCloser(
+		graceful.ErrorClosure(service.Close),
+		graceful.InFirstWave(),
+	)
 
 	ctx, cancel := context.WithCancel(context.TODO())
 	cancel()

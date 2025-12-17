@@ -8,14 +8,14 @@ import (
 	"go.uber.org/zap"
 
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/x"
 )
 
 type (
-	closeF func(ctx context.Context) error
 	Closer struct {
 		logger  *zap.Logger
-		stack1  []closeF
-		stack2  []closeF
+		stack1  []Closure
+		stack2  []Closure
 		timeout time.Duration
 	}
 	CloserOption c.Option[Closer]
@@ -37,56 +37,26 @@ const (
 var NewCloser = c.NewWithValidate[Closer, CloserOption]
 
 func (cl *Closer) AddCloser(
-	fn func(),
+	closure Closure,
 	opts ...AddOption,
 ) {
-	if fn == nil {
-		return
-	}
-
-	closure := func(_ context.Context) error {
-		fn()
-
-		return nil
-	}
-
-	cl.AddContextErrorCloser(closure, opts...)
-}
-
-func (cl *Closer) AddErrorCloser(
-	fn func() error,
-	opts ...AddOption,
-) {
-	if fn == nil {
-		return
-	}
-
-	closure := func(_ context.Context) error {
-		return fn()
-	}
-
-	cl.AddContextErrorCloser(closure, opts...)
-}
-
-func (cl *Closer) AddContextErrorCloser(
-	fn func(context.Context) error,
-	opts ...AddOption,
-) {
-	if fn == nil {
+	if closure == nil {
 		return
 	}
 
 	args, err := c.New(opts...)
-	cl.logger.Warn(
-		"can't construct add args",
-		zap.Error(err),
-	)
+	if err != nil {
+		cl.logger.Warn(
+			"can't construct add args",
+			zap.Error(err),
+		)
+	}
 
 	switch args.wave {
 	case FirstWave:
-		cl.stack1 = append(cl.stack1, fn)
+		cl.stack1 = append(cl.stack1, closure)
 	default:
-		cl.stack2 = append(cl.stack2, fn)
+		cl.stack2 = append(cl.stack2, closure)
 	}
 }
 
@@ -95,15 +65,15 @@ func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
 	<-runCtx.Done()
 
 	cl.logger.Info(
-		"closer started; going to run functions",
+		"closer started; going to run closures",
 		zap.Stringer("timeout", cl.timeout),
 		zap.Dict(
 			"1st wave",
-			zap.Int("functions", len(cl.stack1)),
+			zap.Stringers("closures", cl.stack1),
 		),
 		zap.Dict(
 			"2nd wave",
-			zap.Int("functions", len(cl.stack2)),
+			zap.Stringers("closures", cl.stack2),
 		),
 	)
 
@@ -138,7 +108,7 @@ func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
 		return fmt.Errorf("can't close 2nd wave: %w", err)
 	}
 
-	if err := joinErrors(errCh); err != nil {
+	if err := x.FlattenErrors(errCh); err != nil {
 		return fmt.Errorf("can't join errors: %w", err)
 	}
 

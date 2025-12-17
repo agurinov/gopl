@@ -54,13 +54,15 @@ func (p *Prober) WithLivenessProbe(probes ...Probe) {
 
 func (p *Prober) Close() {
 	p.closed.Store(true)
+
+	p.logger.Info("prober closed; readiness always false")
 }
 
 func (p *Prober) Run(ctx context.Context) error {
+	p.runAllProbes(ctx)
+
 	ticker := time.NewTicker(p.checkInterval)
 	defer ticker.Stop()
-
-	p.runAllProbes(ctx)
 
 	p.logger.Info(
 		"starting probes poller",
