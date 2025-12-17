@@ -5,9 +5,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/agurinov/gopl/graceful"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
+
+	"github.com/agurinov/gopl/graceful"
 )
 
 func Start(
