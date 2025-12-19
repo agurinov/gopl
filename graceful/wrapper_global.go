@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/agurinov/gopl/diag/log"
+	"github.com/agurinov/gopl/run"
 )
 
 var (
@@ -24,13 +25,13 @@ func initDefaultWrapper() {
 	defaultWrapper = w
 }
 
-func WrapRun(f Closure) Closure {
+func WrapRun(f run.Closure) run.Closure {
 	defaultWrapperOnce.Do(initDefaultWrapper)
 
 	return defaultWrapper.WrapRun(f)
 }
 
-func WrapClose(f Closure) Closure {
+func WrapClose(f run.Closure) run.Closure {
 	defaultWrapperOnce.Do(initDefaultWrapper)
 
 	return defaultWrapper.WrapClose(f)

@@ -8,29 +8,36 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/agurinov/gopl/graceful"
+	"github.com/agurinov/gopl/run"
 )
 
 func Start(
 	ctx context.Context,
 	logger *zap.Logger,
-	stack ...graceful.Closure,
+	stack ...run.Closure,
 ) {
-	g, gCtx := errgroup.WithContext(ctx)
+	logger.Info("starting application")
 
-	for _, f := range stack {
-		if f == nil {
-			continue
-		}
+	waitErr := run.Group(ctx, stack...)
 
-		g.Go(func() error {
-			return f(gCtx)
-		})
+	isSuccess := cmp.Or(
+		waitErr == nil,
+		errors.Is(waitErr, context.Canceled),
+		errors.Is(waitErr, context.DeadlineExceeded),
+	)
+
+	switch {
+	case isSuccess:
+		logger.Info("application stopped")
+	default:
+		logger.Fatal(
+			"application crashed",
+			zap.Error(waitErr),
+		)
 	}
-
-	RunWait(g, logger)
 }
 
+// Deprecated: Use Start instead.
 func RunWait(g *errgroup.Group, logger *zap.Logger) {
 	logger.Info("starting application")
 

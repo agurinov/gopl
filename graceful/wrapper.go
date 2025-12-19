@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
@@ -19,7 +20,7 @@ type (
 	WrapperOption c.Option[Wrapper]
 )
 
-func (w Wrapper) WrapClose(f Closure) Closure {
+func (w Wrapper) WrapClose(f run.Closure) run.Closure {
 	l := w.logger.With(
 		zap.Stringer("closure", f),
 	)
@@ -46,7 +47,7 @@ func (w Wrapper) WrapClose(f Closure) Closure {
 	}
 }
 
-func (w Wrapper) WrapRun(f Closure) Closure {
+func (w Wrapper) WrapRun(f run.Closure) run.Closure {
 	l := w.logger.With(
 		zap.Stringer("closure", f),
 	)
