@@ -20,7 +20,7 @@ type (
 	WrapperOption c.Option[Wrapper]
 )
 
-func (w Wrapper) WrapClose(f run.Closure) run.Closure {
+func (w Wrapper) Close(f run.Closure) run.Closure {
 	l := w.logger.With(
 		zap.Stringer("closure", f),
 	)
@@ -47,7 +47,7 @@ func (w Wrapper) WrapClose(f run.Closure) run.Closure {
 	}
 }
 
-func (w Wrapper) WrapRun(f run.Closure) run.Closure {
+func (w Wrapper) Run(f run.Closure) run.Closure {
 	l := w.logger.With(
 		zap.Stringer("closure", f),
 	)

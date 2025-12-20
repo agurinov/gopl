@@ -25,14 +25,14 @@ func initDefaultWrapper() {
 	defaultWrapper = w
 }
 
-func WrapRun(f run.Closure) run.Closure {
+func Run(f run.Closure) run.Closure {
 	defaultWrapperOnce.Do(initDefaultWrapper)
 
-	return defaultWrapper.WrapRun(f)
+	return defaultWrapper.Run(f)
 }
 
-func WrapClose(f run.Closure) run.Closure {
+func Close(f run.Closure) run.Closure {
 	defaultWrapperOnce.Do(initDefaultWrapper)
 
-	return defaultWrapper.WrapClose(f)
+	return defaultWrapper.Close(f)
 }
