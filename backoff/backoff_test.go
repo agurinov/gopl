@@ -7,10 +7,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/agurinov/gopl/backoff"
 	"github.com/agurinov/gopl/backoff/strategies"
+	"github.com/agurinov/gopl/run"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
@@ -37,17 +37,21 @@ func TestBackoff_Concurrency(t *testing.T) {
 		require.NotNil(t, b)
 
 		doValidRetries := func(ctx context.Context, b *backoff.Backoff) {
-			g, gCtx := errgroup.WithContext(ctx)
+			stack := make([]run.Fn, 0, maxRetries)
 
 			for range maxRetries {
-				g.Go(func() error {
-					_, err := b.Wait(gCtx)
+				stack = append(stack,
+					func(ctx context.Context) error {
+						_, err := b.Wait(ctx)
 
-					return err
-				})
+						return err
+					},
+				)
 			}
 
-			require.NoError(t, g.Wait())
+			require.NoError(t,
+				run.Group(ctx, stack...),
+			)
 		}
 
 		// First batch of valid retries

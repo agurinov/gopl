@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/agurinov/gopl/graceful"
+	"github.com/agurinov/gopl/run"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
@@ -102,11 +103,11 @@ func TestCloser_WaitForShutdown(t *testing.T) {
 			require.NotNil(t, closer)
 
 			for _, fn := range tc.args.closers {
-				closer.AddCloser(graceful.SimpleClosure(fn))
+				closer.AddCloser(run.SimpleFn(fn))
 			}
 
 			for _, fn := range tc.args.errClosers {
-				closer.AddCloser(graceful.ErrorClosure(fn))
+				closer.AddCloser(run.ErrorFn(fn))
 			}
 
 			for _, fn := range tc.args.ctxErrClosers {
@@ -141,11 +142,11 @@ func TestCloser_Waves(t *testing.T) {
 	require.NotNil(t, closer)
 
 	database := new(db)
-	closer.AddCloser(graceful.SimpleClosure(database.Close))
+	closer.AddCloser(run.SimpleFn(database.Close))
 
 	service := svc{db: database}
 	closer.AddCloser(
-		graceful.ErrorClosure(service.Close),
+		run.ErrorFn(service.Close),
 		graceful.InFirstWave(),
 	)
 

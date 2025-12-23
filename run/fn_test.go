@@ -1,4 +1,4 @@
-package graceful_test
+package run_test
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/agurinov/gopl/graceful"
+	"github.com/agurinov/gopl/run"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
 
@@ -16,12 +16,12 @@ func (a) RunSimple()                {}
 func (a) RunError() error           { return nil }
 func (a) Run(context.Context) error { return nil }
 
-func TestClosure_String(t *testing.T) {
+func TestFn_String(t *testing.T) {
 	pl_testing.Init(t)
 
 	type (
 		args struct {
-			f graceful.Closure
+			f run.Fn
 		}
 		results struct {
 			asString string
@@ -33,34 +33,34 @@ func TestClosure_String(t *testing.T) {
 		results results
 		pl_testing.TestCase
 	}{
-		"case00: simple closure": {
+		"case00: simple fn": {
 			args: args{
-				f: graceful.SimpleClosure(a{}.RunSimple),
+				f: run.SimpleFn(a{}.RunSimple),
 			},
 			results: results{
-				asString: "graceful_test.a.RunSimple",
+				asString: "run_test.a.RunSimple",
 			},
 			TestCase: pl_testing.TestCase{
 				Skip: true,
 			},
 		},
-		"case01: error closure": {
+		"case01: error fn": {
 			args: args{
-				f: graceful.ErrorClosure(a{}.RunError),
+				f: run.ErrorFn(a{}.RunError),
 			},
 			results: results{
-				asString: "graceful_test.a.RunError",
+				asString: "run_test.a.RunError",
 			},
 			TestCase: pl_testing.TestCase{
 				Skip: true,
 			},
 		},
-		"case02: closure": {
+		"case02: fn": {
 			args: args{
 				f: a{}.Run,
 			},
 			results: results{
-				asString: "graceful_test.a.Run",
+				asString: "run_test.a.Run",
 			},
 		},
 	}

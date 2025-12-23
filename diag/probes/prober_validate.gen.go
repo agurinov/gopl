@@ -8,13 +8,15 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"go.uber.org/zap"
+
+	"github.com/agurinov/gopl/run"
 )
 
 func (obj *Prober) Validate() error {
 	s := struct {
 		Logger          *zap.Logger   `validate:"required"`
-		ReadinessProbes []Probe       `validate:"dive,required"`
-		LivenessProbes  []Probe       `validate:"dive,required"`
+		ReadinessProbes []run.Fn      `validate:"dive,required"`
+		LivenessProbes  []run.Fn      `validate:"dive,required"`
 		CheckInterval   time.Duration `validate:"min=1s"`
 		CheckTimeout    time.Duration `validate:"min=1s"`
 	}{

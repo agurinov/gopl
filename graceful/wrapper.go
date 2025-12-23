@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
@@ -19,9 +20,9 @@ type (
 	WrapperOption c.Option[Wrapper]
 )
 
-func (w Wrapper) WrapClose(f Closure) Closure {
+func (w Wrapper) Close(fn run.Fn) run.Fn {
 	l := w.logger.With(
-		zap.Stringer("closure", f),
+		zap.Stringer("closure", fn),
 	)
 
 	l.Info("wrapping Close")
@@ -36,7 +37,7 @@ func (w Wrapper) WrapClose(f Closure) Closure {
 		l.Info("grace period passed; force exiting")
 
 		//nolint:contextcheck
-		if err := f(w.ctx); err != nil {
+		if err := fn(w.ctx); err != nil {
 			return err
 		}
 
@@ -46,9 +47,9 @@ func (w Wrapper) WrapClose(f Closure) Closure {
 	}
 }
 
-func (w Wrapper) WrapRun(f Closure) Closure {
+func (w Wrapper) Run(fn run.Fn) run.Fn {
 	l := w.logger.With(
-		zap.Stringer("closure", f),
+		zap.Stringer("closure", fn),
 	)
 
 	l.Info("wrapping Run")
@@ -72,7 +73,7 @@ func (w Wrapper) WrapRun(f Closure) Closure {
 			}
 
 			//nolint:contextcheck
-			if err := f(ctx); err != nil {
+			if err := fn(ctx); err != nil {
 				return err
 			}
 		}

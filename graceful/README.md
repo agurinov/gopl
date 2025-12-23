@@ -52,15 +52,21 @@ return diContainer{
 
 import cmd "github.com/agurinov/gopl/appcmd"
 
+const cmdName = "api"
+
 func main() {
-	// ...
+	ctx, stop, logger, err := cmd.Prepare(cmdName)
+	if err != nil {
+		logger.Fatal("can't init cmd", zap.Error(err))
+	}
+	defer stop()
 
-	logger.Info("starting application")
+	di := newDI(ctx, cfg)
 
-	g, gCtx := errgroup.WithContext(ctx)
-
-	g.Go(func() error { return di.closer.WaitForShutdown(gCtx) })
-
-	cmd.RunWait(g, logger)
+	cmd.Start(
+		ctx,
+		logger,
+		di.closer.WaitForShutdown,
+	)
 }
 ```

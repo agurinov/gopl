@@ -2,20 +2,21 @@ package graceful
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"go.uber.org/zap"
 
 	c "github.com/agurinov/gopl/patterns/creational"
-	"github.com/agurinov/gopl/x"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
 	Closer struct {
 		logger  *zap.Logger
-		stack1  []Closure
-		stack2  []Closure
+		stack1  []run.Fn
+		stack2  []run.Fn
 		timeout time.Duration
 	}
 	CloserOption c.Option[Closer]
@@ -37,7 +38,7 @@ const (
 var NewCloser = c.NewWithValidate[Closer, CloserOption]
 
 func (cl *Closer) AddCloser(
-	closure Closure,
+	closure run.Fn,
 	opts ...AddOption,
 ) {
 	if closure == nil {
@@ -89,27 +90,19 @@ func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
 	)
 	defer shutdownCancel()
 
-	errCh := make(chan error, allLen)
-	defer close(errCh)
+	g1 := run.GroupSoft(shutdownCtx, cl.stack1...)
+	g2 := run.GroupSoft(shutdownCtx, cl.stack2...)
 
-	if err := runGroup(
-		shutdownCtx,
-		errCh,
-		cl.stack1,
-	); err != nil {
-		return fmt.Errorf("can't close 1st wave: %w", err)
+	if g1 != nil {
+		g1 = fmt.Errorf("can't run 1st wave: %w", g1)
 	}
 
-	if err := runGroup(
-		shutdownCtx,
-		errCh,
-		cl.stack2,
-	); err != nil {
-		return fmt.Errorf("can't close 2nd wave: %w", err)
+	if g2 != nil {
+		g2 = fmt.Errorf("can't run 2nd wave: %w", g2)
 	}
 
-	if err := x.FlattenErrors(errCh); err != nil {
-		return fmt.Errorf("can't join errors: %w", err)
+	if err := errors.Join(g1, g2); err != nil {
+		return err
 	}
 
 	cl.logger.Info("closer finished")
