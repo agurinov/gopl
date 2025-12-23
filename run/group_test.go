@@ -18,7 +18,7 @@ func TestGroup(t *testing.T) {
 
 	type (
 		args struct {
-			stack []func(*atomic.Uint32) run.Closure
+			stack []func(*atomic.Uint32) run.Fn
 		}
 		results struct {
 			work uint32
@@ -34,7 +34,7 @@ func TestGroup(t *testing.T) {
 	}{
 		"case00: success": {
 			args: args{
-				stack: []func(*atomic.Uint32) run.Closure{
+				stack: []func(*atomic.Uint32) run.Fn{
 					nil, increment,
 					nil, increment,
 					nil, increment,
@@ -46,7 +46,7 @@ func TestGroup(t *testing.T) {
 		},
 		"case01: with error": {
 			args: args{
-				stack: []func(*atomic.Uint32) run.Closure{
+				stack: []func(*atomic.Uint32) run.Fn{
 					nil, increment,
 					nil, fail,
 					nil, increment,
@@ -73,18 +73,18 @@ func TestGroup(t *testing.T) {
 
 			var counter atomic.Uint32
 
-			closures := x.SliceConvert(
+			stack := x.SliceConvert(
 				tc.args.stack,
-				func(closureGetter func(*atomic.Uint32) run.Closure) run.Closure {
-					if closureGetter == nil {
+				func(fnGetter func(*atomic.Uint32) run.Fn) run.Fn {
+					if fnGetter == nil {
 						return nil
 					}
 
-					return closureGetter(&counter)
+					return fnGetter(&counter)
 				},
 			)
 
-			err := run.Group(ctx, closures...)
+			err := run.Group(ctx, stack...)
 
 			require.Equal(t, tc.results.work, counter.Load())
 			tc.CheckError(t, err)
@@ -97,7 +97,7 @@ func TestGroupSoft(t *testing.T) {
 
 	type (
 		args struct {
-			stack []func(*atomic.Uint32) run.Closure
+			stack []func(*atomic.Uint32) run.Fn
 		}
 		results struct {
 			work uint32
@@ -113,7 +113,7 @@ func TestGroupSoft(t *testing.T) {
 	}{
 		"case00: success": {
 			args: args{
-				stack: []func(*atomic.Uint32) run.Closure{
+				stack: []func(*atomic.Uint32) run.Fn{
 					nil, increment,
 					nil, increment,
 				},
@@ -124,7 +124,7 @@ func TestGroupSoft(t *testing.T) {
 		},
 		"case01: with error": {
 			args: args{
-				stack: []func(*atomic.Uint32) run.Closure{
+				stack: []func(*atomic.Uint32) run.Fn{
 					nil, increment,
 					nil, fail,
 					nil, increment,
@@ -151,18 +151,18 @@ func TestGroupSoft(t *testing.T) {
 
 			var counter atomic.Uint32
 
-			closures := x.SliceConvert(
+			stack := x.SliceConvert(
 				tc.args.stack,
-				func(closureGetter func(*atomic.Uint32) run.Closure) run.Closure {
-					if closureGetter == nil {
+				func(fnGetter func(*atomic.Uint32) run.Fn) run.Fn {
+					if fnGetter == nil {
 						return nil
 					}
 
-					return closureGetter(&counter)
+					return fnGetter(&counter)
 				},
 			)
 
-			err := run.GroupSoft(ctx, closures...)
+			err := run.GroupSoft(ctx, stack...)
 
 			require.Equal(t, tc.results.work, counter.Load())
 			tc.CheckError(t, err)
@@ -170,7 +170,7 @@ func TestGroupSoft(t *testing.T) {
 	}
 }
 
-func increment(c *atomic.Uint32) run.Closure {
+func increment(c *atomic.Uint32) run.Fn {
 	return func(context.Context) error {
 		c.Add(1)
 
@@ -178,7 +178,7 @@ func increment(c *atomic.Uint32) run.Closure {
 	}
 }
 
-func fail(*atomic.Uint32) run.Closure {
+func fail(*atomic.Uint32) run.Fn {
 	return func(context.Context) error {
 		return io.EOF
 	}

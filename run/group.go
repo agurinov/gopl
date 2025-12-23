@@ -11,7 +11,7 @@ import (
 
 func GroupSoft(
 	ctx context.Context,
-	stack ...Closure,
+	stack ...Fn,
 ) error {
 	errCh := make(chan error, len(stack))
 	defer close(errCh)
@@ -40,7 +40,7 @@ func GroupSoft(
 
 func Group(
 	ctx context.Context,
-	stack ...Closure,
+	stack ...Fn,
 ) error {
 	g, gCtx := errgroup.WithContext(ctx)
 

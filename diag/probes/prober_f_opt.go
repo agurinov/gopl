@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+
+	"github.com/agurinov/gopl/run"
 )
 
 func WithLogger(logger *zap.Logger) Option {
@@ -37,7 +39,7 @@ func WithCheckTimeout(d time.Duration) Option {
 	}
 }
 
-func WithReadinessProbe(probes ...Probe) Option {
+func WithReadinessProbe(probes ...run.Fn) Option {
 	return func(p **Prober) error {
 		pr := *p
 		pr.WithReadinessProbe(probes...)
@@ -46,7 +48,7 @@ func WithReadinessProbe(probes ...Probe) Option {
 	}
 }
 
-func WithLivenessProbe(probes ...Probe) Option {
+func WithLivenessProbe(probes ...run.Fn) Option {
 	return func(p **Prober) error {
 		pr := *p
 		pr.WithLivenessProbe(probes...)

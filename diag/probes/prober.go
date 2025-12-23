@@ -13,12 +13,11 @@ import (
 )
 
 type (
-	Probe     = run.Closure
 	ProbeType string
 	Prober    struct {
 		logger          *zap.Logger
-		readinessProbes []Probe
-		livenessProbes  []Probe
+		readinessProbes []run.Fn
+		livenessProbes  []run.Fn
 		checkInterval   time.Duration
 		checkTimeout    time.Duration
 		closed          atomic.Bool
@@ -46,11 +45,11 @@ func (p *Prober) SetStartup(startup bool) {
 	p.startup.Store(startup)
 }
 
-func (p *Prober) WithReadinessProbe(probes ...Probe) {
+func (p *Prober) WithReadinessProbe(probes ...run.Fn) {
 	p.readinessProbes = append(p.readinessProbes, probes...)
 }
 
-func (p *Prober) WithLivenessProbe(probes ...Probe) {
+func (p *Prober) WithLivenessProbe(probes ...run.Fn) {
 	p.livenessProbes = append(p.livenessProbes, probes...)
 }
 
@@ -83,7 +82,7 @@ func (p *Prober) Run(ctx context.Context) error {
 
 func (p *Prober) runProbes(
 	ctx context.Context,
-	probes []Probe,
+	probes []run.Fn,
 ) error {
 	if len(probes) == 0 {
 		return nil

@@ -15,8 +15,8 @@ import (
 type (
 	Closer struct {
 		logger  *zap.Logger
-		stack1  []run.Closure
-		stack2  []run.Closure
+		stack1  []run.Fn
+		stack2  []run.Fn
 		timeout time.Duration
 	}
 	CloserOption c.Option[Closer]
@@ -38,7 +38,7 @@ const (
 var NewCloser = c.NewWithValidate[Closer, CloserOption]
 
 func (cl *Closer) AddCloser(
-	closure run.Closure,
+	closure run.Fn,
 	opts ...AddOption,
 ) {
 	if closure == nil {

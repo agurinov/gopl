@@ -37,7 +37,7 @@ func TestBackoff_Concurrency(t *testing.T) {
 		require.NotNil(t, b)
 
 		doValidRetries := func(ctx context.Context, b *backoff.Backoff) {
-			stack := make([]run.Closure, 0, maxRetries)
+			stack := make([]run.Fn, 0, maxRetries)
 
 			for range maxRetries {
 				stack = append(stack,

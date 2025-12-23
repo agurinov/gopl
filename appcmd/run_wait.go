@@ -14,7 +14,7 @@ import (
 func Start(
 	ctx context.Context,
 	logger *zap.Logger,
-	stack ...run.Closure,
+	stack ...run.Fn,
 ) {
 	logger.Info("starting application")
 
@@ -38,7 +38,10 @@ func Start(
 }
 
 // Deprecated: Use Start instead.
-func RunWait(g *errgroup.Group, logger *zap.Logger) {
+func RunWait(
+	g *errgroup.Group,
+	logger *zap.Logger,
+) {
 	logger.Info("starting application")
 
 	waitErr := g.Wait()
