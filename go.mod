@@ -1,6 +1,6 @@
 module github.com/agurinov/gopl
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/bufbuild/protovalidate-go v0.10.1
@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/vault/api/auth/approle v0.11.0
 	github.com/hashicorp/vault/api/auth/userpass v0.11.0
 	github.com/improbable-eng/grpc-web v0.15.0
-	github.com/jackc/pgx/v5 v5.7.6
+	github.com/jackc/pgx/v5 v5.8.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/json-iterator/go v1.1.12
@@ -33,8 +33,8 @@ require (
 	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
-	golang.org/x/sync v0.16.0
-	golang.org/x/tools v0.35.0
+	golang.org/x/sync v0.17.0
+	golang.org/x/tools v0.36.0
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
@@ -119,10 +119,10 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/mod v0.26.0 // indirect
+	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250528174236-200df99c418a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a // indirect
