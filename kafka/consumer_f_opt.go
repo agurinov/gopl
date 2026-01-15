@@ -7,8 +7,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func WithConsumerLogger(logger *zap.Logger) ConsumerOption {
-	return func(c *consumer) error {
+func WithConsumerLogger[T any](logger *zap.Logger) ConsumerOption[T] {
+	return func(c *consumer[T]) error {
 		if logger == nil {
 			return nil
 		}
@@ -19,16 +19,48 @@ func WithConsumerLogger(logger *zap.Logger) ConsumerOption {
 	}
 }
 
-func WithConsumerTopic(topic string) ConsumerOption {
-	return func(c *consumer) error {
+func WithConsumerTopic[T any](topic string) ConsumerOption[T] {
+	return func(c *consumer[T]) error {
 		c.config.topic = topic
 
 		return nil
 	}
 }
 
-func WithConsumerConnect() ConsumerOption {
-	return func(c *consumer) error {
+func WithConsumerGroup[T any](group string) ConsumerOption[T] {
+	return func(c *consumer[T]) error {
+		c.config.group = group
+
+		return nil
+	}
+}
+
+func WithConsumerBrokers[T any](brokers []string) ConsumerOption[T] {
+	return func(c *consumer[T]) error {
+		c.config.brokers = brokers
+
+		return nil
+	}
+}
+
+func WithConsumerHandler[T any](handler Handler[T]) ConsumerOption[T] {
+	return func(c *consumer[T]) error {
+		c.handler = handler
+
+		return nil
+	}
+}
+
+func WithConsumerHandlerBatch[T any](handlerBatch HandlerBatch[T]) ConsumerOption[T] {
+	return func(c *consumer[T]) error {
+		c.handlerBatch = handlerBatch
+
+		return nil
+	}
+}
+
+func WithConsumerConnect[T any]() ConsumerOption[T] {
+	return func(c *consumer[T]) error {
 		copts := c.kgoOptions()
 
 		cl, err := kgo.NewClient(copts...)

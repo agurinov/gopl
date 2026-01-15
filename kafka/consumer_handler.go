@@ -11,20 +11,20 @@ import (
 )
 
 type (
-	Handler      func(context.Context, Record) error
-	HandlerBatch func(context.Context, []Record) error
+	Handler[T any]      func(context.Context, T) error
+	HandlerBatch[T any] func(context.Context, []T) error
 )
 
-func (c *consumer) eachRecordFunc(
+func (c consumer[R, V]) eachRecordFunc(
 	ctx context.Context,
 	partition int32,
-) func(*kgo.Record) {
+) func(V) {
 	l := c.logger.With(
 		zap.String("eventloop.topic", c.config.topic),
 		zap.Int32("eventloop.partition", partition),
 	)
 
-	return func(r *kgo.Record) {
+	return func(r V) {
 		isNotMyTopicPartition := cmp.Or(
 			r.Topic != c.config.topic,
 			r.Partition != partition,
@@ -40,7 +40,7 @@ func (c *consumer) eachRecordFunc(
 			return
 		}
 
-		record := recordFromKgo(r)
+		record := c.recordMapper.FromVendor(r)
 
 		if err := c.handler(ctx, record); err != nil {
 			l.Error(
@@ -51,7 +51,7 @@ func (c *consumer) eachRecordFunc(
 	}
 }
 
-func (c *consumer) eachBatchFunc(
+func (c consumer[R, V]) eachBatchFunc(
 	ctx context.Context,
 	partition int32,
 ) func(tp kgo.FetchTopicPartition) {
@@ -78,7 +78,7 @@ func (c *consumer) eachBatchFunc(
 
 		records := x.SliceConvert(
 			tp.Records,
-			recordFromKgo,
+			c.recordMapper.FromVendor,
 		)
 
 		if err := c.handlerBatch(ctx, records); err != nil {

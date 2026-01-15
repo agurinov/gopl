@@ -1,9 +1,6 @@
 package kafka
 
-import "github.com/twmb/franz-go/pkg/kgo"
-
-type Record struct{}
-
-func recordFromKgo(*kgo.Record) Record {
-	return Record{}
+type RecordMapper[R any, V any] interface {
+	FromVendor(V) R
+	ToVendor(R) V
 }

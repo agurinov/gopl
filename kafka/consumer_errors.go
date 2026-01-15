@@ -23,7 +23,7 @@ const (
 	waitAction
 )
 
-func (c *consumer) analyzeFetches(
+func (c consumer[R, V]) analyzeFetches(
 	fetches kgo.Fetches,
 	l *zap.Logger,
 ) eventloopAction {

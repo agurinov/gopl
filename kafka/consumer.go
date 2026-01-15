@@ -2,98 +2,125 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/twmb/franz-go/pkg/kgo"
 	"go.uber.org/zap"
 
 	"github.com/agurinov/gopl/backoff"
+	"github.com/agurinov/gopl/graceful"
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
 	Consumer interface {
-		Consume(context.Context) error
+		Run(context.Context) error
 		Close(context.Context) error
 	}
-	consumer struct {
+	consumer[R any, V any] struct {
 		metrics         consumerMetrics
-		discarder       consumerDiscarder
+		recordDiscarder RecordDiscarder[V]
+		recordMapper    RecordMapper[R, V]
 		logger          *zap.Logger
-		closed          *atomic.Bool
 		partitionHolder *partitionHolder
 		clientMu        *sync.Mutex
 		client          *kgo.Client
-		handler         Handler
-		handlerBatch    HandlerBatch
+		handler         Handler[R]
+		handlerBatch    HandlerBatch[R]
 		config          config
+		graceful.Wrapper
 	}
-	ConsumerOption c.Option[consumer]
 )
 
-func (c *consumer) processPartition(
+type (
+	ConsumerOption[R any] c.Option[kgoConsumer[R]]
+)
+
+func (cs consumer[R, V]) processPartition(
 	ctx context.Context,
 	partition int32,
-) {
-	l := c.logger.With(
-		zap.String("eventloop.topic", c.config.topic),
+) error {
+	l := cs.logger.With(
+		zap.String("eventloop.topic", cs.config.topic),
 		zap.Int32("eventloop.partition", partition),
 	)
 
 	l.Info("started partition eventloop")
 	defer l.Info("exited partition eventloop")
 
-	bopts := c.config.idleBackoffOptions(l)
+	bopts := cs.config.idleBackoffOptions(l)
 
 	idleBackoff, err := backoff.New(bopts...)
 	if err != nil {
-		l.Error(
-			"can't create eventloop backoff",
-			zap.Error(err),
-		)
-
-		return
+		return fmt.Errorf("can't create eventloop backoff: %w", err)
 	}
 
-	for {
+	iterationFn := run.ErrorFn(func() error {
 		l.Info(
 			"polling partition",
-			zap.Int64("buffered.count", c.client.BufferedFetchRecords()),
+			zap.Int64("buffered.count", cs.client.BufferedFetchRecords()),
 		)
 
-		fetches := c.pollPartition(ctx, partition)
+		fetches := cs.pollPartition(ctx, partition)
 
-		switch c.analyzeFetches(fetches, l) {
+		switch cs.analyzeFetches(fetches, l) {
 		case processAction:
 			// move straight
 		case exitAction:
-			return
+			return nil
 		case skipAction:
 			continue
 		case waitAction:
 			if _, bErr := idleBackoff.Wait(ctx); bErr != nil {
-				l.Error(
-					"can't wait idle backoff",
-					zap.Error(bErr),
-				)
+				return fmt.Errorf("can't wait idle backoff: %w", bErr)
+			}
 
-				return
+			continue
+		}
+	})
+
+	// TODO: graceful.Run ?
+	for {
+		l.Info(
+			"polling partition",
+			zap.Int64("buffered.count", cs.client.BufferedFetchRecords()),
+		)
+
+		fetches := cs.pollPartition(ctx, partition)
+
+		switch cs.analyzeFetches(fetches, l) {
+		case processAction:
+			// move straight
+		case exitAction:
+			return nil
+		case skipAction:
+			continue
+		case waitAction:
+			if _, bErr := idleBackoff.Wait(ctx); bErr != nil {
+				return fmt.Errorf("can't wait idle backoff: %w", bErr)
 			}
 
 			continue
 		}
 
 		switch {
-		case c.handlerBatch != nil:
+		case cs.handlerBatch != nil:
 			fetches.EachPartition(
-				c.eachBatchFunc(ctx, partition),
+				cs.eachBatchFunc(ctx, partition),
 			)
-		case c.handler != nil:
+		case cs.handler != nil:
 			fetches.EachRecord(
-				c.eachRecordFunc(ctx, partition),
+				cs.eachRecordFunc(ctx, partition),
 			)
+		}
+
+		// catch via channel?
+
+		if dErr := cs.recordDiscarder.Discard(ctx); dErr != nil {
+			return fmt.Errorf("can't discard records: %w", dErr)
 		}
 
 		// TODO: commit / dlq - discarder
@@ -101,44 +128,30 @@ func (c *consumer) processPartition(
 		// 1) Client handler return `all or nothing`
 		// 2) Client handler with get a struct which is buffers and can dedicate records to dlq or
 		// commit
-		_ = c.metrics
+		_ = cs.metrics
 	}
 }
 
-func (c *consumer) Close() {
-	if !c.closed.CompareAndSwap(false, true) {
-		return
-	}
+func (cs consumer[R, V]) Close() {
+	fn := run.SimpleFn(func() {
+		cs.client.Close()
+	})
 
-	c.logger.Info("closing Kafka Consumer")
-
-	for _, p := range c.partitionHolder.assignedPartitions() {
-		c.partitionHolder.revokePartition(p)
-	}
-
-	c.client.Close()
+	cs.Wrapper.Close(fn)(nil)
 }
 
-func (c *consumer) IsClosed(ctxs ...context.Context) bool {
-	if c.closed.Load() {
-		return true
-	}
+func (cs consumer[R, V]) Run() error {
+	fn := run.SimpleFn(func() {
+		time.Sleep(20 * time.Second)
 
-	ctxs = append(ctxs, c.client.Context())
+		cs.logger.Info(
+			"consumer ping",
+			zap.String("topic", cs.config.topic),
+			zap.Int32s("assigned.partitions", cs.partitionHolder.assignedPartitions()),
+		)
+	})
 
-	for i := range ctxs {
-		if ctxs[i] == nil {
-			continue
-		}
-
-		select {
-		case <-ctxs[i].Done():
-			return true
-		default:
-		}
-	}
-
-	return false
+	return cs.Wrapper.Run(fn)(nil)
 }
 
 // NOTE: main logic appears here.
@@ -155,35 +168,34 @@ func (c *consumer) IsClosed(ctxs ...context.Context) bool {
 //
 // There are cases when partition doesn't have records ahead and this Poll invoke can hung.
 // We've limited roundtrip from config Duration and this case (deadline exceeded) for NOW interprets as IDLE state.
-func (c *consumer) pollPartition(
+func (cs consumer[R, V]) pollPartition(
 	ctx context.Context,
 	partition int32,
 ) kgo.Fetches {
 	forPause := map[string][]int32{
-		c.config.topic: c.partitionHolder.assignedPartitions(),
+		cs.config.topic: cs.partitionHolder.assignedPartitions(),
 	}
 
 	forResume := map[string][]int32{
-		c.config.topic: {partition},
+		cs.config.topic: {partition},
 	}
 
-	c.clientMu.Lock()
-	defer c.clientMu.Unlock()
+	cs.clientMu.Lock()
+	defer cs.clientMu.Unlock()
 
-	c.client.PauseFetchPartitions(forPause)
-	c.client.ResumeFetchPartitions(forResume)
+	cs.client.PauseFetchPartitions(forPause)
+	cs.client.ResumeFetchPartitions(forResume)
 
-	defer c.client.AllowRebalance()
+	defer cs.client.AllowRebalance()
 
-	ctx, cancel := context.WithTimeout(ctx, c.config.maxPollDuration)
+	ctx, cancel := context.WithTimeout(ctx, cs.config.maxPollDuration)
 	defer cancel()
 
-	return c.client.PollRecords(ctx, c.config.maxPollRecords)
+	return cs.client.PollRecords(ctx, cs.config.maxPollRecords)
 }
 
-func NewConsumer(opts ...ConsumerOption) (consumer, error) {
-	obj := consumer{
-		closed:   new(atomic.Bool),
+func NewConsumer[R any](opts ...ConsumerOption[R]) (Consumer, error) {
+	obj := kgoConsumer[R]{
 		clientMu: new(sync.Mutex),
 		config: config{
 			idleBackoffMinDelay: 100 * time.Millisecond,
@@ -192,9 +204,25 @@ func NewConsumer(opts ...ConsumerOption) (consumer, error) {
 			maxPollDuration:     200 * time.Millisecond,
 		},
 		partitionHolder: &partitionHolder{
-			assigned: map[int32]partitionContext{},
+			assigned: make(map[int32]partitionContext, 12),
 		},
+		recordMapper:    kgoRecordMapper[R]{},
+		recordDiscarder: noopRecordDiscarder{},
 	}
 
-	return c.ConstructWithValidate(obj, opts...)
+	obj, err := c.ConstructWithValidate(obj, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	gracefulWrapper, err := graceful.NewWrapper(
+		graceful.WithWrapperLogger(obj.logger),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	obj.Wrapper = gracefulWrapper
+
+	return obj, nil
 }

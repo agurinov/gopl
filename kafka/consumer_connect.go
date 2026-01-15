@@ -4,7 +4,7 @@ import (
 	"github.com/twmb/franz-go/pkg/kgo"
 )
 
-func (c *consumer) kgoOptions() []kgo.Opt {
+func (c consumer[R, V]) kgoOptions() []kgo.Opt {
 	var (
 		configOpts   = c.config.kgoOptions()
 		consumerOpts = []kgo.Opt{
@@ -14,7 +14,7 @@ func (c *consumer) kgoOptions() []kgo.Opt {
 			kgo.OnPartitionsRevoked(c.onRevoked),
 			kgo.OnPartitionsLost(c.onRevoked),
 		}
-		// custom options to override all
+		// TODO: custom options to override all
 	)
 
 	return append(configOpts, consumerOpts...)
