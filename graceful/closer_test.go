@@ -114,7 +114,7 @@ func TestCloser_WaitForShutdown(t *testing.T) {
 				closer.AddCloser(fn)
 			}
 
-			ctx, cancel := context.WithCancel(context.TODO())
+			ctx, cancel := context.WithCancel(t.Context())
 			cancel()
 
 			joinedErr := closer.WaitForShutdown(ctx)
@@ -150,7 +150,7 @@ func TestCloser_Waves(t *testing.T) {
 		graceful.InFirstWave(),
 	)
 
-	ctx, cancel := context.WithCancel(context.TODO())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 
 	joinedErr := closer.WaitForShutdown(ctx)

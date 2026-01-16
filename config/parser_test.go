@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"context"
 	_ "embed"
 	"os"
 	"testing"
@@ -53,7 +52,7 @@ func TestParse(t *testing.T) {
 		}
 	)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	t.Run("JSON", func(t *testing.T) {
 		pl_testing.Init(t)

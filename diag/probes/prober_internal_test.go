@@ -14,7 +14,7 @@ import (
 func TestProber_Close(t *testing.T) {
 	pl_testing.Init(t)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	prober, err := New(
 		WithLogger(log.NewZapTest(t)),

@@ -1,7 +1,6 @@
 package sql_test
 
 import (
-	"context"
 	_ "embed"
 	"testing"
 
@@ -32,7 +31,7 @@ func TestQuery_WithSpan(t *testing.T) {
 		}
 	)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	cases := map[string]struct {
 		args    args

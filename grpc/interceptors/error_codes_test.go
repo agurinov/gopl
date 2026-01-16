@@ -31,7 +31,7 @@ func TestStruct_Method(t *testing.T) {
 		}
 	)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	cases := map[string]struct {
 		args    args

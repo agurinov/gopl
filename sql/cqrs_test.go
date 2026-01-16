@@ -1,7 +1,6 @@
 package sql_test
 
 import (
-	"context"
 	"io"
 	"testing"
 
@@ -24,7 +23,7 @@ func TestCQRS_Connect(t *testing.T) {
 		}
 	)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	cases := map[string]struct {
 		pl_testing.TestCase

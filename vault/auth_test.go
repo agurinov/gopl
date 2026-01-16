@@ -1,7 +1,6 @@
 package vault_test
 
 import (
-	"context"
 	"net/url"
 	"testing"
 
@@ -43,7 +42,7 @@ func TestAuth(t *testing.T) {
 	)
 
 	var (
-		ctx               = context.TODO()
+		ctx               = t.Context()
 		urlParseError     = new(url.Error)
 		approleAuthError  = new(hashiVault.ResponseError)
 		userpassAuthError = new(hashiVault.ResponseError)
