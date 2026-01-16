@@ -1,12 +1,15 @@
 ---
-inpackage: true
-disable-version-string: true
-filename: 'mock_{{ .InterfaceName | snakecase }}.go'
-dir: '{{ .InterfaceDir }}'
-with-expecter: false
+include-auto-generated: true
+dir: '{{ .InterfaceDir }}/mockery'
+filename: 'mock_{{ .InterfaceName }}.gen.go'
+pkgname: 'mockery'
+inpackage: false
+template: testify
+template-data:
+  unroll-variadic: true
 
 packages:
   github.com/agurinov/gopl/fsm:
     interfaces:
-      StateStorage:
+      StateStorage: {}
 ...
