@@ -12,26 +12,47 @@ import (
 func TestState_Equal(t *testing.T) {
 	pl_testing.Init(t)
 
+	type (
+		args struct {
+			currentState fsm.State
+			otherState   fsm.State
+		}
+		results struct {
+			isEqual bool
+		}
+	)
+
 	cases := map[string]struct {
-		inputCurrentState fsm.State
-		inputOtherState   fsm.State
-		expectedEqual     bool
+		args    args
+		results results
 		pl_testing.TestCase
 	}{
 		"case00: empty": {
-			inputCurrentState: fsm.State{},
-			inputOtherState:   fsm.EmptyState,
-			expectedEqual:     true,
+			args: args{
+				currentState: fsm.State{},
+				otherState:   fsm.EmptyState,
+			},
+			results: results{
+				isEqual: true,
+			},
 		},
 		"case01: explicit equal": {
-			inputCurrentState: fsm.State{Name: "foo"},
-			inputOtherState:   fsm.State{Name: "foo"},
-			expectedEqual:     true,
+			args: args{
+				currentState: fsm.State{Name: "foo"},
+				otherState:   fsm.State{Name: "foo"},
+			},
+			results: results{
+				isEqual: true,
+			},
 		},
-		"case01: explicit different": {
-			inputCurrentState: fsm.State{Name: "foo"},
-			inputOtherState:   fsm.State{Name: "bar"},
-			expectedEqual:     false,
+		"case02: explicit different": {
+			args: args{
+				currentState: fsm.State{Name: "foo"},
+				otherState:   fsm.State{Name: "bar"},
+			},
+			results: results{
+				isEqual: false,
+			},
 		},
 	}
 
@@ -41,11 +62,11 @@ func TestState_Equal(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
 
-			equal := tc.inputCurrentState.Equal(tc.inputOtherState)
+			isEqual := tc.args.currentState.Equal(tc.args.otherState)
 
 			require.Equal(t,
-				tc.expectedEqual,
-				equal,
+				tc.results.isEqual,
+				isEqual,
 			)
 		})
 	}

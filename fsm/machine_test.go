@@ -6,32 +6,46 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
 
 	"github.com/agurinov/gopl/fsm"
+	"github.com/agurinov/gopl/fsm/mockery"
 	pl_testing "github.com/agurinov/gopl/testing"
-	pl_gomock "github.com/agurinov/gopl/testing/gomock"
 )
 
 func TestStateMachine_Transition(t *testing.T) {
 	pl_testing.Init(t)
+
+	type (
+		di struct {
+			storage *mockery.MockStateStorage[RegistrationContext]
+		}
+		args struct {
+			options []RegistrationStateMachineOption
+			event   RegistrationEvent
+		}
+		results struct {
+			state fsm.State
+		}
+	)
 
 	registrationContext := RegistrationContext{
 		UUID: uuid.MustParse("10000000-0000-0000-0000-111111111111"),
 	}
 
 	cases := map[string]struct {
-		mocks         func(mocks)
-		inputOptions  []RegistrationStateMachineOption
-		inputEvent    RegistrationEvent
-		expectedState fsm.State
+		di      func(*testing.T, di)
+		args    args
+		results results
 		pl_testing.TestCase
 	}{
 		"case00: invalid event: without transition func": {
-			inputEvent: RegistrationEvent{
-				Context:        registrationContext,
-				TransitionFunc: nil,
+			args: args{
+				event: RegistrationEvent{
+					Context:        registrationContext,
+					TransitionFunc: nil,
+				},
 			},
 			TestCase: pl_testing.TestCase{
 				MustFail:      true,
@@ -39,13 +53,15 @@ func TestStateMachine_Transition(t *testing.T) {
 			},
 		},
 		"case01: stateless machine err on transition": {
-			inputOptions: []RegistrationStateMachineOption{
-				fsm.WithStateStorage[RegistrationContext](nil),
-			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return approvedState, io.EOF
+			args: args{
+				options: []RegistrationStateMachineOption{
+					fsm.WithStateStorage[RegistrationContext](nil),
+				},
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return approvedState, io.EOF
+					},
 				},
 			},
 			TestCase: pl_testing.TestCase{
@@ -54,55 +70,72 @@ func TestStateMachine_Transition(t *testing.T) {
 			},
 		},
 		"case02: stateless machine unexpected transition": {
-			inputOptions: []RegistrationStateMachineOption{
-				fsm.WithStateStorage[RegistrationContext](nil),
-			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return approvedState, nil
+			args: args{
+				options: []RegistrationStateMachineOption{
+					fsm.WithStateStorage[RegistrationContext](nil),
+				},
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return approvedState, nil
+					},
 				},
 			},
-			expectedState: brokenState,
+			results: results{
+				state: brokenState,
+			},
 		},
 		"case03: stateless machine explicit broken transition": {
-			inputOptions: []RegistrationStateMachineOption{
-				fsm.WithStateStorage[RegistrationContext](nil),
-			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return brokenState, nil
+			args: args{
+				options: []RegistrationStateMachineOption{
+					fsm.WithStateStorage[RegistrationContext](nil),
+				},
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return brokenState, nil
+					},
 				},
 			},
-			expectedState: brokenState,
+			results: results{
+				state: brokenState,
+			},
 		},
 		"case04: stateless machine expected transition": {
-			inputOptions: []RegistrationStateMachineOption{
-				fsm.WithStateStorage[RegistrationContext](nil),
-			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return uploadPassportState, nil
+			args: args{
+				options: []RegistrationStateMachineOption{
+					fsm.WithStateStorage[RegistrationContext](nil),
+				},
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return uploadPassportState, nil
+					},
 				},
 			},
-			expectedState: uploadPassportState,
-		},
-
-		"case05: stateful machine err on current state": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(fsm.EmptyState, io.EOF),
-				)
+			results: results{
+				state: uploadPassportState,
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return uploadPassportState, nil
+		},
+		"case05: stateful machine err on current state": {
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(fsm.EmptyState, io.EOF).
+					Times(1)
+			},
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return uploadPassportState, nil
+					},
 				},
 			},
 			TestCase: pl_testing.TestCase{
@@ -111,52 +144,74 @@ func TestStateMachine_Transition(t *testing.T) {
 			},
 		},
 		"case06: stateful machine in final state": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(approvedState, nil),
-				)
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(approvedState, nil).
+					Times(1)
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return uploadPassportState, nil
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return uploadPassportState, nil
+					},
 				},
 			},
-			expectedState: approvedState,
+			results: results{
+				state: approvedState,
+			},
 		},
 		"case07: stateful machine in broken state": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(brokenState, nil),
-				)
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(brokenState, nil).
+					Times(1)
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return uploadPassportState, nil
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return uploadPassportState, nil
+					},
 				},
 			},
-			expectedState: brokenState,
+			results: results{
+				state: brokenState,
+			},
 		},
 		"case08: stateful machine new state transition err": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(chooseCountryState, nil),
-				)
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(chooseCountryState, nil).
+					Times(1)
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return chooseCountryState, io.EOF
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return chooseCountryState, io.EOF
+					},
 				},
 			},
 			TestCase: pl_testing.TestCase{
@@ -165,93 +220,131 @@ func TestStateMachine_Transition(t *testing.T) {
 			},
 		},
 		"case09: stateful machine same state idempotence check": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(deniedState, nil),
-				)
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(deniedState, nil).
+					Times(1)
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return deniedState, nil
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return deniedState, nil
+					},
 				},
 			},
-			expectedState: deniedState,
+			results: results{
+				state: deniedState,
+			},
 		},
 		"case10: stateful machine unexpected transition": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(uploadDriverLicenseState, nil),
-					m.storage.EXPECT().
-						PushState(
-							pl_gomock.IsContext(),
-							registrationContext,
-							pl_gomock.Eq(brokenState),
-						).
-						Times(1).
-						Return(nil),
-				)
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(uploadDriverLicenseState, nil).
+					Times(1)
+
+				d.storage.
+					On(
+						"PushState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+						mock.MatchedBy(func(s fsm.State) bool {
+							return s.Equal(brokenState)
+						}),
+					).
+					Return(nil).
+					Times(1)
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return chooseCountryState, nil
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return chooseCountryState, nil
+					},
 				},
 			},
-			expectedState: brokenState,
+			results: results{
+				state: brokenState,
+			},
 		},
 		"case11: stateful machine expected transition": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(uploadDriverLicenseState, nil),
-					m.storage.EXPECT().
-						PushState(
-							pl_gomock.IsContext(),
-							registrationContext,
-							reviewState,
-						).
-						Times(1).
-						Return(nil),
-				)
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(uploadDriverLicenseState, nil).
+					Times(1)
+
+				d.storage.
+					On(
+						"PushState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+						reviewState,
+					).
+					Return(nil).
+					Times(1)
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return reviewState, nil
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return reviewState, nil
+					},
 				},
 			},
-			expectedState: reviewState,
+			results: results{
+				state: reviewState,
+			},
 		},
 		"case12: stateful machine err on push state": {
-			mocks: func(m mocks) {
-				gomock.InOrder(
-					m.storage.EXPECT().
-						GetState(pl_gomock.IsContext(), registrationContext).
-						Times(1).
-						Return(uploadPassportState, nil),
-					m.storage.EXPECT().
-						PushState(
-							pl_gomock.IsContext(),
-							registrationContext,
-							pl_gomock.Eq(uploadSelfieState),
-						).
-						Times(1).
-						Return(io.EOF),
-				)
+			di: func(t *testing.T, d di) {
+				t.Helper()
+
+				d.storage.
+					On(
+						"GetState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+					).
+					Return(uploadPassportState, nil).
+					Times(1)
+
+				d.storage.
+					On(
+						"PushState",
+						mock.AnythingOfType("*context.cancelCtx"),
+						registrationContext,
+						uploadSelfieState,
+					).
+					Return(io.EOF).
+					Times(1)
 			},
-			inputEvent: RegistrationEvent{
-				Context: registrationContext,
-				TransitionFunc: func(_ context.Context) (fsm.State, error) {
-					return uploadSelfieState, nil
+			args: args{
+				event: RegistrationEvent{
+					Context: registrationContext,
+					TransitionFunc: func(_ context.Context) (fsm.State, error) {
+						return uploadSelfieState, nil
+					},
 				},
 			},
 			TestCase: pl_testing.TestCase{
@@ -267,20 +360,20 @@ func TestStateMachine_Transition(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
 
-			ctx := t.Context()
-
-			ctrl := gomock.NewController(t)
-			t.Cleanup(ctrl.Finish)
-
-			m := NewMocks(ctrl)
-			if tc.mocks != nil {
-				tc.mocks(m)
+			diContainer := di{
+				storage: mockery.NewMockStateStorage[RegistrationContext](t),
 			}
+
+			if tc.di != nil {
+				tc.di(t, diContainer)
+			}
+
+			ctx := t.Context()
 
 			opts := []RegistrationStateMachineOption{
 				fsm.WithName[RegistrationContext]("registration_machine"),
 				fsm.WithVersion[RegistrationContext]("v1"),
-				fsm.WithStateStorage[RegistrationContext](m.storage),
+				fsm.WithStateStorage(diContainer.storage),
 				fsm.WithStateMap[RegistrationContext](
 					brokenState,
 					chooseCountryState,
@@ -292,15 +385,16 @@ func TestStateMachine_Transition(t *testing.T) {
 					approvedState,
 				),
 			}
-			opts = append(opts, tc.inputOptions...)
+			opts = append(opts, tc.args.options...)
 
 			sm, err := fsm.New(opts...)
 			require.NoError(t, err)
+			require.NotNil(t, sm)
 
-			state, err := sm.Transition(ctx, tc.inputEvent)
-
+			state, err := sm.Transition(ctx, tc.args.event)
 			tc.CheckError(t, err)
-			require.True(t, tc.expectedState.Equal(state))
+			require.NotNil(t, state)
+			require.True(t, tc.results.state.Equal(state))
 		})
 	}
 }
