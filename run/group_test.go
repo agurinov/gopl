@@ -25,7 +25,7 @@ func TestGroup(t *testing.T) {
 		}
 	)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	cases := map[string]struct {
 		args    args
@@ -104,7 +104,7 @@ func TestGroupSoft(t *testing.T) {
 		}
 	)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	cases := map[string]struct {
 		args    args

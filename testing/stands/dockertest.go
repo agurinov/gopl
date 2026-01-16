@@ -214,7 +214,7 @@ func containerExec(
 	}
 
 	ctx, cancel := context.WithTimeout(
-		context.Background(),
+		t.Context(),
 		dockertestPoolMaxWait,
 	)
 	t.Cleanup(cancel)

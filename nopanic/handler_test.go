@@ -46,7 +46,7 @@ func TestHandler_UnaryServerInterceptor(t *testing.T) {
 	)
 
 	var (
-		ctx            = context.TODO()
+		ctx            = t.Context()
 		successHandler = func(_ context.Context, _ any) (any, error) {
 			return "out", nil
 		}
@@ -117,7 +117,7 @@ func TestHandler_TelegramBotMiddleware(t *testing.T) {
 	middleware := h.TelegramBotMiddleware()
 	require.NotNil(t, middleware)
 
-	ctx := context.TODO()
+	ctx := t.Context()
 
 	handler := middleware(
 		func(_ context.Context, _ *bot.Bot, _ *models.Update) {

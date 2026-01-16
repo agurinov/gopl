@@ -20,7 +20,7 @@ func TestBackoff_Concurrency(t *testing.T) {
 	t.Run("Concurrent", func(t *testing.T) {
 		var (
 			maxRetries = 10
-			ctx        = context.TODO()
+			ctx        = t.Context()
 		)
 
 		b, err := backoff.New(
@@ -87,7 +87,7 @@ func TestBackoff_Concurrency(t *testing.T) {
 		require.NotNil(t, b)
 
 		ctx, cancel := context.WithTimeout(
-			context.Background(),
+			t.Context(),
 			10*time.Millisecond,
 		)
 		t.Cleanup(cancel)

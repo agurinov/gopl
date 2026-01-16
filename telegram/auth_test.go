@@ -111,7 +111,7 @@ func TestAuth_authFunc(t *testing.T) {
 		md := metadata.MD{}
 		md = md.Set("authorization", authHeader)
 
-		return md.ToIncoming(context.Background())
+		return md.ToIncoming(t.Context())
 	}
 
 	grpcHandler := func(ctx context.Context, req any) (any, error) {

@@ -267,7 +267,7 @@ func TestStateMachine_Transition(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
 
-			ctx := context.TODO()
+			ctx := t.Context()
 
 			ctrl := gomock.NewController(t)
 			t.Cleanup(ctrl.Finish)
