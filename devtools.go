@@ -6,6 +6,6 @@ package main
 // https://www.jvt.me/posts/2025/01/27/go-tools-124/
 
 import (
-	_ "go.uber.org/mock/mockgen"
+	_ "github.com/vektra/mockery/v3"
 	_ "golang.org/x/tools/cmd/stringer"
 )

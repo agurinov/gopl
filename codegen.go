@@ -1,5 +1,5 @@
 //go:generate -command stringer go run ./vendor/golang.org/x/tools/cmd/stringer
-//go:generate -command mockgen  go run ./vendor/go.uber.org/mock/mockgen
+//go:generate -command mockery  go run ./vendor/github.com/vektra/mockery
 
 //go:generate -command protoc_gen_types    protoc      --go_out=paths=import:.
 //go:generate -command protoc_gen_grpc     protoc --go-grpc_out=paths=import,require_unimplemented_servers=false:.
@@ -7,3 +7,5 @@
 
 //go:generate -command validate-gen go run ./cmd/validate-gen
 package main
+
+//go:generate mockery

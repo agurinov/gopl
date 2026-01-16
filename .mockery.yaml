@@ -1,0 +1,12 @@
+---
+inpackage: true
+disable-version-string: true
+filename: 'mock_{{ .InterfaceName | snakecase }}.go'
+dir: '{{ .InterfaceDir }}'
+with-expecter: false
+
+packages:
+  github.com/agurinov/gopl/fsm:
+    interfaces:
+      StateStorage:
+...
