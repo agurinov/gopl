@@ -8,10 +8,13 @@
 import (
 	"github.com/agurinov/gopl/diag/probes"
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/http"
+	"github.com/agurinov/gopl/http/handlers"
 )
 
 type diContainer struct {
-	prober *probes.Prober
+	prober      *probes.Prober
+	debugServer http.Server
 }
 
 prober := c.Must(
@@ -28,11 +31,25 @@ closer.AddCloser(
 	graceful.InFirstWave(),
 )
 
+// Prober can be embedded as handler in debug http server to be used by orchestrator.
+// About debugServer and debugHandler look docs from those packages.
+debugHandler := c.Must(
+	handlers.NewDebug(
+		handlers.WithDebugProber(prober),
+	),
+)
+
+debugServer := c.Must(
+	http.NewServer(
+		http.WithServerHandler(debugHandler.Handler()),
+	),
+)
+
 sqlx := c.Must(
 	// ...
 )
 
-// db is a critical component. 
+// db is a critical component.
 // No ping -> no readiness probe -> no traffic from orchestrator.
 prober.WithReadinessProbe(sqlx.Ping)
 
@@ -40,7 +57,8 @@ prober.WithReadinessProbe(sqlx.Ping)
 prober.SetStartup(true)
 
 return diContainer{
-	prober: prober,
+	debugServer: debugServer,
+	prober:      prober,
 }
 ```
 
