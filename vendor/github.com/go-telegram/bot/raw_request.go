@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
 )
@@ -74,8 +75,12 @@ func (b *Bot) rawRequest(ctx context.Context, method string, params any, dest an
 		if errClose := pr.CloseWithError(errDo); errClose != nil {
 			b.errorsHandler(fmt.Errorf("error close pipe reader for method %s, %w", method, errClose))
 		}
-		errDoC := errors.New(strings.Replace(errDo.Error(), b.token, "***", -1))
-		return fmt.Errorf("error do request for method %s, %w", method, errDoC)
+		var netErr *url.Error
+		if errors.As(errDo, &netErr) {
+			netErr.URL = strings.Replace(netErr.URL, b.token, "***", -1)
+		}
+
+		return fmt.Errorf("error do request for method %s, %w", method, errDo)
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -97,9 +102,9 @@ func (b *Bot) rawRequest(ctx context.Context, method string, params any, dest an
 
 	if !r.OK {
 		switch r.ErrorCode {
-		case 403:
+		case http.StatusForbidden:
 			return fmt.Errorf("%w, %s", ErrorForbidden, r.Description)
-		case 400:
+		case http.StatusBadRequest:
 			if r.Parameters.MigrateToChatID != 0 {
 				err := &MigrateError{
 					Message:         fmt.Sprintf("%s: %s", ErrorBadRequest, r.Description),
@@ -109,13 +114,13 @@ func (b *Bot) rawRequest(ctx context.Context, method string, params any, dest an
 				return err
 			}
 			return fmt.Errorf("%w, %s", ErrorBadRequest, r.Description)
-		case 401:
+		case http.StatusUnauthorized:
 			return fmt.Errorf("%w, %s", ErrorUnauthorized, r.Description)
-		case 404:
+		case http.StatusNotFound:
 			return fmt.Errorf("%w, %s", ErrorNotFound, r.Description)
-		case 409:
+		case http.StatusConflict:
 			return fmt.Errorf("%w, %s", ErrorConflict, r.Description)
-		case 429:
+		case http.StatusTooManyRequests:
 			err := &TooManyRequestsError{
 				Message:    fmt.Sprintf("%s, %s", ErrorTooManyRequests, r.Description),
 				RetryAfter: r.Parameters.RetryAfter,
