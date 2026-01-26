@@ -6,7 +6,7 @@
 
 > [Telegram Group](https://t.me/gotelegrambotui)
 
-> Supports Bot API version: [9.2](https://core.telegram.org/bots/api#august-15-2025) from August 15, 2025
+> Supports Bot API version: [9.3](https://core.telegram.org/bots/api#december-31-2025) from December 31, 2025
 
 It's a Go zero-dependencies telegram bot framework
 
@@ -146,7 +146,7 @@ You can use all these methods as bot funcs. All methods have name like in offici
 `bot.SendMessage`, `bot.GetMe`, `bot.SendPhoto`, etc
 
 All methods have signature `(ctx context.Context, params <PARAMS>) (<response>, error)`.
-Except `GetMe`, `Close` and `Logout` which are have not params
+Except `GetMe`, `Close` and `Logout` which have no params
 
 `<PARAMS>` is a struct with fields that corresponds to Telegram Bot API parameters.
 All Params structs have name like for corresponded methods, but with `Params` suffix.
