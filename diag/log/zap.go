@@ -6,10 +6,12 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
+
+	c "github.com/agurinov/gopl/patterns/creational"
 )
 
 func NewZap(opts ...Option) (*zap.Logger, *zap.AtomicLevel, error) {
-	cfg, err := newConfig(opts...)
+	cfg, err := c.NewWithValidate(opts...)
 	if err != nil {
 		return nil, nil, err
 	}
