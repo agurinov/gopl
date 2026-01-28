@@ -12,13 +12,13 @@
 ![golangci-lint](https://img.shields.io/badge/linter-golangci--lint-blue)
 
 ## Table of contents:
-- Patterns (`patterns`)
-	- [Creational](./patterns/creational/README.md)
-- Diagnotics (`diag`)
-	- [probes](./diag/probes/README.md)
+- `patterns`
+	- [`creational`](./patterns/creational/README.md) :fire:
+- `diag` (Diagnotics tools)
+	- [`probes`](./diag/probes/README.md)
 - HTTP
-	- [handlers](./http/handlers/README.md)
-- [Graceful](./graceful/README.md)
+	- [`handlers`](./http/handlers/README.md)
+- [`graceful`](./graceful/README.md)
 
 ## Architectural Approach
 
