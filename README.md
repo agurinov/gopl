@@ -16,6 +16,8 @@
 	- [Creational](./patterns/creational/README.md)
 - Diagnotics (`diag`)
 	- [probes](./diag/probes/README.md)
+- HTTP
+	- [handlers](./http/handlers/README.md)
 - [Graceful](./graceful/README.md)
 
 ## Architectural Approach
