@@ -12,6 +12,8 @@
 ![golangci-lint](https://img.shields.io/badge/linter-golangci--lint-blue)
 
 ## Table of contents:
+- Patterns (`patterns`)
+	- [Creational](./patterns/creational/README.md)
 - Diagnotics (`diag`)
 	- [probes](./diag/probes/README.md)
 - [Graceful](./graceful/README.md)
@@ -20,7 +22,7 @@
 
 The majority of packages in this repository implement:
 
-- **12 Factor App** best practices  
+- **12 Factor App** best practices
 - Ready-to-use integrations with infrastructure (logging, databases, observability, etc.)
 
 Examples usually demonstrate two key layers of application assembly:
