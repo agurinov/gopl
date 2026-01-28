@@ -1,1 +1,5 @@
-# go.sum diff=nodiff
+* text=auto eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf
