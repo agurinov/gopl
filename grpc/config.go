@@ -2,6 +2,7 @@ package grpc
 
 type (
 	ServerConfig struct {
+		Name              string
 		Port              int  `validate:"gt=1000,lt=65536"`
 		ReflectionEnabled bool `json:"reflection_enabled" yaml:"reflection_enabled"`
 		DebugPayload      bool `json:"debug_payload" yaml:"debug_payload"`
@@ -13,3 +14,15 @@ type (
 		AuthToken string
 	}
 )
+
+func (c ServerConfig) NewServer(opts ...ServerOption) (Server, error) {
+	defaults := []ServerOption{
+		WithServerName(c.Name),
+		WithServerPort(c.Port),
+		WithServerReflection(c.ReflectionEnabled),
+	}
+
+	opts = append(defaults, opts...)
+
+	return NewServer(opts...)
+}

@@ -1,7 +1,7 @@
 package log
 
 import (
-	validator "github.com/go-playground/validator/v10"
+	"go.uber.org/zap"
 
 	c "github.com/agurinov/gopl/patterns/creational"
 )
@@ -16,12 +16,15 @@ type (
 	Option = c.Option[Config]
 )
 
-var newConfig = c.NewWithValidate[Config, Option]
-
-func (obj Config) Validate() error {
-	if err := validator.New().Struct(obj); err != nil {
-		return err
+func (cfg Config) New(opts ...Option) (*zap.Logger, *zap.AtomicLevel, error) {
+	defaults := []Option{
+		WithFormat(cfg.Format),
+		WithLevel(cfg.Level),
+		WithCaller(cfg.EnableCaller),
+		WithTraceback(cfg.EnableTraceback),
 	}
 
-	return nil
+	opts = append(defaults, opts...)
+
+	return NewZap(opts...)
 }

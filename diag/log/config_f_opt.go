@@ -15,3 +15,19 @@ func WithLevel(level string) Option {
 		return nil
 	}
 }
+
+func WithCaller(enableCaller bool) Option {
+	return func(c *Config) error {
+		c.EnableCaller = enableCaller
+
+		return nil
+	}
+}
+
+func WithTraceback(enableTraceback bool) Option {
+	return func(c *Config) error {
+		c.EnableTraceback = enableTraceback
+
+		return nil
+	}
+}
