@@ -9,6 +9,7 @@ import (
 	"github.com/agurinov/gopl/graceful"
 	"github.com/agurinov/gopl/grpc"
 	"github.com/agurinov/gopl/http"
+	"github.com/agurinov/gopl/kafka"
 	"github.com/agurinov/gopl/sql"
 	"github.com/agurinov/gopl/telegram"
 	"github.com/agurinov/gopl/vault"
@@ -30,7 +31,9 @@ type (
 )
 
 type (
-	Crontab = crontab.Config
+	Crontab       = crontab.Config
+	KafkaConsumer = kafka.ConsumerConfig
+	KafkaProducer = kafka.ProducerConfig
 )
 
 type (
