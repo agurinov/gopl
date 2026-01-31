@@ -23,9 +23,9 @@ func TestEmptyIf(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		args    args
-		results results
 		pl_testing.TestCase
+		results results
+		args    args
 	}{
 		"case00: no empty variants": {
 			args: args{

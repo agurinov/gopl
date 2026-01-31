@@ -32,9 +32,9 @@ func TestBitSet(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		args    args
 		results results
 		pl_testing.TestCase
+		args args
 	}{
 		"case00: set, clear, toggle, has": {
 			args: args{

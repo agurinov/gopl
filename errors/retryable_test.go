@@ -24,10 +24,10 @@ func TestIsRetryable(t *testing.T) {
 	pl_testing.Init(t)
 
 	cases := map[string]struct {
-		inputErr            error
+		inputErr error
+		pl_testing.TestCase
 		checkWrappedGo113   bool
 		expectedIsRetryable bool
-		pl_testing.TestCase
 	}{
 		"case00: nil err": {
 			inputErr:            nil,

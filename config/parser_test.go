@@ -19,15 +19,15 @@ type (
 		Value string
 	}
 	myCfg struct {
-		Logger      config.Logger       `json:"logger_j" yaml:"logger_y"`
-		Probes      config.Probes       `json:"probes_j" yaml:"probes_y"`
-		Graceful    config.Graceful     `json:"graceful_j" yaml:"graceful_y"`
-		GRPC        config.GRPC         `json:"grpc_j" yaml:"grpc_y"`
-		DebugHTTP   config.HTTP         `json:"debug_http_j" yaml:"debug_http_y"`
 		MapScalar   map[string]string   `json:"map_scalar_j" yaml:"map_scalar_y"`
 		MapStruct   map[string]myStruct `json:"map_struct_j" yaml:"map_struct_y"`
+		Logger      config.Logger       `json:"logger_j" yaml:"logger_y"`
+		DebugHTTP   config.HTTP         `json:"debug_http_j" yaml:"debug_http_y"`
 		ArrayScalar []string            `json:"array_scalar_j" yaml:"array_scalar_y"`
 		ArrayStruct []myStruct          `json:"array_struct_j" yaml:"array_struct_y"`
+		GRPC        config.GRPC         `json:"grpc_j" yaml:"grpc_y"`
+		Probes      config.Probes       `json:"probes_j" yaml:"probes_y"`
+		Graceful    config.Graceful     `json:"graceful_j" yaml:"graceful_y"`
 	}
 )
 
@@ -44,8 +44,8 @@ func TestParse(t *testing.T) {
 
 	type (
 		args struct {
-			flags   config.Flags
 			sources []config.Source
+			flags   config.Flags
 		}
 		results struct {
 			cfg myCfg
@@ -58,9 +58,9 @@ func TestParse(t *testing.T) {
 		pl_testing.Init(t)
 
 		cases := map[string]struct {
+			pl_testing.TestCase
 			args    args
 			results results
-			pl_testing.TestCase
 		}{
 			"case00: no sources": {
 				args: args{
@@ -170,9 +170,9 @@ func TestParse(t *testing.T) {
 		pl_testing.Init(t)
 
 		cases := map[string]struct {
+			pl_testing.TestCase
 			args    args
 			results results
-			pl_testing.TestCase
 		}{
 			"case00: no sources": {
 				args: args{

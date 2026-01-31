@@ -22,8 +22,8 @@ func TestStateMachine_Transition(t *testing.T) {
 			storage *mockery.MockStateStorage[RegistrationContext]
 		}
 		args struct {
-			options []RegistrationStateMachineOption
 			event   RegistrationEvent
+			options []RegistrationStateMachineOption
 		}
 		results struct {
 			state fsm.State
@@ -35,10 +35,10 @@ func TestStateMachine_Transition(t *testing.T) {
 	}
 
 	cases := map[string]struct {
-		di      func(*testing.T, di)
-		args    args
-		results results
+		args args
+		di   func(*testing.T, di)
 		pl_testing.TestCase
+		results results
 	}{
 		"case00: invalid event: without transition func": {
 			args: args{

@@ -13,8 +13,8 @@ func TestStateMap_New(t *testing.T) {
 	pl_testing.Init(t)
 
 	cases := map[string]struct {
-		inputStates []fsm.State
 		pl_testing.TestCase
+		inputStates []fsm.State
 	}{
 		"case00: no states at all": {
 			inputStates: nil,
@@ -86,11 +86,11 @@ func TestStateMap_Validate(t *testing.T) {
 	pl_testing.Init(t)
 
 	cases := map[string]struct {
-		inputStates          []fsm.State
+		pl_testing.TestCase
 		expectedInitialState fsm.State
 		expectedFinalState   fsm.State
 		expectedBrokenState  fsm.State
-		pl_testing.TestCase
+		inputStates          []fsm.State
 	}{
 		"case00: without initial": {
 			inputStates: []fsm.State{

@@ -7,14 +7,16 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	"go.uber.org/zap"
+
+	"github.com/agurinov/gopl/run"
 )
 
 func (obj Scheduler) Validate() error {
 	s := struct {
-		Logger          *zap.Logger      `validate:"required"`
-		Scheduler       gocron.Scheduler `validate:"required"`
-		Jobs            map[string]Job   `validate:"gt=0,dive,keys,required,endkeys,required"`
-		ShutdownTimeout time.Duration    `validate:"required"`
+		Logger          *zap.Logger       `validate:"required"`
+		Scheduler       gocron.Scheduler  `validate:"required"`
+		Jobs            map[string]run.Fn `validate:"gt=0,dive,keys,required,endkeys,required"`
+		ShutdownTimeout time.Duration     `validate:"required"`
 	}{
 		Logger:          obj.logger,
 		Scheduler:       obj.scheduler,

@@ -3,8 +3,8 @@
 Concurrent shutdown manager designed for the **DI stage** (dependency injection).
 It collects cleanup steps and runs them **concurrently** when your application context is cancelled.
 
-- Collect `func()`, `func(ctx)`, `func(ctx) error` functions during DI wiring.
-- Trigger shutdown via `closer.WaitForShutdown(ctx)`.
+- Collect `func()`, `func(context.Context)`, `func(context.Context) error` functions during DI wiring.
+- Trigger shutdown via `closer.WaitForShutdown(context.Context)`.
 - All steps run **in parallel** (via `errgroup`). Errors are aggregated with `errors.Join`.
 - Functional options:
   - `WithLogger(*zap.Logger)` — required via validation.
@@ -12,6 +12,8 @@ It collects cleanup steps and runs them **concurrently** when your application c
 
 > This package assumes closers are independent or resilient to parallel shutdown.
 > If you have strict dependency order, wrap those closers in a single step (or serialize manually).
+
+https://victoriametrics.com/blog/go-graceful-shutdown/
 
 ---
 
