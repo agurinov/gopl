@@ -12,6 +12,7 @@ import (
 	"github.com/agurinov/gopl/diag/probes"
 	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
@@ -19,7 +20,7 @@ type (
 		atomicLogLevel    *zap.AtomicLevel
 		logger            *zap.Logger
 		prober            *probes.Prober
-		customMiddlewares []middlewares.Middleware
+		customMiddlewares run.Middlewares[http.Handler]
 	}
 	DebugOption c.Option[debug]
 )

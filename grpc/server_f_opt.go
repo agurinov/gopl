@@ -59,6 +59,7 @@ func WithServerLogger(logger *zap.Logger) ServerOption {
 	}
 }
 
+// Deprecated: Use closer centralized mechanics instead.
 func WithServerShutdownTimeout(shutdownTimeout time.Duration) ServerOption {
 	return func(s *Server) error {
 		s.shutdownTimeout = shutdownTimeout

@@ -7,12 +7,14 @@ import (
 	"github.com/dustin/go-humanize"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/agurinov/gopl/run"
 )
 
 func AccessLog(
 	logger *zap.Logger,
 	defaultLevel zapcore.Level,
-) Middleware {
+) run.Middleware[http.Handler] {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			recorder := &statusRecorder{

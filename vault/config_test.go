@@ -24,9 +24,9 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, godotenv.Load("testdata/.env"))
 
 	cases := map[string]struct {
-		args    args
-		results results
+		args args
 		pl_testing.TestCase
+		results results
 	}{
 		"case00: success godotenv": {
 			results: results{

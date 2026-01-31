@@ -10,13 +10,14 @@ import (
 	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
 	Basic struct {
 		handlers          map[string]http.Handler
 		logger            *zap.Logger
-		customMiddlewares []middlewares.Middleware
+		customMiddlewares run.Middlewares[http.Handler]
 		accessLogLevel    zapcore.Level
 	}
 	BasicOption c.Option[Basic]

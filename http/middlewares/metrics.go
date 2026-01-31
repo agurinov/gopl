@@ -3,31 +3,25 @@ package middlewares
 import (
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/agurinov/gopl/diag/metrics"
+	"github.com/agurinov/gopl/run"
 )
 
-var (
-	onceServer         sync.Once
-	histServerDuration *prometheus.HistogramVec
-)
-
-func Metrics(options ...metrics.Option) Middleware {
-	onceServer.Do(func() {
-		options = append(
-			options,
-			metrics.WithoutServicePrefix(),
-		)
-		histServerDuration = metrics.NewHistogram(
-			metrics.HTTPServerDurationHistogramName,
-			[]string{"method", "path", "status"},
-			options...,
-		)
-	})
+func Metrics(
+	options ...metrics.Option,
+) run.Middleware[http.Handler] {
+	options = append(
+		options,
+		metrics.WithoutServicePrefix(),
+		metrics.WithUseExisting(),
+	)
+	histServerDuration := metrics.NewHistogram(
+		metrics.HTTPServerHandlerDurationHistogramName,
+		[]string{"method", "path", "status"},
+		options...,
+	)
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

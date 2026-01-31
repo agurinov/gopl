@@ -59,7 +59,7 @@ func (s Server) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-// Deprecated: use closer.AddContextErrorCloser(server.Shutdown) instead
+// Deprecated: use closer.AddCloser(server.Shutdown) instead
 func (s Server) WaitForShutdown(ctx context.Context) error {
 	<-ctx.Done()
 

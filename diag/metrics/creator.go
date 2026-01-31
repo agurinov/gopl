@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -12,6 +13,7 @@ type (
 	creator struct {
 		buckets         []float64
 		noServicePrefix bool
+		useExisting     bool
 	}
 	Option = c.Option[creator]
 )
@@ -28,19 +30,38 @@ func (cr creator) metricName(name string) string {
 	return strings.ReplaceAll(cmdName, "-", "_") + "_" + name
 }
 
+func (cr creator) register(vec prometheus.Collector) {
+	if !cr.useExisting {
+		registerer.MustRegister(vec)
+
+		return
+	}
+
+	var (
+		existsErr = new(prometheus.AlreadyRegisteredError)
+		err       = registerer.Register(vec)
+	)
+
+	switch {
+	case errors.As(err, existsErr):
+	case err != nil:
+		panic(err)
+	}
+}
+
 func (cr creator) newCounter(name string, labels ...string) *prometheus.CounterVec {
 	metricName := cr.metricName(name)
 
-	counterVec := prometheus.NewCounterVec(
+	vec := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: metricName,
 		},
 		labels,
 	)
 
-	registerer.MustRegister(counterVec)
+	cr.register(vec)
 
-	return counterVec
+	return vec
 }
 
 func (cr creator) newHistogram(name string, labels ...string) *prometheus.HistogramVec {
@@ -51,7 +72,7 @@ func (cr creator) newHistogram(name string, labels ...string) *prometheus.Histog
 		buckets = prometheus.DefBuckets
 	}
 
-	histogramVec := prometheus.NewHistogramVec(
+	vec := prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    metricName,
 			Buckets: buckets,
@@ -59,7 +80,22 @@ func (cr creator) newHistogram(name string, labels ...string) *prometheus.Histog
 		labels,
 	)
 
-	registerer.MustRegister(histogramVec)
+	cr.register(vec)
 
-	return histogramVec
+	return vec
+}
+
+func (cr creator) newGauge(name string, labels ...string) *prometheus.GaugeVec {
+	metricName := cr.metricName(name)
+
+	vec := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: metricName,
+		},
+		labels,
+	)
+
+	cr.register(vec)
+
+	return vec
 }

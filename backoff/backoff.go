@@ -24,6 +24,7 @@ type (
 		logLevel   zapcore.Level
 	}
 	Option = c.Option[Backoff]
+	Fabric = c.FabricWithValidate[Backoff, Option]
 )
 
 func (b *Backoff) Wait(ctx context.Context) (Stat, error) {
