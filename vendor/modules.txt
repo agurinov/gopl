@@ -112,7 +112,7 @@ github.com/gabriel-vasile/mimetype/internal/scan
 ## explicit; go 1.22
 github.com/go-chi/chi/v5
 github.com/go-chi/chi/v5/middleware
-# github.com/go-co-op/gocron/v2 v2.19.0
+# github.com/go-co-op/gocron/v2 v2.19.1
 ## explicit; go 1.21.4
 github.com/go-co-op/gocron/v2
 # github.com/go-jose/go-jose/v4 v4.1.3
