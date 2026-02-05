@@ -9,6 +9,7 @@
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/agurinov/gopl)
 
 ![CI](https://github.com/agurinov/gopl/actions/workflows/golang-library.yaml/badge.svg)
+[![CodeQL](https://github.com/agurinov/gopl/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/agurinov/gopl/actions/workflows/github-code-scanning/codeql)
 ![golangci-lint](https://img.shields.io/badge/linter-golangci--lint-blue)
 
 ## Table of contents:
