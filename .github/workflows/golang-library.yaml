@@ -2,6 +2,9 @@
 name: 'Golang library jobs'
 run-name: 'Golang library jobs'
 
+permissions:
+  contents: read
+
 on:
   push:
   workflow_call:
