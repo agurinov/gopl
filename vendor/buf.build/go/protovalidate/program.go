@@ -19,32 +19,38 @@ import (
 
 	"buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/common/types"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-//nolint:gochecknoglobals // amortized, eliminates allocations for all CEL programs
-var globalVarPool = &variablePool{New: func() any { return &variable{} }}
-
-//nolint:gochecknoglobals // amortized, eliminates allocations for all CEL programs
-var globalNowPool = &nowPool{New: func() any { return &now{} }}
-
-// programSet is a list of compiledProgram expressions that are evaluated
+// programSet is a collection of compiledProgram expressions that are evaluated
 // together with the same input value. All expressions in a programSet may refer
-// to a `this` variable.
-type programSet []compiledProgram
+// to a `this` variable. It also holds the CEL environment used for compilation,
+// which provides the correct type adapter for evaluation.
+type programSet struct {
+	programs []compiledProgram
+	env      *cel.Env
+}
 
 // Eval applies the contained expressions to the provided `this` val, returning
 // either *errors.ValidationError if the input is invalid or errors.RuntimeError
 // if there is a type or range error. If failFast is true, execution stops at
 // the first failed expression.
-func (s programSet) Eval(val protoreflect.Value, cfg *validationConfig) error {
-	binding := s.bindThis(val.Interface())
-	defer globalVarPool.Put(binding)
-
+func (s programSet) Eval(
+	val protoreflect.Value,
+	fieldDesc protoreflect.FieldDescriptor,
+	cfg *validationConfig,
+) error {
+	if len(s.programs) == 0 {
+		return nil
+	}
+	activation := getBindings()
+	defer putBindings(activation)
+	activation.This = newOptional(thisToCel(val.Interface(), fieldDesc, s.env.CELTypeAdapter()))
 	var violations []*Violation
-	for _, expr := range s {
-		violation, err := expr.eval(binding, cfg)
+	for _, expr := range s.programs {
+		violation, err := expr.eval(activation, cfg)
 		if err != nil {
 			return err
 		}
@@ -63,37 +69,15 @@ func (s programSet) Eval(val protoreflect.Value, cfg *validationConfig) error {
 	return nil
 }
 
-func (s programSet) bindThis(val any) *variable {
-	binding := globalVarPool.Get()
-	binding.Name = "this"
-
+func thisToCel(val any, fieldDesc protoreflect.FieldDescriptor, adapter types.Adapter) any {
 	switch value := val.(type) {
 	case protoreflect.Message:
-		binding.Val = value.Interface()
+		return value.Interface()
 	case protoreflect.Map:
-		// TODO: expensive to create this copy, but getting this into a ref.Val with
-		//  traits.Mapper is not terribly feasible from this type.
-		bindingVal := make(map[any]any, value.Len())
-		value.Range(func(key protoreflect.MapKey, value protoreflect.Value) bool {
-			// Cel operates on 64-bit integers, so if our map type is 32-bit, we
-			// need to widen to a 64-bit type in the binding due to our usage of
-			// a map[any]any.
-			switch key.Interface().(type) {
-			case int32:
-				bindingVal[key.Int()] = value.Interface()
-			case uint32:
-				bindingVal[key.Uint()] = value.Interface()
-			default:
-				bindingVal[key.Interface()] = value.Interface()
-			}
-			return true
-		})
-		binding.Val = bindingVal
+		return newProtoMap(adapter, value, fieldDesc.MapKey(), fieldDesc.MapValue())
 	default:
-		binding.Val = value
+		return value
 	}
-
-	return binding
 }
 
 // compiledProgram is a parsed and type-checked cel.Program along with the
@@ -108,16 +92,15 @@ type compiledProgram struct {
 }
 
 //nolint:nilnil // non-existence of violations is intentional
-func (expr compiledProgram) eval(bindings *variable, cfg *validationConfig) (*Violation, error) {
-	now := globalNowPool.Get(cfg.nowFn)
-	defer globalNowPool.Put(now)
-	bindings.Next = &variable{
-		Next: now,
-		Name: "rules",
-		Val:  expr.Rules,
+func (expr compiledProgram) eval(activation *bindings, cfg *validationConfig) (*Violation, error) {
+	activation.NowFn = cfg.nowFn
+	if expr.Rules != nil {
+		activation.Rules = expr.Rules.Interface()
 	}
-
-	value, _, err := expr.Program.Eval(bindings)
+	if expr.Value.IsValid() {
+		activation.Rule = expr.Value.Interface()
+	}
+	value, _, err := expr.Program.Eval(activation)
 	if err != nil {
 		return nil, &RuntimeError{cause: fmt.Errorf(
 			"error evaluating %s: %w", expr.Source.GetId(), err)}

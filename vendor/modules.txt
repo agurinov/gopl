@@ -1,7 +1,7 @@
-# buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20251209175733-2a1774d88802.1
+# buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20251209175733-2a1774d88802.1
 ## explicit; go 1.23
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate
-# buf.build/go/protovalidate v1.1.0
+# buf.build/go/protovalidate v1.1.2
 ## explicit; go 1.24.0
 buf.build/go/protovalidate
 buf.build/go/protovalidate/cel

@@ -1031,10 +1031,9 @@ func isHostname(val string) bool {
 	}
 
 	allDigits := false
-	parts := strings.Split(str, ".")
 
 	// split hostname on '.' and validate each part
-	for _, part := range parts {
+	for part := range strings.SplitSeq(str, ".") {
 		allDigits = true
 		// if part is empty, longer than 63 chars, or starts/ends with '-', it is invalid
 		l := len(part)

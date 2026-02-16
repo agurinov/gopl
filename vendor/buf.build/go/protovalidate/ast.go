@@ -50,20 +50,12 @@ func (set astSet) ReduceResiduals(rules protoreflect.Message, opts ...cel.Progra
 		),
 	}, opts...)
 
-	baseActivation := &variable{
-		Name: "rules",
-		Val:  rules.Interface(),
-	}
+	activation := getBindings()
+	defer putBindings(activation)
+	activation.Rules = rules.Interface()
 
 	for _, ast := range set {
-		activation := baseActivation
-		if ast.Value.IsValid() {
-			activation = &variable{
-				Name: "rule",
-				Val:  ast.Value.Interface(),
-				Next: activation,
-			}
-		}
+		activation.Rule = ast.Value.Interface()
 		program, err := ast.toProgram(ast.Env, options...)
 		if err != nil {
 			residuals = append(residuals, ast)
@@ -103,16 +95,18 @@ func (set astSet) ReduceResiduals(rules protoreflect.Message, opts ...cel.Progra
 
 // ToProgramSet generates a ProgramSet from the specified ASTs.
 func (set astSet) ToProgramSet(opts ...cel.ProgramOption) (out programSet, err error) {
-	if l := len(set); l == 0 {
-		return nil, nil
+	if len(set) == 0 {
+		return out, nil
 	}
-	out = make(programSet, len(set))
+	out.env = set[0].Env
+	programs := make([]compiledProgram, len(set))
 	for i, ast := range set {
-		out[i], err = ast.toProgram(ast.Env, opts...)
+		programs[i], err = ast.toProgram(ast.Env, opts...)
 		if err != nil {
-			return nil, err
+			return out, err
 		}
 	}
+	out.programs = programs
 	return out, nil
 }
 
