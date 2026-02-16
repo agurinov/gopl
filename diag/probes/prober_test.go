@@ -23,8 +23,8 @@ func TestProber_New(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		args args
 		pl_testing.TestCase
+		args args
 	}{
 		"case00: empty options": {
 			args: args{},

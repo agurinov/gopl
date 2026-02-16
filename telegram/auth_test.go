@@ -80,10 +80,10 @@ func TestAuth_authFunc(t *testing.T) {
 			noSignatureCheck bool
 		}
 		results struct {
-			httpStatusCode int
-			httpContent    string
-			grpcStatusCode codes.Code
 			grpcOut        any
+			httpContent    string
+			httpStatusCode int
+			grpcStatusCode codes.Code
 		}
 	)
 
@@ -124,9 +124,9 @@ func TestAuth_authFunc(t *testing.T) {
 	}
 
 	cases := map[string]struct {
+		pl_testing.TestCase
 		args    args
 		results results
-		pl_testing.TestCase
 	}{
 		"case00: no header": {
 			args: args{

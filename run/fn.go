@@ -2,20 +2,13 @@ package run
 
 import (
 	"context"
-
-	"github.com/agurinov/gopl/diag"
 )
 
 type (
-	Fn       func(context.Context) error
+	Fn       = func(context.Context) error
 	simpleFn func()
 	errorFn  func() error
 )
-
-// TODO: wrapped function name is not visible
-func (fn Fn) String() string {
-	return diag.FunctionName(fn)
-}
 
 func (fn simpleFn) f(context.Context) error {
 	fn()

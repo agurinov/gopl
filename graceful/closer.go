@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	c "github.com/agurinov/gopl/patterns/creational"
 	"github.com/agurinov/gopl/run"
@@ -63,6 +64,13 @@ func (cl *Closer) AddCloser(
 
 //nolint:contextcheck
 func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
+	if len(cl.stack1)+len(cl.stack2) == 0 {
+		cl.logger.Info("closer finished; no closures registered")
+
+		return nil
+	}
+
+	// Wait OS or orchestrator to start closing gracefully all components.
 	<-runCtx.Done()
 
 	cl.logger.Info(
@@ -70,19 +78,13 @@ func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
 		zap.Stringer("timeout", cl.timeout),
 		zap.Dict(
 			"1st wave",
-			zap.Stringers("closures", cl.stack1),
+			zap.Int("closures", len(cl.stack1)),
 		),
 		zap.Dict(
 			"2nd wave",
-			zap.Stringers("closures", cl.stack2),
+			zap.Int("closures", len(cl.stack2)),
 		),
 	)
-
-	allLen := len(cl.stack1) + len(cl.stack2)
-
-	if allLen == 0 {
-		return nil
-	}
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(
 		context.Background(),
@@ -101,11 +103,17 @@ func (cl *Closer) WaitForShutdown(runCtx context.Context) error {
 		g2 = fmt.Errorf("can't run 2nd wave: %w", g2)
 	}
 
-	if err := errors.Join(g1, g2); err != nil {
-		return err
+	err := errors.Join(g1, g2)
+
+	lvl := zapcore.InfoLevel
+	if err != nil {
+		lvl = zapcore.ErrorLevel
 	}
 
-	cl.logger.Info("closer finished")
+	cl.logger.Log(lvl,
+		"closer finished",
+		zap.Error(err),
+	)
 
-	return nil
+	return err
 }

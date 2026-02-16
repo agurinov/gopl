@@ -42,10 +42,6 @@ func EmptyIf[T comparable](in T, empty ...T) T {
 	return in
 }
 
-func Ptr[T any](in T) *T {
-	return &in
-}
-
 func FromPtr[T any](in *T) T {
 	var zero T
 

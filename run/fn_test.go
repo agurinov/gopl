@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/agurinov/gopl/diag"
 	"github.com/agurinov/gopl/run"
 	pl_testing "github.com/agurinov/gopl/testing"
 )
@@ -71,7 +72,7 @@ func TestFn_String(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tc.Init(t)
 
-			asString := tc.args.f.String()
+			asString := diag.FunctionName(tc.args.f)
 			require.Equal(t, tc.results.asString, asString)
 		})
 	}

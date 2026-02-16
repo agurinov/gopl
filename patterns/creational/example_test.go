@@ -23,6 +23,13 @@ type (
 	WorkerOptionWithContext = c.OptionWithContext[Worker]
 )
 
+type (
+	WorkerFabric                    = c.Fabric[Worker, WorkerOption]
+	WorkerFabricWithValidate        = c.FabricWithValidate[Worker, WorkerOption]
+	WorkerFabricWithContext         = c.FabricWithContext[Worker, WorkerOptionWithContext]
+	WorkerFabricWithContextValidate = c.FabricWithContextValidate[Worker, WorkerOptionWithContext]
+)
+
 var (
 	New                    = c.New[Worker, WorkerOption]
 	NewWithValidate        = c.NewWithValidate[Worker, WorkerOption]
@@ -140,6 +147,96 @@ func ExampleNewWithContextValidate() {
 	}
 
 	obj, err := NewWithContextValidate(ctx, opts...)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%s\n", obj)
+	// Output:
+	// s=foobar;i=100500;w_is_nil=false;is_valid=true;
+}
+
+// ExampleFabric configures fabric with defaults.
+// Also, fabric can be overrided with runtime specific options.
+func ExampleFabric() {
+	var fabric WorkerFabric = []WorkerOption{
+		WithW(validW), nil,
+		WithS(validS), nil,
+		WithI(validI), nil,
+	}
+
+	obj, err := fabric.New(
+		WithI(112233), nil,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%s\n", obj)
+	// Output:
+	// s=foobar;i=112233;w_is_nil=false;is_valid=false;
+}
+
+// ExampleFabricWithValidate configures fabric with defaults.
+// Also, fabric can be overrided with runtime specific options.
+func ExampleFabricWithValidate() {
+	var fabric WorkerFabricWithValidate = []WorkerOption{
+		WithW(validW), nil,
+		WithS(validS), nil,
+		WithI(112233), nil,
+	}
+
+	obj, err := fabric.New(
+		WithI(validI), nil,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%s\n", obj)
+	// Output:
+	// s=foobar;i=100500;w_is_nil=false;is_valid=true;
+}
+
+// ExampleFabricWithContext configures fabric with defaults.
+// Also, fabric can be overrided with runtime specific options.
+func ExampleFabricWithContext() {
+	ctx := context.TODO()
+
+	var fabric WorkerFabricWithContext = []WorkerOptionWithContext{
+		WithWCtx(invalidW), nil,
+		WithSCtx(invalidS), nil,
+		WithICtx(112233), nil,
+	}
+
+	obj, err := fabric.New(
+		ctx,
+		WithICtx(invalidI), nil,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%s\n", obj)
+	// Output:
+	// s=lolkek;i=999;w_is_nil=true;is_valid=false;
+}
+
+// ExampleFabricWithContextValidate configures fabric with defaults.
+// Also, fabric can be overrided with runtime specific options.
+func ExampleFabricWithContextValidate() {
+	ctx := context.TODO()
+
+	var fabric WorkerFabricWithContextValidate = []WorkerOptionWithContext{
+		WithWCtx(validW), nil,
+		WithSCtx(validS), nil,
+		WithICtx(112233), nil,
+	}
+
+	obj, err := fabric.New(
+		ctx,
+		WithICtx(validI), nil,
+	)
 	if err != nil {
 		panic(err)
 	}

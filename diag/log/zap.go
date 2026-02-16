@@ -59,6 +59,8 @@ func NewZap(opts ...Option) (*zap.Logger, *zap.AtomicLevel, error) {
 		return nil, nil, err
 	}
 
+	logger = logger.With(cfg.zapFields...)
+
 	return logger, &lvl, nil
 }
 

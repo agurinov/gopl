@@ -8,26 +8,25 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/agurinov/gopl/diag/trace"
+	"github.com/agurinov/gopl/run"
 )
 
-type Job func(context.Context) error
-
-func taskAdapter(
+func taskToGoCron(
 	ctx context.Context,
 	jobName string,
-	job Job,
+	job run.Fn,
 	timeout time.Duration,
 ) gocron.Task {
-	jobF := func(ctx context.Context) error {
+	jobFn := func(ctx context.Context) error {
 		ctx, span := trace.StartSpan(ctx, "crontab.job")
 		defer span.End()
-
-		ctx, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
 
 		span.SetAttributes(
 			attribute.String("cronjob.name", jobName),
 		)
+
+		ctx, cancel := context.WithTimeout(ctx, timeout)
+		defer cancel()
 
 		if err := job(ctx); err != nil {
 			return trace.CatchError(span, err)
@@ -36,5 +35,5 @@ func taskAdapter(
 		return nil
 	}
 
-	return gocron.NewTask(jobF, ctx)
+	return gocron.NewTask(jobFn, ctx)
 }

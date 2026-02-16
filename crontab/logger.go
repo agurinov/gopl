@@ -14,7 +14,7 @@ func (l gocronLogger) Error(msg string, args ...any) { l.Errorf(msg, args...) }
 func (l gocronLogger) Info(msg string, args ...any)  { l.Infof(msg, args...) }
 func (l gocronLogger) Warn(msg string, args ...any)  { l.Warnf(msg, args...) }
 
-func loggerAdapter(logger *zap.Logger) gocron.Logger {
+func loggerToGoCron(logger *zap.Logger) gocron.Logger {
 	return gocronLogger{
 		logger.Sugar(),
 	}
