@@ -3,7 +3,7 @@ module github.com/agurinov/gopl
 go 1.24.0
 
 require (
-	buf.build/go/protovalidate v1.1.0
+	buf.build/go/protovalidate v1.1.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/go-co-op/gocron/v2 v2.19.1
@@ -39,7 +39,7 @@ require (
 )
 
 require (
-	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.10-20251209175733-2a1774d88802.1 // indirect
+	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20251209175733-2a1774d88802.1 // indirect
 	cel.dev/expr v0.24.0 // indirect
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect

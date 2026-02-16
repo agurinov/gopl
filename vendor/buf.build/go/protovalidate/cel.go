@@ -27,7 +27,7 @@ type celPrograms struct {
 }
 
 func (c celPrograms) Evaluate(_ protoreflect.Message, val protoreflect.Value, cfg *validationConfig) error {
-	err := c.Eval(val, cfg)
+	err := c.Eval(val, c.Descriptor, cfg)
 	if err != nil {
 		var valErr *ValidationError
 		if errors.As(err, &valErr) {
@@ -43,11 +43,11 @@ func (c celPrograms) Evaluate(_ protoreflect.Message, val protoreflect.Value, cf
 }
 
 func (c celPrograms) EvaluateMessage(msg protoreflect.Message, cfg *validationConfig) error {
-	return c.Eval(protoreflect.ValueOfMessage(msg), cfg)
+	return c.Eval(protoreflect.ValueOfMessage(msg), nil, cfg)
 }
 
 func (c celPrograms) Tautology() bool {
-	return len(c.programSet) == 0
+	return len(c.programs) == 0
 }
 
 var (
