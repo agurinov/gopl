@@ -1,38 +1,27 @@
 package graceful
 
 import (
-	"sync"
+	"context"
 
-	"github.com/agurinov/gopl/diag/log"
+	"github.com/agurinov/gopl/graceful/internal"
+	c "github.com/agurinov/gopl/patterns/creational"
 	"github.com/agurinov/gopl/run"
 )
 
-var (
-	defaultWrapper     Wrapper
-	defaultWrapperOnce sync.Once
-)
+var defaultWrapper = c.Must(internal.NewWrapper())
 
-func initDefaultWrapper() {
-	logger := log.MustNewZapSystem()
-
-	w, err := NewWrapper(
-		WithWrapperLogger(logger),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	defaultWrapper = w
+func Run(runFn run.Fn) run.Fn {
+	return defaultWrapper.Run(runFn)
 }
 
-func Run(fn run.Fn) run.Fn {
-	defaultWrapperOnce.Do(initDefaultWrapper)
-
-	return defaultWrapper.Run(fn)
+func RunLoop(iterationFn run.Fn) run.Fn {
+	return defaultWrapper.RunLoop(iterationFn)
 }
 
-func Close(fn run.Fn) run.Fn {
-	defaultWrapperOnce.Do(initDefaultWrapper)
+func Close(closeFn run.Fn) run.Fn {
+	return defaultWrapper.Close(closeFn)
+}
 
-	return defaultWrapper.Close(fn)
+func IsClosed(ctxs ...context.Context) bool {
+	return defaultWrapper.IsClosed(ctxs...)
 }

@@ -15,7 +15,7 @@ func WithCmdName(cmdName string) IniterOption {
 
 func WithBatcherOptions(opts ...trace.BatchSpanProcessorOption) IniterOption {
 	return func(i *initer) error {
-		i.batcherOptions = opts
+		i.batcherOptions = append(i.batcherOptions, opts...)
 
 		return nil
 	}
@@ -23,7 +23,7 @@ func WithBatcherOptions(opts ...trace.BatchSpanProcessorOption) IniterOption {
 
 func WithSamplerOptions(opts ...SamplerOption) IniterOption {
 	return func(i *initer) error {
-		i.samplerOptions = opts
+		i.samplerOptions = append(i.samplerOptions, opts...)
 
 		return nil
 	}
@@ -31,7 +31,7 @@ func WithSamplerOptions(opts ...SamplerOption) IniterOption {
 
 func WithExporterOptions(opts ...otlptracegrpc.Option) IniterOption {
 	return func(i *initer) error {
-		i.exporterOptions = opts
+		i.exporterOptions = append(i.exporterOptions, opts...)
 
 		return nil
 	}

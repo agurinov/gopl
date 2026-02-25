@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/agurinov/gopl/http/middlewares"
+	"github.com/agurinov/gopl/run"
 )
 
 func WithBasicLogger(logger *zap.Logger) BasicOption {
@@ -20,9 +20,9 @@ func WithBasicLogger(logger *zap.Logger) BasicOption {
 	}
 }
 
-func WithBasicCustomMiddlewares(mw ...middlewares.Middleware) BasicOption {
+func WithBasicCustomMiddlewares(mws ...run.Middleware[http.Handler]) BasicOption {
 	return func(b *Basic) error {
-		b.customMiddlewares = append(b.customMiddlewares, mw...)
+		b.customMiddlewares = append(b.customMiddlewares, mws...)
 
 		return nil
 	}

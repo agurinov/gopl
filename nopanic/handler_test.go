@@ -40,8 +40,8 @@ func TestHandler_UnaryServerInterceptor(t *testing.T) {
 			grpcHandler grpc.UnaryHandler
 		}
 		results struct {
-			grpcStatusCode codes.Code
 			grpcOut        any
+			grpcStatusCode codes.Code
 		}
 	)
 

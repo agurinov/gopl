@@ -2,8 +2,6 @@ package nopanic
 
 import (
 	"go.uber.org/zap"
-
-	"github.com/agurinov/gopl/diag/metrics"
 )
 
 func WithLogger(logger *zap.Logger) Option {
@@ -25,13 +23,7 @@ func WithMetrics(enabled bool) Option {
 	}
 
 	return func(s *Handler) error {
-		s.metrics = handlerMetrics{
-			panicRecovered: metrics.NewCounter(
-				metrics.NopanicHandlerCounterName,
-				nil,
-				metrics.WithoutServicePrefix(),
-			),
-		}
+		s.metrics = newHandlerMetrics()
 
 		return nil
 	}

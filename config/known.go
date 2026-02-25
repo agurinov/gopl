@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/agurinov/gopl/backoff/strategies"
 	"github.com/agurinov/gopl/crontab"
 	"github.com/agurinov/gopl/diag/log"
 	"github.com/agurinov/gopl/diag/metrics"
@@ -9,6 +10,7 @@ import (
 	"github.com/agurinov/gopl/graceful"
 	"github.com/agurinov/gopl/grpc"
 	"github.com/agurinov/gopl/http"
+	"github.com/agurinov/gopl/kafka"
 	"github.com/agurinov/gopl/sql"
 	"github.com/agurinov/gopl/telegram"
 	"github.com/agurinov/gopl/vault"
@@ -30,10 +32,16 @@ type (
 )
 
 type (
-	Crontab = crontab.Config
+	Crontab       = crontab.Config
+	KafkaConsumer = kafka.ConsumerConfig
+	KafkaProducer = kafka.ProducerConfig
 )
 
 type (
 	TelegramWebApp = telegram.WebAppConfig
 	TelegramBot    = telegram.BotConfig
+)
+
+type (
+	ExponentialBackoff = strategies.ExponentialConfig
 )

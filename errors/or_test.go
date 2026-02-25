@@ -13,8 +13,8 @@ func TestOr(t *testing.T) {
 	pl_testing.Init(t)
 
 	cases := map[string]struct {
-		inputErrors []error
 		pl_testing.TestCase
+		inputErrors []error
 	}{
 		"case00: nil errors": {
 			inputErrors: nil,

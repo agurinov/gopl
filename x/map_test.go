@@ -16,8 +16,8 @@ func TestMapToSlice(t *testing.T) {
 
 	type (
 		s struct {
-			UUID uuid.UUID
 			S    string
+			UUID uuid.UUID
 		}
 		args struct {
 			in map[uuid.UUID]string
@@ -28,9 +28,9 @@ func TestMapToSlice(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		args    args
-		results results
+		args args
 		pl_testing.TestCase
+		results results
 	}{
 		"case00: mixed": {
 			args: args{

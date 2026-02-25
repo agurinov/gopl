@@ -1,6 +1,8 @@
 package backoff
 
 import (
+	"math"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -51,6 +53,14 @@ func WithStrategy(s strategies.Interface) Option {
 func WithMaxRetries(mr uint32) Option {
 	return func(b *Backoff) error {
 		b.maxRetries = mr
+
+		return nil
+	}
+}
+
+func WithUnlimitedRetries() Option {
+	return func(b *Backoff) error {
+		b.maxRetries = math.MaxUint32
 
 		return nil
 	}

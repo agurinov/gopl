@@ -126,8 +126,8 @@ func TestLast(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: nil": {
 			args: args{
@@ -181,8 +181,8 @@ func TestCoalesce(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: nil": {
 			args: args{
@@ -227,8 +227,8 @@ func TestSliceToMap(t *testing.T) {
 
 	type (
 		s struct {
-			UUID uuid.UUID
 			S    string
+			UUID uuid.UUID
 		}
 		args struct {
 			in []s
@@ -239,9 +239,9 @@ func TestSliceToMap(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		pl_testing.TestCase
-		args    args
 		results results
+		pl_testing.TestCase
+		args args
 	}{
 		"case00: nil": {
 			args: args{
@@ -295,9 +295,9 @@ func TestSliceMapError_UUID(t *testing.T) {
 	)
 
 	cases := map[string]struct {
+		pl_testing.TestCase
 		args    args
 		results results
-		pl_testing.TestCase
 	}{
 		"case00: nil": {
 			args: args{
@@ -378,8 +378,8 @@ func TestPaginate(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: zero limit": {
 			args: args{
@@ -519,8 +519,8 @@ func TestSliceBatch(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: empty slice": {
 			args: args{

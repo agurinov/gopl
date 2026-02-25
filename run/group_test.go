@@ -28,9 +28,9 @@ func TestGroup(t *testing.T) {
 	ctx := t.Context()
 
 	cases := map[string]struct {
+		pl_testing.TestCase
 		args    args
 		results results
-		pl_testing.TestCase
 	}{
 		"case00: success": {
 			args: args{
@@ -107,9 +107,9 @@ func TestGroupSoft(t *testing.T) {
 	ctx := t.Context()
 
 	cases := map[string]struct {
+		pl_testing.TestCase
 		args    args
 		results results
-		pl_testing.TestCase
 	}{
 		"case00: success": {
 			args: args{

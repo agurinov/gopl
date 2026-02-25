@@ -3,11 +3,11 @@ package handlers
 import (
 	"context"
 	"io/fs"
+	"net/http"
 	"path/filepath"
 
+	"github.com/agurinov/gopl/run"
 	"go.uber.org/zap"
-
-	"github.com/agurinov/gopl/http/middlewares"
 )
 
 func WithStaticLogger(logger *zap.Logger) StaticOption {
@@ -78,9 +78,9 @@ func WithStaticNoCachePaths(paths ...string) StaticOption {
 	}
 }
 
-func WithStaticCustomMiddlewares(mw ...middlewares.Middleware) StaticOption {
+func WithStaticCustomMiddlewares(mws ...run.Middleware[http.Handler]) StaticOption {
 	return func(s *static) error {
-		s.customMiddlewares = append(s.customMiddlewares, mw...)
+		s.customMiddlewares = append(s.customMiddlewares, mws...)
 
 		return nil
 	}

@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"net/http"
+
 	"go.uber.org/zap"
 
 	"github.com/agurinov/gopl/diag/probes"
-	"github.com/agurinov/gopl/http/middlewares"
+	"github.com/agurinov/gopl/run"
 )
 
 func WithDebugAtomicLevel(lvl *zap.AtomicLevel) DebugOption {
@@ -35,9 +37,9 @@ func WithDebugProber(prober *probes.Prober) DebugOption {
 	}
 }
 
-func WithDebugCustomMiddlewares(mw ...middlewares.Middleware) DebugOption {
+func WithDebugCustomMiddlewares(mws ...run.Middleware[http.Handler]) DebugOption {
 	return func(h *debug) error {
-		h.customMiddlewares = append(h.customMiddlewares, mw...)
+		h.customMiddlewares = append(h.customMiddlewares, mws...)
 
 		return nil
 	}
