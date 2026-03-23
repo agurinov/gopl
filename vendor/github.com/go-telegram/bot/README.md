@@ -6,7 +6,7 @@
 
 > [Telegram Group](https://t.me/gotelegrambotui)
 
-> Supports Bot API version: [9.4](https://core.telegram.org/bots/api#february-9-2026) from February 9, 2026
+> Supports Bot API version: [9.5](https://core.telegram.org/bots/api#march-1-2026) from March 1, 2026
 
 It's a Go zero-dependencies telegram bot framework
 

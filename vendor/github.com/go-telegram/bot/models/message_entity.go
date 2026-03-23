@@ -22,6 +22,7 @@ const (
 	MessageEntityTypeTextLink             MessageEntityType = "text_link"
 	MessageEntityTypeTextMention          MessageEntityType = "text_mention"
 	MessageEntityTypeCustomEmoji          MessageEntityType = "custom_emoji"
+	MessageEntityTypeDateTime             MessageEntityType = "date_time"
 )
 
 // MessageEntity https://core.telegram.org/bots/api#messageentity
@@ -32,5 +33,7 @@ type MessageEntity struct {
 	URL           string            `json:"url,omitempty"`
 	User          *User             `json:"user,omitempty"`
 	Language      string            `json:"language,omitempty"`
-	CustomEmojiID string            `json:"custom_emoji_id,omitempty"`
+	CustomEmojiID  string            `json:"custom_emoji_id,omitempty"`
+	UnixTime       int               `json:"unix_time,omitempty"`
+	DateTimeFormat string            `json:"date_time_format,omitempty"`
 }

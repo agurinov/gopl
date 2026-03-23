@@ -499,6 +499,7 @@ type PromoteChatMemberParams struct {
 	CanDeleteStories        bool  `json:"can_delete_stories,omitempty"`
 	CanManageTopics         bool  `json:"can_manage_topics,omitempty"`
 	CanManageDirectMessages bool  `json:"can_manage_direct_messages,omitempty"`
+	CanManageTags           bool  `json:"can_manage_tags,omitempty"`
 }
 
 type SetChatAdministratorCustomTitleParams struct {
@@ -1327,4 +1328,11 @@ type GetUserProfileAudiosParams struct {
 	UserID int64 `json:"user_id"`
 	Offset int   `json:"offset,omitempty"`
 	Limit  int   `json:"limit,omitempty"`
+}
+
+// SetChatMemberTagParams https://core.telegram.org/bots/api#setchatmembertag
+type SetChatMemberTagParams struct {
+	ChatID any    `json:"chat_id" rules:"required,chat_id"`
+	UserID int64  `json:"user_id" rules:"required"`
+	Tag    string `json:"tag,omitempty"`
 }

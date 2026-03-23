@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.20.0 (2026-03-19)
+
+- resolve issues #242, #245, #261, #262 
+- support Bot API 9.5 (#263) 
+
 ## v1.19.0 (2026-02-12)
 
 - support API 9.4 (February 9, 2026 update)
