@@ -1,6 +1,6 @@
 module github.com/agurinov/gopl
 
-go 1.24.0
+go 1.25.0
 
 require (
 	buf.build/go/protovalidate v1.1.3
@@ -16,7 +16,7 @@ require (
 	github.com/hashicorp/vault/api/auth/approle v0.11.0
 	github.com/hashicorp/vault/api/auth/userpass v0.11.0
 	github.com/improbable-eng/grpc-web v0.15.0
-	github.com/jackc/pgx/v5 v5.8.0
+	github.com/jackc/pgx/v5 v5.9.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/json-iterator/go v1.1.12
