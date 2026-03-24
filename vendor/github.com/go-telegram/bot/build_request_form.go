@@ -44,7 +44,7 @@ func buildRequestForm(form *multipart.Writer, params any) (int, error) {
 			continue
 		}
 
-		// check fields by interface
+		// check fields by interface (declared type)
 		if v.Field(i).Type().Implements(customMarshalInterface) {
 			err := addFormFieldCustomMarshal(form, fieldName, v.Field(i).Interface().(customMarshal))
 			if err != nil {
@@ -58,6 +58,24 @@ func buildRequestForm(form *multipart.Writer, params any) (int, error) {
 				return 0, err
 			}
 			continue
+		}
+
+		// check fields by interface (runtime concrete type behind interface fields)
+		if v.Field(i).Kind() == reflect.Interface && !v.Field(i).IsNil() {
+			if v.Field(i).Elem().Type().Implements(customMarshalInterface) {
+				err := addFormFieldCustomMarshal(form, fieldName, v.Field(i).Interface().(customMarshal))
+				if err != nil {
+					return 0, err
+				}
+				continue
+			}
+			if v.Field(i).Elem().Type().Implements(inputMediaInterface) {
+				err := addFormFieldInputMedia(form, fieldName, v.Field(i).Interface().(inputMedia))
+				if err != nil {
+					return 0, err
+				}
+				continue
+			}
 		}
 
 		var err error

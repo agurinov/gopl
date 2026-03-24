@@ -49,6 +49,7 @@ type ChatAdministratorRights struct {
 	CanDeleteStories        bool `json:"can_delete_stories,omitempty"`
 	CanManageTopics         bool `json:"can_manage_topics,omitempty"`
 	CanManageDirectMessages bool `json:"can_manage_direct_messages,omitempty"`
+	CanManageTags           bool `json:"can_manage_tags,omitempty"`
 }
 
 // ChatPermissions https://core.telegram.org/bots/api#chatpermissions
@@ -67,6 +68,7 @@ type ChatPermissions struct {
 	CanInviteUsers        bool `json:"can_invite_users,omitempty"`
 	CanPinMessages        bool `json:"can_pin_messages,omitempty"`
 	CanManageTopics       bool `json:"can_manage_topics,omitempty"`
+	CanEditTag            bool `json:"can_edit_tag,omitempty"`
 }
 
 // ChatLocation https://core.telegram.org/bots/api#chatlocation

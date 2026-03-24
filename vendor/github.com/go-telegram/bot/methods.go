@@ -1,7 +1,9 @@
 package bot
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 
 	"github.com/go-telegram/bot/models"
 )
@@ -155,16 +157,12 @@ func (b *Bot) SendLocation(ctx context.Context, params *SendLocationParams) (*mo
 
 // EditMessageLiveLocation https://core.telegram.org/bots/api#editmessagelivelocation
 func (b *Bot) EditMessageLiveLocation(ctx context.Context, params *EditMessageLiveLocationParams) (*models.Message, error) {
-	result := &models.Message{}
-	err := b.rawRequest(ctx, "editMessageLiveLocation", params, result)
-	return result, err
+	return b.editMethodRequest(ctx, "editMessageLiveLocation", params)
 }
 
 // StopMessageLiveLocation https://core.telegram.org/bots/api#stopmessagelivelocation
 func (b *Bot) StopMessageLiveLocation(ctx context.Context, params *StopMessageLiveLocationParams) (*models.Message, error) {
-	result := &models.Message{}
-	err := b.rawRequest(ctx, "stopMessageLiveLocation", params, result)
-	return result, err
+	return b.editMethodRequest(ctx, "stopMessageLiveLocation", params)
 }
 
 // SendVenue https://core.telegram.org/bots/api#sendvenue
@@ -652,37 +650,27 @@ func (b *Bot) GetMyDefaultAdministratorRights(ctx context.Context, params *GetMy
 
 // EditMessageText https://core.telegram.org/bots/api#editmessagetext
 func (b *Bot) EditMessageText(ctx context.Context, params *EditMessageTextParams) (*models.Message, error) {
-	result := &models.Message{}
-	err := b.rawRequest(ctx, "editMessageText", params, result)
-	return result, err
+	return b.editMethodRequest(ctx, "editMessageText", params)
 }
 
 // EditMessageCaption https://core.telegram.org/bots/api#editmessagecaption
 func (b *Bot) EditMessageCaption(ctx context.Context, params *EditMessageCaptionParams) (*models.Message, error) {
-	result := &models.Message{}
-	err := b.rawRequest(ctx, "editMessageCaption", params, result)
-	return result, err
+	return b.editMethodRequest(ctx, "editMessageCaption", params)
 }
 
 // EditMessageMedia https://core.telegram.org/bots/api#editmessagemedia
 func (b *Bot) EditMessageMedia(ctx context.Context, params *EditMessageMediaParams) (*models.Message, error) {
-	result := &models.Message{}
-	err := b.rawRequest(ctx, "editMessageMedia", params, result)
-	return result, err
+	return b.editMethodRequest(ctx, "editMessageMedia", params)
 }
 
 // EditMessageChecklist https://core.telegram.org/bots/api#editmessagechecklist
 func (b *Bot) EditMessageChecklist(ctx context.Context, params *EditMessageChecklistParams) (*models.Message, error) {
-	result := &models.Message{}
-	err := b.rawRequest(ctx, "editMessageChecklist", params, result)
-	return result, err
+	return b.editMethodRequest(ctx, "editMessageChecklist", params)
 }
 
 // EditMessageReplyMarkup https://core.telegram.org/bots/api#editmessagereplymarkup
 func (b *Bot) EditMessageReplyMarkup(ctx context.Context, params *EditMessageReplyMarkupParams) (*models.Message, error) {
-	result := &models.Message{}
-	err := b.rawRequest(ctx, "editMessageReplyMarkup", params, result)
-	return result, err
+	return b.editMethodRequest(ctx, "editMessageReplyMarkup", params)
 }
 
 // StopPoll https://core.telegram.org/bots/api#stoppoll
@@ -1151,5 +1139,30 @@ func (b *Bot) RemoveMyProfilePhoto(ctx context.Context) (bool, error) {
 func (b *Bot) GetUserProfileAudios(ctx context.Context, params *GetUserProfileAudiosParams) (*models.UserProfileAudios, error) {
 	result := &models.UserProfileAudios{}
 	err := b.rawRequest(ctx, "getUserProfileAudios", params, &result)
+	return result, err
+}
+
+// editMethodRequest is a helper for edit/stop methods that return *Message for regular messages
+// or true (bool) for inline messages. When the API returns a boolean, nil Message is returned.
+func (b *Bot) editMethodRequest(ctx context.Context, method string, params any) (*models.Message, error) {
+	var raw json.RawMessage
+	err := b.rawRequest(ctx, method, params, &raw)
+	if err != nil {
+		return nil, err
+	}
+	if bytes.Equal(raw, []byte("true")) {
+		return nil, nil
+	}
+	result := &models.Message{}
+	if err := json.Unmarshal(raw, result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+// SetChatMemberTag https://core.telegram.org/bots/api#setchatmembertag
+func (b *Bot) SetChatMemberTag(ctx context.Context, params *SetChatMemberTagParams) (bool, error) {
+	var result bool
+	err := b.rawRequest(ctx, "setChatMemberTag", params, &result)
 	return result, err
 }
