@@ -958,7 +958,28 @@ type cronJob struct {
 }
 
 func (j *cronJob) next(lastRun time.Time) time.Time {
-	return j.cronSchedule.Next(lastRun)
+	next := j.cronSchedule.Next(lastRun)
+	if next.IsZero() {
+		return next
+	}
+
+	// Handle DST fall-back: during a "fall back" transition the same
+	// wall-clock time occurs twice (e.g. 01:30 EDT then 01:30 EST).
+	// The underlying cron library may return the second occurrence as the
+	// next match after the first, which would cause a duplicate execution
+	// on the same calendar day.  Because cron.Next always advances at
+	// least one second in absolute time, identical wall-clock date+time
+	// can only happen during a DST fall-back.  Skip ahead when detected.
+	if lastRun.Year() == next.Year() &&
+		lastRun.Month() == next.Month() &&
+		lastRun.Day() == next.Day() &&
+		lastRun.Hour() == next.Hour() &&
+		lastRun.Minute() == next.Minute() &&
+		lastRun.Second() == next.Second() {
+		return j.cronSchedule.Next(next)
+	}
+
+	return next
 }
 
 var _ jobSchedule = (*durationJob)(nil)
@@ -1190,8 +1211,12 @@ type Job interface {
 	// Name returns the name defined on the job.
 	Name() string
 	// NextRun returns the time of the job's next scheduled run.
+	// This value is only available once the scheduler has been started
+	// with Scheduler.Start(). Before that, it returns the zero time value.
 	NextRun() (time.Time, error)
 	// NextRuns returns the requested number of calculated next run values.
+	// These values are only available once the scheduler has been started
+	// with Scheduler.Start(). Before that, it returns nil.
 	NextRuns(int) ([]time.Time, error)
 	// RunNow runs the job once, now. This does not alter
 	// the existing run schedule, and will respect all job
