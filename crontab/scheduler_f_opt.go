@@ -8,6 +8,8 @@ import (
 	gocron "github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+
+	"github.com/agurinov/gopl/run"
 )
 
 func WithLogger(logger *zap.Logger) SchedulerOption {
@@ -22,7 +24,7 @@ func WithLogger(logger *zap.Logger) SchedulerOption {
 	}
 }
 
-func WithJobRegistry(jobs map[string]Job) SchedulerOption {
+func WithJobRegistry(jobs map[string]run.Fn) SchedulerOption {
 	return func(_ context.Context, s *Scheduler) error {
 		s.jobs = jobs
 
@@ -30,6 +32,7 @@ func WithJobRegistry(jobs map[string]Job) SchedulerOption {
 	}
 }
 
+// Deprecated: Use closer centralized mechanics instead.
 func WithShutdownTimeout(t time.Duration) SchedulerOption {
 	return func(_ context.Context, s *Scheduler) error {
 		s.shutdownTimeout = t
@@ -45,7 +48,7 @@ func withScheduler(opts ...gocron.SchedulerOption) SchedulerOption {
 		}
 
 		opts = append(opts,
-			gocron.WithLogger(loggerAdapter(s.logger)),
+			gocron.WithLogger(loggerToGoCron(s.logger)),
 			gocron.WithStopTimeout(s.shutdownTimeout),
 			gocron.WithGlobalJobOptions(
 				gocron.WithSingletonMode(gocron.LimitModeReschedule),
@@ -132,7 +135,7 @@ func WithJob(jobName string, cfg JobConfig) SchedulerOption {
 
 		if _, jobErr := s.scheduler.NewJob(
 			gocron.CronJob(cfg.Schedule, true),
-			taskAdapter(ctx, jobName, job, cfg.Timeout),
+			taskToGoCron(ctx, jobName, job, cfg.Timeout),
 			gocron.WithName(jobName),
 			gocron.WithIdentifier(
 				uuid.NewMD5(uuid.Nil, []byte(jobName)),
