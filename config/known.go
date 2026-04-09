@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/agurinov/gopl/backoff/strategies"
 	"github.com/agurinov/gopl/crontab"
 	"github.com/agurinov/gopl/diag/log"
 	"github.com/agurinov/gopl/diag/metrics"
@@ -36,4 +37,8 @@ type (
 type (
 	TelegramWebApp = telegram.WebAppConfig
 	TelegramBot    = telegram.BotConfig
+)
+
+type (
+	ExponentialBackoff = strategies.ExponentialConfig
 )

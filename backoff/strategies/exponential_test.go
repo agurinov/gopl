@@ -20,6 +20,7 @@ func TestExponential_WithoutJitter(t *testing.T) {
 		strategies.WithJitter(0.0),
 	)
 	require.NoError(t, err)
+	require.NotNil(t, strategy)
 
 	cases := map[string]struct {
 		pl_testing.TestCase
@@ -59,6 +60,7 @@ func TestExponential_WithJitter(t *testing.T) {
 		strategies.WithJitter(0.2),
 	)
 	require.NoError(t, err)
+	require.NotNil(t, strategy)
 
 	cases := map[string]struct {
 		pl_testing.TestCase

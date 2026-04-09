@@ -12,8 +12,6 @@ type Stat struct {
 	MaxRetries uint32
 }
 
-var EmptyStat = Stat{}
-
 func (s Stat) String() string {
 	var b strings.Builder
 
