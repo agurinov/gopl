@@ -18,6 +18,8 @@ func TestBackoff_Concurrency(t *testing.T) {
 	pl_testing.Init(t)
 
 	t.Run("Concurrent", func(t *testing.T) {
+		pl_testing.Init(t)
+
 		var (
 			maxRetries = 10
 			ctx        = t.Context()
@@ -36,7 +38,7 @@ func TestBackoff_Concurrency(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, b)
 
-		doValidRetries := func(ctx context.Context, b *backoff.Backoff) {
+		doValidRetries := func(ctx context.Context, b backoff.Backoff) {
 			stack := make([]run.Fn, 0, maxRetries)
 
 			for range maxRetries {
@@ -66,7 +68,7 @@ func TestBackoff_Concurrency(t *testing.T) {
 				MaxRetries:  uint32(maxRetries),
 			},
 		)
-		require.Equal(t, backoff.EmptyStat, stat)
+		require.Equal(t, backoff.Stat{}, stat)
 
 		// Reset and repeat
 		b.Reset()
@@ -74,6 +76,8 @@ func TestBackoff_Concurrency(t *testing.T) {
 	})
 
 	t.Run("Context", func(t *testing.T) {
+		pl_testing.Init(t)
+
 		b, err := backoff.New(
 			backoff.WithName("lolkek"),
 			backoff.WithMaxRetries(1),
@@ -94,6 +98,6 @@ func TestBackoff_Concurrency(t *testing.T) {
 
 		stat, err := b.Wait(ctx)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
-		require.Equal(t, backoff.EmptyStat, stat)
+		require.Equal(t, backoff.Stat{}, stat)
 	})
 }

@@ -18,21 +18,25 @@ type (
 	Backoff struct {
 		strategy   strategies.Interface
 		logger     *zap.Logger
+		retries    *atomic.Uint32
 		name       string
-		retries    uint32
 		maxRetries uint32
 		logLevel   zapcore.Level
 	}
 	Option = c.Option[Backoff]
 )
 
-func (b *Backoff) Wait(ctx context.Context) (Stat, error) {
+func (b Backoff) Wait(ctx context.Context) (Stat, error) {
 	// Register new retry
-	retries := atomic.AddUint32(&b.retries, 1)
+	retries := b.retries.Add(1)
 
-	// Check limit of allowed retries
-	if retries > b.maxRetries {
-		return EmptyStat, RetryLimitError{
+	var (
+		isUnlimited     = b.maxRetries == math.MaxUint32
+		isLimitExceeded = retries > b.maxRetries
+	)
+
+	if !isUnlimited && isLimitExceeded {
+		return Stat{}, RetryLimitError{
 			BackoffName: b.name,
 			MaxRetries:  b.maxRetries,
 		}
@@ -49,31 +53,29 @@ func (b *Backoff) Wait(ctx context.Context) (Stat, error) {
 
 	select {
 	case <-ctx.Done():
-		return EmptyStat, ctx.Err()
+		return Stat{}, ctx.Err()
 	case <-time.After(delay):
-		return Stat{
+		stat := Stat{
 			Duration:   delay,
 			RetryIndex: retries,
 			MaxRetries: b.maxRetries,
-		}, nil
+		}
+
+		return stat, nil
 	}
 }
 
-func (b *Backoff) Reset() {
-	atomic.StoreUint32(&b.retries, 0)
+func (b Backoff) Reset() {
+	b.retries.Store(0)
 }
 
-func New(opts ...Option) (*Backoff, error) {
+func New(opts ...Option) (Backoff, error) {
 	b := Backoff{
 		name:       pl_strings.UnspecifiedPlaceholder,
 		maxRetries: math.MaxUint32,
 		logLevel:   zapcore.InfoLevel,
+		retries:    new(atomic.Uint32),
 	}
 
-	obj, err := c.ConstructWithValidate(b, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &obj, nil
+	return c.ConstructWithValidate(b, opts...)
 }

@@ -2,12 +2,14 @@ package strategies
 
 import "time"
 
-type static time.Duration
-
-func (s static) Duration(uint32) time.Duration {
-	return time.Duration(s)
-}
-
 func NewStatic(d time.Duration) Interface {
-	return static(d)
+	//nolint:errcheck
+	s, _ := NewExponential(
+		WithMinDelay(d),
+		WithMaxDelay(d),
+		WithMultiplier(1),
+		WithJitter(0),
+	)
+
+	return s
 }
