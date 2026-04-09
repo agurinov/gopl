@@ -9,13 +9,14 @@ import (
 	"go.uber.org/zap"
 
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
 	Scheduler struct {
 		scheduler       gocron.Scheduler
 		logger          *zap.Logger
-		jobs            map[string]Job
+		jobs            map[string]run.Fn
 		shutdownTimeout time.Duration
 	}
 	SchedulerOption c.OptionWithContext[Scheduler]
@@ -41,7 +42,7 @@ func (s Scheduler) Shutdown() error {
 	return nil
 }
 
-// Deprecated: use closer.AddErrorCloser(scheduler.Shutdown) instead
+// Deprecated: use closer.AddCloser(run.ErrorFn(scheduler.Shutdown)) instead
 func (s Scheduler) WaitForShutdown(ctx context.Context) error {
 	<-ctx.Done()
 
