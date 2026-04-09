@@ -278,8 +278,8 @@ github.com/hashicorp/vault/api v1.23.0 h1:gXgluBsSECfRWTSW9niY2jwg2e9mMJc4WoHNv4
 github.com/hashicorp/vault/api v1.23.0/go.mod h1:zransKiB9ftp+kgY8ydjnvCU7Wk8i9L0DYWpXeMj9ko=
 github.com/hashicorp/vault/api/auth/approle v0.12.0 h1:PhF7jrQjydK1DC05EboosXmZg31GDUIKL8bjyilsJ+E=
 github.com/hashicorp/vault/api/auth/approle v0.12.0/go.mod h1:J7BJLpXeQXhuMAWi31Puunu5QOeCoRAgLh2iDti7OLA=
-github.com/hashicorp/vault/api/auth/userpass v0.11.0 h1:iPw1PL6vzQTn2w14quKd0ZnJV+cfPe+p5CA22M45jsA=
-github.com/hashicorp/vault/api/auth/userpass v0.11.0/go.mod h1:FZ/baZ5rhruevb6kED9eh9KhorGtwM+xxVBvtXSxZsY=
+github.com/hashicorp/vault/api/auth/userpass v0.12.0 h1:w2XiddC7J2pZDrc7Wji7iom2rSYWznVLxV2gPAEqt+g=
+github.com/hashicorp/vault/api/auth/userpass v0.12.0/go.mod h1:Amijnw7qOV05S9Afx6TH40C8eu9wFaBYM1UEtPhloAI=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/huandu/xstrings v1.5.0 h1:2ag3IFq9ZDANvthTwTiqSSZLjDc+BedvHPAp5tJy2TI=
 github.com/huandu/xstrings v1.5.0/go.mod h1:y5/lhBue+AyNmUVz9RLU9xbLR0o4KIIExikq4ovT0aE=
