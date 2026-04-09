@@ -15,3 +15,11 @@ func WithBuckets(buckets []float64) Option {
 		return nil
 	}
 }
+
+func WithUseExisting() Option {
+	return func(c *creator) error {
+		c.useExisting = true
+
+		return nil
+	}
+}

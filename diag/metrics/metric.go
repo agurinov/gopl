@@ -17,3 +17,11 @@ func NewHistogram(
 ) *prometheus.HistogramVec {
 	return newCreator(opts...).newHistogram(name, labels...)
 }
+
+func NewGauge(
+	name string,
+	labels []string,
+	opts ...Option,
+) *prometheus.GaugeVec {
+	return newCreator(opts...).newGauge(name, labels...)
+}
