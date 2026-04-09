@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 	"github.com/agurinov/gopl/telegram"
 )
 
@@ -56,7 +56,7 @@ func (h Handler) safe(
 	f()
 }
 
-func (h Handler) Middleware() middlewares.Middleware {
+func (h Handler) Middleware() run.Middleware[http.Handler] {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			h.safe(
