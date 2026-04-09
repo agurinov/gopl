@@ -16,6 +16,7 @@ import (
 	"github.com/agurinov/gopl/diag/metrics"
 	"github.com/agurinov/gopl/http/middlewares"
 	c "github.com/agurinov/gopl/patterns/creational"
+	"github.com/agurinov/gopl/run"
 )
 
 type (
@@ -25,7 +26,7 @@ type (
 		logger            *zap.Logger
 		knownBufFunc      map[string]bufferFunc
 		noCachePaths      []string
-		customMiddlewares []middlewares.Middleware
+		customMiddlewares run.Middlewares[http.Handler]
 		spaEnabled        bool
 	}
 	StaticOption c.Option[static]
