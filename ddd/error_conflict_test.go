@@ -31,9 +31,9 @@ func TestIsConflict(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		args    args
-		results results
+		args args
 		pl_testing.TestCase
+		results results
 	}{
 		"case00: generic conflict same constant": {
 			args: args{

@@ -61,9 +61,9 @@ func TestCloser_WaitForShutdown(t *testing.T) {
 	)
 
 	cases := map[string]struct {
+		pl_testing.TestCase
 		args    args
 		results results
-		pl_testing.TestCase
 	}{
 		"case00: empty closer": {
 			args:    args{},
