@@ -1,6 +1,11 @@
+//nolint:gocheckcompilerdirectives
 package x
 
+import "cmp"
+
 // Deprecated: Use SliceConvert instead.
+//
+//go:fix inline
 func SliceMap[T1, T2 any](
 	in []T1,
 	mapF func(T1) T2,
@@ -9,6 +14,8 @@ func SliceMap[T1, T2 any](
 }
 
 // Deprecated: Use SliceConvertError instead.
+//
+//go:fix inline
 func SliceMapError[T1, T2 any](
 	in []T1,
 	mapF func(T1) (T2, error),
@@ -20,14 +27,8 @@ func SliceMapError[T1, T2 any](
 }
 
 // Deprecated: Use cmp.Or instead.
+//
+//go:fix inline
 func Coalesce[T comparable](in ...T) T {
-	var zero T
-
-	for i := range in {
-		if in[i] != zero {
-			return in[i]
-		}
-	}
-
-	return zero
+	return cmp.Or(in...)
 }

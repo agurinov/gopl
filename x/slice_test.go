@@ -1,6 +1,7 @@
 package x_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/google/uuid"
@@ -9,6 +10,116 @@ import (
 	pl_testing "github.com/agurinov/gopl/testing"
 	"github.com/agurinov/gopl/x"
 )
+
+func TestSliceConvert(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in   []int
+			mapF func(i int) string
+		}
+		results struct {
+			out []string
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: success": {
+			args: args{
+				in: []int{5, 10, 3},
+				mapF: func(i int) string {
+					return strconv.FormatInt(int64(i), 10)
+				},
+			},
+			results: results{
+				out: []string{"5", "10", "3"},
+			},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.SliceConvert(
+				tc.args.in,
+				tc.args.mapF,
+			)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
+
+func TestSliceConvertError(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in []string
+		}
+		results struct {
+			out []uuid.UUID
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: no errors": {
+			args: args{
+				in: []string{
+					"9B3C6872-F8C7-46D6-8376-DF39D61EB099",
+					"5408546F-FEEB-4348-A2B4-AB73C0D8E775",
+				},
+			},
+			results: results{
+				out: []uuid.UUID{
+					uuid.Must(uuid.Parse("9B3C6872-F8C7-46D6-8376-DF39D61EB099")),
+					uuid.Must(uuid.Parse("5408546F-FEEB-4348-A2B4-AB73C0D8E775")),
+				},
+			},
+		},
+		"case01: with errors": {
+			args: args{
+				in: []string{
+					"9B3C6872-F8C7-46D6-8376-DF39D61EB099",
+					"foo",
+					"5408546F-FEEB-4348-A2B4-AB73C0D8E775",
+				},
+			},
+			results: results{
+				out: nil,
+			},
+			TestCase: pl_testing.TestCase{
+				MustFail: true,
+			},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out, err := x.SliceConvertError(
+				tc.args.in,
+				uuid.Parse,
+			)
+			tc.CheckError(t, err)
+			require.EqualValues(t, tc.results.out, out)
+		})
+	}
+}
 
 func TestUnique(t *testing.T) {
 	pl_testing.Init(t)
@@ -126,8 +237,8 @@ func TestLast(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: nil": {
 			args: args{
@@ -181,8 +292,8 @@ func TestCoalesce(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: nil": {
 			args: args{
@@ -227,8 +338,8 @@ func TestSliceToMap(t *testing.T) {
 
 	type (
 		s struct {
-			UUID uuid.UUID
 			S    string
+			UUID uuid.UUID
 		}
 		args struct {
 			in []s
@@ -239,9 +350,9 @@ func TestSliceToMap(t *testing.T) {
 	)
 
 	cases := map[string]struct {
-		pl_testing.TestCase
-		args    args
 		results results
+		pl_testing.TestCase
+		args args
 	}{
 		"case00: nil": {
 			args: args{
@@ -295,9 +406,9 @@ func TestSliceMapError_UUID(t *testing.T) {
 	)
 
 	cases := map[string]struct {
+		pl_testing.TestCase
 		args    args
 		results results
-		pl_testing.TestCase
 	}{
 		"case00: nil": {
 			args: args{
@@ -378,8 +489,8 @@ func TestPaginate(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: zero limit": {
 			args: args{
@@ -519,8 +630,8 @@ func TestSliceBatch(t *testing.T) {
 
 	cases := map[string]struct {
 		pl_testing.TestCase
-		args    args
 		results results
+		args    args
 	}{
 		"case00: empty slice": {
 			args: args{
@@ -584,6 +695,71 @@ func TestSliceBatch(t *testing.T) {
 			tc.Init(t)
 
 			out := x.SliceBatch(tc.args.in, tc.args.batchSize)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
+
+func TestGroupBy(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		employee struct {
+			grade int
+			name  string
+		}
+		args struct {
+			in   []employee
+			keyF func(employee) int
+		}
+		results struct {
+			out map[int][]employee
+		}
+	)
+
+	byGrade := func(e employee) int {
+		return e.grade
+	}
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: by grade": {
+			args: args{
+				in: []employee{
+					{name: "bob", grade: 1},
+					{name: "alice", grade: 1},
+					{name: "lol", grade: 2},
+					{name: "kek", grade: 3},
+				},
+				keyF: byGrade,
+			},
+			results: results{
+				out: map[int][]employee{
+					1: {
+						{name: "bob", grade: 1},
+						{name: "alice", grade: 1},
+					},
+					2: {
+						{name: "lol", grade: 2},
+					},
+					3: {
+						{name: "kek", grade: 3},
+					},
+				},
+			},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.GroupBy(tc.args.in, tc.args.keyF)
 			require.Equal(t, tc.results.out, out)
 		})
 	}

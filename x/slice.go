@@ -199,3 +199,21 @@ func SliceBatch[T any](
 
 	return batches
 }
+
+func GroupBy[T any, K comparable](
+	in []T,
+	keyF func(T) K,
+) map[K][]T {
+	out := make(map[K][]T, len(in))
+
+	for i := range in {
+		key := keyF(in[i])
+
+		out[key] = append(
+			out[key],
+			in[i],
+		)
+	}
+
+	return out
+}
