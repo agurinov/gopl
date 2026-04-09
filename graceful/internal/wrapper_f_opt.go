@@ -1,11 +1,11 @@
-package graceful
+package internal
 
 import (
 	"go.uber.org/zap"
 )
 
 func WithWrapperLogger(logger *zap.Logger) WrapperOption {
-	return func(c *Wrapper) error {
+	return func(c *wrapper) error {
 		if logger == nil {
 			return nil
 		}
