@@ -71,8 +71,9 @@ GREP_TAGS_CMD                     := grep -I -h -R --exclude-dir=.git --exclude-
 
 _GO_IGNORED_BUILD_TAGS            := ignore devtools tools neverbuild
 _GO_INTEGRATION_BUILD_TAGS        := integration integ
-_GO_OS_ARCH_BUILD_TAGS            := unix linux darwin windows 386 amd64 arm arm64 wasm
+_GO_OS_ARCH_BUILD_TAGS            := unix linux darwin windows 386 amd64 arm arm64 wasm dragonfly freebsd netbsd openbsd solaris aix zos
 _GO_SYS_BUILD_TAGS                := cgo gc gccgo
+_GO_VERSION_BUILD_TAGS            := go1.26 go1.25 go1.24 go1.23
 
 SPECIAL_CHARS                     := ! ( ) & |
 PARENTHESIS_OPEN                  := (
@@ -86,6 +87,7 @@ GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESIS_OPEN),,$(GO_DISCOVERE
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(subst $(PARENTHESIS_CLOSE),,$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(filter-out $(_GO_OS_ARCH_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(filter-out $(_GO_SYS_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
+GO_DISCOVERED_BUILD_TAGS_ALL      := $(filter-out $(_GO_VERSION_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_ALL      := $(sort $(GO_DISCOVERED_BUILD_TAGS_ALL))
 GO_DISCOVERED_BUILD_TAGS_FILTERED := $(filter-out $(_GO_IGNORED_BUILD_TAGS),$(GO_DISCOVERED_BUILD_TAGS_ALL))
 
@@ -242,6 +244,7 @@ golangci-lint: FORCE golangci_lint_no_cache | $(firstword $(GOLANGCI_LINT_CONFS)
 go_fmt: FORCE
 	$(GO) fmt $(GO_PKG)
 	$(GO) mod edit -fmt
+	$(GO) fix $(GO_PKG)
 	$(FIELDALIGNMENT) -fix $(GO_PKG)
 
 go_vet: FORCE
