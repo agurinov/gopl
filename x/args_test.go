@@ -9,6 +9,88 @@ import (
 	"github.com/agurinov/gopl/x"
 )
 
+func TestValueOrNil(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in string
+		}
+		results struct {
+			out any
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: zero value": {
+			args:    args{in: ""},
+			results: results{out: nil},
+		},
+		"case01: non-zero value": {
+			args:    args{in: "hello"},
+			results: results{out: "hello"},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.ValueOrNil(tc.args.in)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
+
+func TestSliceOrNil(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in []string
+		}
+		results struct {
+			out any
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: nil slice": {
+			args:    args{in: nil},
+			results: results{out: nil},
+		},
+		"case01: empty slice": {
+			args:    args{in: []string{}},
+			results: results{out: nil},
+		},
+		"case02: non-empty slice": {
+			args:    args{in: []string{"a", "b"}},
+			results: results{out: []string{"a", "b"}},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.SliceOrNil(tc.args.in)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
+
 func TestEmptyIf(t *testing.T) {
 	pl_testing.Init(t)
 

@@ -129,6 +129,110 @@ func TestMapConvert(t *testing.T) {
 	}
 }
 
+func TestMapClone(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in map[string]int
+		}
+		results struct {
+			out map[string]int
+		}
+	)
+
+	cases := map[string]struct {
+		args    args
+		results results
+		pl_testing.TestCase
+	}{
+		"case00: nil map": {
+			args:    args{in: nil},
+			results: results{out: map[string]int{}},
+		},
+		"case01: non-empty map": {
+			args: args{
+				in: map[string]int{"foo": 1, "bar": 2},
+			},
+			results: results{
+				out: map[string]int{"foo": 1, "bar": 2},
+			},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.MapClone(tc.args.in)
+			require.Equal(t, tc.results.out, out)
+
+			for k := range out {
+				out[k]++
+			}
+
+			require.NotEqual(t, out, tc.args.in)
+		})
+	}
+}
+
+func TestMapKeys(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in map[string]int
+		}
+		results struct {
+			out []string
+		}
+	)
+
+	cases := map[string]struct {
+		args    args
+		results results
+		pl_testing.TestCase
+	}{
+		"case00: nil map": {
+			args:    args{in: nil},
+			results: results{out: []string{}},
+		},
+		"case01: single entry": {
+			args: args{
+				in: map[string]int{"foo": 1},
+			},
+			results: results{
+				out: []string{"foo"},
+			},
+		},
+		"case02: multiple entries": {
+			args: args{
+				in: map[string]int{
+					"foo": 1,
+					"bar": 2,
+					"baz": 3,
+				},
+			},
+			results: results{
+				out: []string{"foo", "bar", "baz"},
+			},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.MapKeys(tc.args.in)
+			require.ElementsMatch(t, tc.results.out, out)
+		})
+	}
+}
+
 func TestMapFilter(t *testing.T) {
 	pl_testing.Init(t)
 
