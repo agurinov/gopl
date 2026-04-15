@@ -11,6 +11,76 @@ import (
 	"github.com/agurinov/gopl/x"
 )
 
+func TestSliceFilter(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in   []string
+			useF func(string) bool
+		}
+		results struct {
+			out []string
+		}
+	)
+
+	longerThanOne := func(s string) bool { return len(s) > 1 }
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: nil slice": {
+			args: args{
+				in:   nil,
+				useF: longerThanOne,
+			},
+			results: results{
+				out: []string{},
+			},
+		},
+		"case01: no elements match": {
+			args: args{
+				in:   []string{"a", "b", "c"},
+				useF: longerThanOne,
+			},
+			results: results{
+				out: []string{},
+			},
+		},
+		"case02: some elements match": {
+			args: args{
+				in:   []string{"a", "bb", "c", "ddd"},
+				useF: longerThanOne,
+			},
+			results: results{
+				out: []string{"bb", "ddd"},
+			},
+		},
+		"case03: all elements match": {
+			args: args{
+				in:   []string{"aa", "bbb", "cccc"},
+				useF: longerThanOne,
+			},
+			results: results{
+				out: []string{"aa", "bbb", "cccc"},
+			},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			out := x.SliceFilter(tc.args.in, tc.args.useF)
+			require.Equal(t, tc.results.out, out)
+		})
+	}
+}
+
 func TestSliceConvert(t *testing.T) {
 	pl_testing.Init(t)
 
@@ -219,6 +289,53 @@ func TestFilterOutEmpty(t *testing.T) {
 
 			filtered := x.FilterOutEmpty(tc.args.in)
 			require.Equal(t, tc.results.filtered, filtered)
+		})
+	}
+}
+
+func TestFirst(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in []string
+		}
+		results struct {
+			first string
+		}
+	)
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		results results
+		args    args
+	}{
+		"case00: nil": {
+			args:    args{in: nil},
+			results: results{first: ""},
+		},
+		"case01: empty": {
+			args:    args{in: []string{}},
+			results: results{first: ""},
+		},
+		"case02: single element": {
+			args:    args{in: []string{"a"}},
+			results: results{first: "a"},
+		},
+		"case03: multiple elements": {
+			args:    args{in: []string{"a", "b", "c"}},
+			results: results{first: "a"},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			first := x.First(tc.args.in)
+			require.Equal(t, tc.results.first, first)
 		})
 	}
 }
