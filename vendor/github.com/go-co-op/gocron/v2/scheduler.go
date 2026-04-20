@@ -151,6 +151,7 @@ func NewScheduler(options ...SchedulerOption) (Scheduler, error) {
 		jobsOutCompleted:       make(chan uuid.UUID),
 		jobOutRequest:          make(chan *jobOutRequest, 100),
 		done:                   make(chan error, 1),
+		jobTimingUpdateCh:      make(chan jobTimingUpdate, 100),
 	}
 
 	s := &scheduler{
@@ -191,6 +192,9 @@ func NewScheduler(options ...SchedulerOption) (Scheduler, error) {
 				s.updateNextScheduled(id)
 			case id := <-s.exec.jobsOutCompleted:
 				s.selectExecJobsOutCompleted(id)
+
+			case update := <-s.exec.jobTimingUpdateCh:
+				s.selectJobTimingUpdate(update)
 
 			case in := <-s.newJobCh:
 				s.selectNewJob(in)
@@ -496,6 +500,20 @@ func (s *scheduler) selectExecJobsOutCompleted(id uuid.UUID) {
 	s.jobs[id] = j
 }
 
+func (s *scheduler) selectJobTimingUpdate(update jobTimingUpdate) {
+	j, ok := s.jobs[update.id]
+	if !ok {
+		return
+	}
+	if !update.startedAt.IsZero() {
+		j.lastRunStartedAt = update.startedAt
+	}
+	if !update.completedAt.IsZero() {
+		j.lastRunCompletedAt = update.completedAt
+	}
+	s.jobs[update.id] = j
+}
+
 func (s *scheduler) selectJobOutRequest(out *jobOutRequest) {
 	if j, ok := s.jobs[out.id]; ok {
 		select {
@@ -630,6 +648,49 @@ func (s *scheduler) jobFromInternalJob(in internalJob) job {
 		slices.Clone(in.tags),
 		s.jobOutRequestCh,
 		s.runJobRequestCh,
+		s.jobScheduleFromInternal(in.jobSchedule),
+	}
+}
+
+func (s *scheduler) jobScheduleFromInternal(js jobSchedule) JobSchedule {
+	switch v := js.(type) {
+	case *cronJob:
+		return CronJobSchedule{
+			Crontab: v.crontab,
+		}
+	case *durationJob:
+		return DurationJobSchedule{
+			Duration: v.duration,
+		}
+	case *durationRandomJob:
+		return DurationRandomJobSchedule{
+			Min: v.min,
+			Max: v.max,
+		}
+	case dailyJob:
+		return DailyJobSchedule{
+			Interval: v.interval,
+			AtTimes:  slices.Clone(v.atTimes),
+		}
+	case weeklyJob:
+		return WeeklyJobSchedule{
+			Interval:   v.interval,
+			DaysOfWeek: slices.Clone(v.daysOfWeek),
+			AtTimes:    slices.Clone(v.atTimes),
+		}
+	case monthlyJob:
+		return MonthlyJobSchedule{
+			Interval:    v.interval,
+			Days:        slices.Clone(v.days),
+			DaysFromEnd: slices.Clone(v.daysFromEnd),
+			AtTimes:     slices.Clone(v.atTimes),
+		}
+	case oneTimeJob:
+		return OneTimeJobSchedule{
+			StartAt: slices.Clone(v.sortedTimes),
+		}
+	default:
+		return nil
 	}
 }
 
