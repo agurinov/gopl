@@ -395,6 +395,144 @@ func TestLast(t *testing.T) {
 	}
 }
 
+func TestFirstFunc(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in   []int
+			useF func(int) bool
+		}
+		results struct {
+			first int
+		}
+	)
+
+	greaterThanFive := func(v int) bool { return v > 5 }
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: nil": {
+			args: args{
+				in:   nil,
+				useF: greaterThanFive,
+			},
+			results: results{first: 0},
+		},
+		"case01: empty": {
+			args: args{
+				in:   []int{},
+				useF: greaterThanFive,
+			},
+			results: results{first: 0},
+		},
+		"case02: no match": {
+			args: args{
+				in:   []int{1, 2, 3},
+				useF: greaterThanFive,
+			},
+			results: results{first: 0},
+		},
+		"case03: single match": {
+			args: args{
+				in:   []int{1, 2, 6, 3},
+				useF: greaterThanFive,
+			},
+			results: results{first: 6},
+		},
+		"case04: multiple matches": {
+			args: args{
+				in:   []int{1, 2, 6, 7, 3},
+				useF: greaterThanFive,
+			},
+			results: results{first: 6},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			first := x.FirstFunc(tc.args.in, tc.args.useF)
+			require.Equal(t, tc.results.first, first)
+		})
+	}
+}
+
+func TestLastFunc(t *testing.T) {
+	pl_testing.Init(t)
+
+	type (
+		args struct {
+			in   []int
+			useF func(int) bool
+		}
+		results struct {
+			last int
+		}
+	)
+
+	greaterThanFive := func(v int) bool { return v > 5 }
+
+	cases := map[string]struct {
+		pl_testing.TestCase
+		args    args
+		results results
+	}{
+		"case00: nil": {
+			args: args{
+				in:   nil,
+				useF: greaterThanFive,
+			},
+			results: results{last: 0},
+		},
+		"case01: empty": {
+			args: args{
+				in:   []int{},
+				useF: greaterThanFive,
+			},
+			results: results{last: 0},
+		},
+		"case02: no match": {
+			args: args{
+				in:   []int{1, 2, 3},
+				useF: greaterThanFive,
+			},
+			results: results{last: 0},
+		},
+		"case03: single match": {
+			args: args{
+				in:   []int{6, 2, 1, 3},
+				useF: greaterThanFive,
+			},
+			results: results{last: 6},
+		},
+		"case04: multiple matches": {
+			args: args{
+				in:   []int{6, 2, 7, 1, 3},
+				useF: greaterThanFive,
+			},
+			results: results{last: 7},
+		},
+	}
+
+	for name := range cases {
+		tc := cases[name]
+
+		t.Run(name, func(t *testing.T) {
+			tc.Init(t)
+
+			last := x.LastFunc(tc.args.in, tc.args.useF)
+			require.Equal(t, tc.results.last, last)
+		})
+	}
+}
+
 func TestCoalesce(t *testing.T) {
 	pl_testing.Init(t)
 
