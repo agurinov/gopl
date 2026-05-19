@@ -43,9 +43,9 @@ func FilterOutEmpty[T comparable](in []T) []T {
 }
 
 func Last[E any](s []E) E {
-	var zero E
-
 	if len(s) == 0 {
+		var zero E
+
 		return zero
 	}
 
@@ -53,13 +53,43 @@ func Last[E any](s []E) E {
 }
 
 func First[E any](s []E) E {
-	var zero E
-
 	if len(s) == 0 {
+		var zero E
+
 		return zero
 	}
 
 	return s[0]
+}
+
+func FirstFunc[E any](
+	s []E,
+	useF func(E) bool,
+) E {
+	for i := range s {
+		if useF(s[i]) {
+			return s[i]
+		}
+	}
+
+	var zero E
+
+	return zero
+}
+
+func LastFunc[E any](
+	s []E,
+	useF func(E) bool,
+) E {
+	for i := len(s) - 1; i >= 0; i-- {
+		if useF(s[i]) {
+			return s[i]
+		}
+	}
+
+	var zero E
+
+	return zero
 }
 
 func SliceFilter[T any](
