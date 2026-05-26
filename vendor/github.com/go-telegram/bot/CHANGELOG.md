@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.21.0 (2026-05-22)
+
+- Support Bot API 9.6 & 10.0, multipart fixes — closes #279 #280, fixes #273 #274 #271 #277 (#281)
+
 ## v1.20.0 (2026-03-19)
 
 - resolve issues #242, #245, #261, #262 
