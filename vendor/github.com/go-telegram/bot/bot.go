@@ -101,14 +101,10 @@ func New(token string, options ...Option) (*Bot, error) {
 	return b, nil
 }
 
-// ID returns the bot ID
+// ID returns the bot user id from the token prefix ("<id>:<secret>").
 func (b *Bot) ID() int64 {
-	id, err := strconv.ParseInt(strings.Split(b.token, ":")[0], 10, 64)
-	if err != nil {
-		return 0
-	}
-
-	return id
+	i, _ := strconv.ParseInt(strings.Split(b.token, ":")[0], 10, 64)
+	return i
 }
 
 // SetToken sets the bot token

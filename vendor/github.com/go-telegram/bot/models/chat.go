@@ -54,7 +54,7 @@ type ChatAdministratorRights struct {
 
 // ChatPermissions https://core.telegram.org/bots/api#chatpermissions
 type ChatPermissions struct {
-	CanSendMessages       bool `json:"can_send_messages,omitempty"`
+	CanSendMessages       bool `json:"can_send_messages"`
 	CanSendAudios         bool `json:"can_send_audios"`
 	CanSendDocuments      bool `json:"can_send_documents"`
 	CanSendPhotos         bool `json:"can_send_photos"`
@@ -69,6 +69,7 @@ type ChatPermissions struct {
 	CanPinMessages        bool `json:"can_pin_messages,omitempty"`
 	CanManageTopics       bool `json:"can_manage_topics,omitempty"`
 	CanEditTag            bool `json:"can_edit_tag,omitempty"`
+	CanReactToMessages    bool `json:"can_react_to_messages,omitempty"`
 }
 
 // ChatLocation https://core.telegram.org/bots/api#chatlocation
