@@ -30,7 +30,7 @@ func (cr creator) metricName(name string) string {
 	return strings.ReplaceAll(cmdName, "-", "_") + "_" + name
 }
 
-func (cr creator) register(vec prometheus.Collector) {
+func (cr creator) mustRegister(vec prometheus.Collector) {
 	if !cr.useExisting {
 		registerer.MustRegister(vec)
 
@@ -44,6 +44,9 @@ func (cr creator) register(vec prometheus.Collector) {
 
 	switch {
 	case errors.As(err, existsErr):
+		if !isSameMetric(vec, existsErr.ExistingCollector) {
+			panic(err)
+		}
 	case err != nil:
 		panic(err)
 	}
@@ -59,7 +62,7 @@ func (cr creator) newCounter(name string, labels ...string) *prometheus.CounterV
 		labels,
 	)
 
-	cr.register(vec)
+	cr.mustRegister(vec)
 
 	return vec
 }
@@ -80,7 +83,7 @@ func (cr creator) newHistogram(name string, labels ...string) *prometheus.Histog
 		labels,
 	)
 
-	cr.register(vec)
+	cr.mustRegister(vec)
 
 	return vec
 }
@@ -95,7 +98,11 @@ func (cr creator) newGauge(name string, labels ...string) *prometheus.GaugeVec {
 		labels,
 	)
 
-	cr.register(vec)
+	cr.mustRegister(vec)
 
 	return vec
+}
+
+func isSameMetric(_, _ prometheus.Collector) bool {
+	return true
 }
