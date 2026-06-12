@@ -1,6 +1,6 @@
 module github.com/agurinov/gopl
 
-go 1.24.0
+go 1.25.0
 
 require (
 	buf.build/go/protovalidate v1.2.0
