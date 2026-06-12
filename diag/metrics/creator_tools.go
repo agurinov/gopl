@@ -10,7 +10,7 @@ func registerAs[T any](
 	cr creator,
 	vec prometheus.Collector,
 ) T {
-	registered := cr.register(vec)
+	registered := cr.mustRegister(vec)
 
 	typedVec, ok := registered.(T)
 	if !ok {

@@ -30,7 +30,7 @@ func (cr creator) metricName(name string) string {
 	return strings.ReplaceAll(cmdName, "-", "_") + "_" + name
 }
 
-func (cr creator) register(vec prometheus.Collector) prometheus.Collector {
+func (cr creator) mustRegister(vec prometheus.Collector) prometheus.Collector {
 	if !cr.useExisting {
 		registerer.MustRegister(vec)
 
