@@ -9,7 +9,7 @@ require (
 	github.com/go-co-op/gocron/v2 v2.21.2
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/go-sql-driver/mysql v1.10.0
-	github.com/go-telegram/bot v1.21.0
+	github.com/go-telegram/bot v1.22.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/hashicorp/vault/api v1.23.0
