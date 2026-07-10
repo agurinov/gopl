@@ -33,7 +33,9 @@ func (c ConsumerConfig) NewConsumer(
 		backoff.WithName("idle"),
 		backoff.WithLogLevel(zapcore.DebugLevel),
 		backoff.WithUnlimitedRetries(),
-		backoff.WithExponentialStrategy(),
+		backoff.WithExponentialStrategy(
+			c.Idle.Options()...,
+		),
 	}
 
 	kgoConsumerOptions := []kgo.Opt{
@@ -53,6 +55,7 @@ func (c ConsumerConfig) NewConsumer(
 
 	if c.DLQ.Topic != "" {
 		// TODO: minimaze config in this case (merge base configs?)
+		// TODO: validate before merge
 		dlq, err := c.DLQ.NewProducer()
 		if err != nil {
 			return nil, err

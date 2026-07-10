@@ -32,6 +32,7 @@ type (
 	ProducerOption c.Option[producer]
 )
 
+// TODO: middlewares
 func (p producer) Produce(
 	ctx context.Context,
 	records ...Record,

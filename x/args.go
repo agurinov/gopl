@@ -33,9 +33,9 @@ func ValueOrNil[T comparable](in T) any {
 }
 
 func EmptyIf[T comparable](in T, empty ...T) T {
-	var zero T
-
 	if slices.Contains(empty, in) {
+		var zero T
+
 		return zero
 	}
 
@@ -43,9 +43,9 @@ func EmptyIf[T comparable](in T, empty ...T) T {
 }
 
 func FromPtr[T any](in *T) T {
-	var zero T
-
 	if in == nil {
+		var zero T
+
 		return zero
 	}
 
@@ -53,10 +53,10 @@ func FromPtr[T any](in *T) T {
 }
 
 func SafeAssert[T any](in any) T {
-	var zero T
-
 	typed, ok := in.(T)
 	if !ok {
+		var zero T
+
 		return zero
 	}
 
