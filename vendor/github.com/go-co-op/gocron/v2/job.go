@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"slices"
 	"strings"
 	"time"
@@ -41,18 +41,25 @@ const (
 // internalJob stores the information needed by the scheduler
 // to manage scheduling, starting and stopping the job
 type internalJob struct {
-	ctx       context.Context
-	parentCtx context.Context
-	cancel    context.CancelFunc
-	id        uuid.UUID
-	name      string
-	tags      []string
-	cron      Cron
 	jobSchedule
+
+	ctx                       context.Context
+	parentCtx                 context.Context
+	cancel                    context.CancelFunc
+	id                        uuid.UUID
+	name                      string
+	tags                      []string
+	cron                      Cron
 	daylightSavingsTimePolicy DaylightSavingsTimePolicy
 
-	// as some jobs may queue up, it's possible to
-	// have multiple nextScheduled times
+	// nextScheduled holds upcoming scheduled invocation times for the
+	// job. Ordered ascending by wall-clock instant (see ascendingTime).
+	// Job.NextRun and Job.NextRuns rely on this invariant. All
+	// mutations must go through insertNextScheduled or the filter
+	// helpers in the scheduler; do NOT append directly.
+	//
+	// As some jobs may queue up, it's possible to have multiple
+	// nextScheduled times.
 	nextScheduled []time.Time
 
 	lastRun                time.Time
@@ -99,6 +106,28 @@ func (j *internalJob) stopTimeReached(now time.Time) bool {
 	return j.stopTime.Before(now)
 }
 
+// pruneStaleScheduled removes any entries in j.nextScheduled that are
+// at or before now (i.e. no longer upcoming). The remaining entries
+// keep their ascending-time ordering; see the docstring on
+// internalJob.nextScheduled.
+//
+// Callers of Job.NextRuns() receive a subslice of j.nextScheduled
+// and read from it on their own goroutine. This function therefore
+// MUST allocate a fresh backing array rather than reusing the
+// existing one via j.nextScheduled[:0]; otherwise concurrent reads
+// from previously-returned subslices race with our writes. This is
+// verified by TestScheduler_NextRuns_ReturnsAscendingAfterRescheduleCycles
+// under -race.
+func (j *internalJob) pruneStaleScheduled(now time.Time) {
+	var kept []time.Time
+	for _, t := range j.nextScheduled {
+		if t.After(now) {
+			kept = append(kept, t)
+		}
+	}
+	j.nextScheduled = kept
+}
+
 // task stores the function and parameters
 // that are actually run when the job is executed.
 type task struct {
@@ -141,6 +170,24 @@ type limitRunsTo struct {
 // Cron defines the interface that must be
 // implemented to provide a custom cron implementation for
 // the job. Pass in the implementation using the JobOption WithCronImplementation.
+//
+// IsValid parses crontab and returns nil if it is a syntactically valid
+// expression with at least one future run relative to now. Implementations
+// SHOULD honor the location argument as the default timezone, but MAY be
+// overridden by an explicit timezone prefix on the crontab itself (see the
+// defaultCron.IsValid docstring for the precedence rules gocron ships with).
+//
+// Next returns the next scheduled run after lastRun. Callers assume the
+// returned time is strictly after lastRun; returning lastRun or an earlier
+// value can cause the scheduler to spin.
+//
+// If a custom implementation caches parsed state in IsValid for later
+// use by Next, it must either be safe for concurrent use across the
+// goroutines that call NewJob/Update, next-computation in the
+// scheduler, and Job.NextRuns from user code, or the caller must
+// supply a fresh instance per job via WithCronImplementation. The
+// default implementation is cloned per job automatically to avoid
+// aliasing when the same JobDefinition is reused across NewJob calls.
 type Cron interface {
 	IsValid(crontab string, location *time.Location, now time.Time) error
 	Next(lastRun time.Time) time.Time
@@ -182,6 +229,21 @@ type defaultCron struct {
 	withSeconds  bool
 }
 
+// IsValid parses crontab against the given location.
+//
+// Timezone precedence:
+//  1. If crontab starts with "TZ=" or "CRON_TZ=", that prefix wins and
+//     the location argument is ignored.
+//  2. Otherwise the location is prepended as "CRON_TZ=<location.String()>".
+//     location.String() is used verbatim (e.g. "UTC", "America/New_York",
+//     "Local"). Some platforms/locales may report location names that
+//     robfig/cron does not accept; callers who need portability should
+//     supply a standard IANA zone via WithLocation.
+//
+// Returns ErrCronJobParse (wrapping the parser's error) on syntactic
+// failure, or ErrCronJobInvalid when the crontab parses but produces
+// no future run relative to now (e.g. a one-shot expression already in
+// the past).
 func (c *defaultCron) IsValid(crontab string, location *time.Location, now time.Time) error {
 	var withLocation string
 	if strings.HasPrefix(crontab, "TZ=") || strings.HasPrefix(crontab, "CRON_TZ=") {
@@ -226,15 +288,23 @@ type cronJobDefinition struct {
 }
 
 func (c cronJobDefinition) setup(j *internalJob, location *time.Location, now time.Time) error {
+	cronImpl := c.cron
 	if j.cron != nil {
-		c.cron = j.cron
+		cronImpl = j.cron
+	} else if dc, ok := cronImpl.(*defaultCron); ok {
+		// Give each job its own defaultCron so parsing state written
+		// by IsValid isn't shared across jobs derived from the same
+		// JobDefinition, and isn't concurrently mutated by later
+		// setups (e.g. Update) while another goroutine is reading
+		// through Job.NextRuns.
+		cronImpl = &defaultCron{withSeconds: dc.withSeconds}
 	}
 
-	if err := c.cron.IsValid(c.crontab, location, now); err != nil {
+	if err := cronImpl.IsValid(c.crontab, location, now); err != nil {
 		return err
 	}
 
-	j.jobSchedule = &cronJob{crontab: c.crontab, cronSchedule: c.cron, daylightSavingsTimePolicy: j.daylightSavingsTimePolicy}
+	j.jobSchedule = &cronJob{crontab: c.crontab, cronSchedule: cronImpl, daylightSavingsTimePolicy: j.daylightSavingsTimePolicy}
 	return nil
 }
 
@@ -292,9 +362,8 @@ func (d durationRandomJobDefinition) setup(j *internalJob, _ *time.Location, _ t
 	}
 
 	j.jobSchedule = &durationRandomJob{
-		min:  d.min,
-		max:  d.max,
-		rand: rand.New(rand.NewSource(time.Now().UnixNano())), // nolint:gosec
+		min: d.min,
+		max: d.max,
 	}
 	return nil
 }
@@ -1228,11 +1297,14 @@ var _ jobSchedule = (*durationRandomJob)(nil)
 
 type durationRandomJob struct {
 	min, max time.Duration
-	rand     *rand.Rand
 }
 
 func (j *durationRandomJob) next(lastRun time.Time) time.Time {
-	r := j.rand.Int63n(int64(j.max - j.min))
+	// math/rand/v2's top-level functions use a per-goroutine generator
+	// derived from a shared, cryptographically-seeded source, so this
+	// is safe to call concurrently from the scheduler goroutine and
+	// from user goroutines invoking Job.NextRuns.
+	r := rand.Int64N(int64(j.max - j.min))
 	return lastRun.Add(j.min + time.Duration(r))
 }
 
@@ -1563,7 +1635,10 @@ func (j job) ID() uuid.UUID {
 }
 
 func (j job) IsRunning() (bool, error) {
-	ij := requestJob(j.id, j.jobOutRequest)
+	ij, err := requestJob(j.id, j.jobOutRequest)
+	if err != nil {
+		return false, err
+	}
 	if ij == nil || ij.id == uuid.Nil {
 		return false, ErrJobNotFound
 	}
@@ -1574,7 +1649,10 @@ func (j job) IsRunning() (bool, error) {
 }
 
 func (j job) LastRun() (time.Time, error) {
-	ij := requestJob(j.id, j.jobOutRequest)
+	ij, err := requestJob(j.id, j.jobOutRequest)
+	if err != nil {
+		return time.Time{}, err
+	}
 	if ij == nil || ij.id == uuid.Nil {
 		return time.Time{}, ErrJobNotFound
 	}
@@ -1582,7 +1660,10 @@ func (j job) LastRun() (time.Time, error) {
 }
 
 func (j job) LastRunCompletedAt() (time.Time, error) {
-	ij := requestJob(j.id, j.jobOutRequest)
+	ij, err := requestJob(j.id, j.jobOutRequest)
+	if err != nil {
+		return time.Time{}, err
+	}
 	if ij == nil || ij.id == uuid.Nil {
 		return time.Time{}, ErrJobNotFound
 	}
@@ -1590,7 +1671,10 @@ func (j job) LastRunCompletedAt() (time.Time, error) {
 }
 
 func (j job) LastRunStartedAt() (time.Time, error) {
-	ij := requestJob(j.id, j.jobOutRequest)
+	ij, err := requestJob(j.id, j.jobOutRequest)
+	if err != nil {
+		return time.Time{}, err
+	}
 	if ij == nil || ij.id == uuid.Nil {
 		return time.Time{}, ErrJobNotFound
 	}
@@ -1602,7 +1686,10 @@ func (j job) Name() string {
 }
 
 func (j job) NextRun() (time.Time, error) {
-	ij := requestJob(j.id, j.jobOutRequest)
+	ij, err := requestJob(j.id, j.jobOutRequest)
+	if err != nil {
+		return time.Time{}, err
+	}
 	if ij == nil || ij.id == uuid.Nil {
 		return time.Time{}, ErrJobNotFound
 	}
@@ -1615,7 +1702,10 @@ func (j job) NextRun() (time.Time, error) {
 }
 
 func (j job) NextRuns(count int) ([]time.Time, error) {
-	ij := requestJob(j.id, j.jobOutRequest)
+	ij, err := requestJob(j.id, j.jobOutRequest)
+	if err != nil {
+		return nil, err
+	}
 	if ij == nil || ij.id == uuid.Nil {
 		return nil, ErrJobNotFound
 	}
@@ -1654,11 +1744,11 @@ func (j job) Schedule() JobSchedule {
 }
 
 func (j job) RunNow() error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultRunNowResultTimeout)
 	defer cancel()
 	resp := make(chan error, 1)
 
-	t := time.NewTimer(100 * time.Millisecond)
+	t := time.NewTimer(defaultRunNowSendTimeout)
 	select {
 	case j.runJobRequest <- runJobRequest{
 		id:      j.id,
