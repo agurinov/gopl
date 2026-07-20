@@ -27,7 +27,7 @@ jobs:
       - uses: agurinov/pipelines/github-actions/actions/setup-dotfiles@main
         with:
           token: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go-version }}
       - run: make --include-dir=~/.make --no-print-directory toolset-ci
