@@ -30,7 +30,7 @@ func TestDTO(t *testing.T) {
 		pl_testing.Init(t)
 
 		hist := metrics.NewHistogram(
-			"test_histogram",
+			"test_histogram_"+pl_testing.RandomHash(t),
 			labels,
 			metrics.WithUseExisting(),
 		)
@@ -55,7 +55,7 @@ func TestDTO(t *testing.T) {
 		pl_testing.Init(t)
 
 		counter := metrics.NewCounter(
-			"test_counter",
+			"test_counter_"+pl_testing.RandomHash(t),
 			labels,
 			metrics.WithUseExisting(),
 		)
@@ -80,7 +80,7 @@ func TestDTO(t *testing.T) {
 		pl_testing.Init(t)
 
 		gauge := metrics.NewGauge(
-			"test_gauge",
+			"test_gauge_"+pl_testing.RandomHash(t),
 			labels,
 			metrics.WithUseExisting(),
 		)

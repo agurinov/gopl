@@ -30,11 +30,11 @@ func (cr creator) metricName(name string) string {
 	return strings.ReplaceAll(cmdName, "-", "_") + "_" + name
 }
 
-func (cr creator) register(vec prometheus.Collector) {
+func (cr creator) register(vec prometheus.Collector) prometheus.Collector {
 	if !cr.useExisting {
 		registerer.MustRegister(vec)
 
-		return
+		return vec
 	}
 
 	var (
@@ -44,9 +44,12 @@ func (cr creator) register(vec prometheus.Collector) {
 
 	switch {
 	case errors.As(err, existsErr):
+		return existsErr.ExistingCollector
 	case err != nil:
 		panic(err)
 	}
+
+	return vec
 }
 
 func (cr creator) newCounter(name string, labels ...string) *prometheus.CounterVec {
@@ -59,9 +62,7 @@ func (cr creator) newCounter(name string, labels ...string) *prometheus.CounterV
 		labels,
 	)
 
-	cr.register(vec)
-
-	return vec
+	return registerAs[*prometheus.CounterVec](cr, vec)
 }
 
 func (cr creator) newHistogram(name string, labels ...string) *prometheus.HistogramVec {
@@ -80,9 +81,7 @@ func (cr creator) newHistogram(name string, labels ...string) *prometheus.Histog
 		labels,
 	)
 
-	cr.register(vec)
-
-	return vec
+	return registerAs[*prometheus.HistogramVec](cr, vec)
 }
 
 func (cr creator) newGauge(name string, labels ...string) *prometheus.GaugeVec {
@@ -95,7 +94,5 @@ func (cr creator) newGauge(name string, labels ...string) *prometheus.GaugeVec {
 		labels,
 	)
 
-	cr.register(vec)
-
-	return vec
+	return registerAs[*prometheus.GaugeVec](cr, vec)
 }
