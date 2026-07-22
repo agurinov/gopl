@@ -2,6 +2,7 @@ package stands
 
 import (
 	"crypto"
+	"crypto/rand"
 	"encoding/hex"
 	"testing"
 
@@ -12,7 +13,7 @@ const (
 	maxHashLen = 8
 )
 
-func hash(t *testing.T) string {
+func DeterministicHash(t *testing.T) string {
 	t.Helper()
 
 	hasher := crypto.MD5.New()
@@ -22,4 +23,10 @@ func hash(t *testing.T) string {
 	hashhex := hex.EncodeToString(hasher.Sum(nil))
 
 	return hashhex[:maxHashLen]
+}
+
+func RandomHash(t *testing.T) string {
+	t.Helper()
+
+	return rand.Text()[:maxHashLen]
 }

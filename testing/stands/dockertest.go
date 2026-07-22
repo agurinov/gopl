@@ -70,7 +70,7 @@ func network(t *testing.T) *docker.Network {
 
 	var (
 		p           = Pool(t)
-		networkName = "gopl_" + hash(t)
+		networkName = "gopl_" + RandomHash(t)
 		network     *docker.Network
 	)
 
