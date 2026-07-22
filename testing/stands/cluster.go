@@ -33,7 +33,7 @@ func (p ports) ExternalRaw(offset int) string { return strconv.Itoa(p.external +
 func (n node) Hostname(t *testing.T) string {
 	t.Helper()
 
-	return fmt.Sprintf("%s_%s%d", hash(t), n.domain, n.index)
+	return fmt.Sprintf("%s_%s%d", RandomHash(t), n.domain, n.index)
 }
 func (n node) ExternalPort() string    { return n.ports.External(n.index) }
 func (n node) ExternalPortRaw() string { return n.ports.ExternalRaw(n.index) }
