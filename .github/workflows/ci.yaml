@@ -1,0 +1,23 @@
+---
+name: 'CI'
+run-name: 'CI'
+
+permissions:
+  contents: read
+
+on:
+  push:
+
+jobs:
+  golang:
+    uses: agurinov/pipelines/.github/workflows/golang-library.yaml@main
+    secrets:
+      DOTFILES_GITHUB_TOKEN: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
+
+  tag:
+    needs: golang
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+    permissions:
+      contents: write
+    uses: agurinov/pipelines/.github/workflows/golang-tag-version.yaml@main
+...
