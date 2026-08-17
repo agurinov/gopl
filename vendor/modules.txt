@@ -1,10 +1,11 @@
-# buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20260415201107-50325440f8f2.1
+# buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.11-20260709200747-435963d16310.1
 ## explicit; go 1.23
 buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate
-# buf.build/go/protovalidate v1.2.0
-## explicit; go 1.24.0
+# buf.build/go/protovalidate v1.3.0
+## explicit; go 1.25.0
 buf.build/go/protovalidate
 buf.build/go/protovalidate/cel
+buf.build/go/protovalidate/internal/rules
 # cel.dev/expr v0.25.2
 ## explicit; go 1.23.0
 cel.dev/expr
@@ -152,9 +153,10 @@ github.com/go-telegram/bot/models
 ## explicit; go 1.18
 github.com/go-viper/mapstructure/v2
 github.com/go-viper/mapstructure/v2/internal/errors
-# github.com/google/cel-go v0.28.0
+# github.com/google/cel-go v0.30.0
 ## explicit; go 1.23.0
 github.com/google/cel-go/cel
+github.com/google/cel-go/cel/async
 github.com/google/cel-go/checker
 github.com/google/cel-go/checker/decls
 github.com/google/cel-go/common
