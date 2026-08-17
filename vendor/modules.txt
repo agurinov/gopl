@@ -495,7 +495,7 @@ github.com/stretchr/testify/require
 # github.com/telegram-mini-apps/init-data-golang v1.5.0
 ## explicit; go 1.18
 github.com/telegram-mini-apps/init-data-golang
-# github.com/twmb/franz-go v1.21.5
+# github.com/twmb/franz-go v1.21.6
 ## explicit; go 1.25.0
 github.com/twmb/franz-go/pkg/kbin
 github.com/twmb/franz-go/pkg/kerr
