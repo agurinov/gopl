@@ -2,6 +2,8 @@ package kafka
 
 import (
 	"time"
+
+	"github.com/twmb/franz-go/pkg/kgo"
 )
 
 type (
@@ -11,3 +13,24 @@ type (
 		Cooldown time.Duration `validate:"gte=0"`
 	}
 )
+
+func (c ProducerConfig) NewProducer(
+	opts ...ProducerOption,
+) (
+	Producer,
+	error,
+) {
+	kgoProducerOptions := []kgo.Opt{
+		kgo.SeedBrokers(c.Brokers...),
+		kgo.ConsumeTopics(c.Topic),
+	}
+
+	defaults := []ProducerOption{
+		WithProducerClient(kgoProducerOptions...),
+		WithProducerCooldown(c.Cooldown),
+	}
+
+	opts = append(defaults, opts...)
+
+	return NewProducer(opts...)
+}
