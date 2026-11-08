@@ -11,8 +11,6 @@ on:
 jobs:
   golang:
     uses: agurinov/pipelines/.github/workflows/golang-library.yaml@main
-    secrets:
-      DOTFILES_GITHUB_TOKEN: ${{ secrets.DOTFILES_GITHUB_TOKEN }}
 
   tag:
     needs: golang
