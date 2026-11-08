@@ -19,5 +19,5 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
     permissions:
       contents: write
-    uses: agurinov/pipelines/.github/workflows/golang-tag-version.yaml@main
+    uses: agurinov/pipelines/.github/workflows/golang-tag-version.yaml@fix/golang-lib-ci
 ...
